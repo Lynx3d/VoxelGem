@@ -1,0 +1,463 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>679</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>VoxelGem</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="resources.qrc">
+    <normaloff>:/images/gfx/icons/block.svg</normaloff>:/images/gfx/icons/block.svg</iconset>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item row="0" column="0">
+     <widget class="QWidget" name="glparent" native="true">
+      <property name="focusPolicy">
+       <enum>Qt::ClickFocus</enum>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1024</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_file">
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
+    </property>
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="action_new"/>
+    <addaction name="action_open"/>
+    <addaction name="separator"/>
+    <addaction name="action_save"/>
+    <addaction name="action_saveas"/>
+    <addaction name="separator"/>
+    <addaction name="action_export_troxel"/>
+    <addaction name="action_export_image"/>
+    <addaction name="separator"/>
+    <addaction name="action_exit"/>
+   </widget>
+   <widget class="QMenu" name="menu_help">
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
+    </property>
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="action_about"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
+    </property>
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="action_axis_grids"/>
+    <addaction name="separator"/>
+    <addaction name="action_zoom_in"/>
+    <addaction name="action_zoom_out"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
+    </property>
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="action_undo"/>
+    <addaction name="action_redo"/>
+    <addaction name="separator"/>
+    <addaction name="action_rotate_x"/>
+    <addaction name="action_rotate_y"/>
+    <addaction name="action_rotate_z"/>
+    <addaction name="separator"/>
+    <addaction name="action_mirror_x"/>
+    <addaction name="action_mirror_y"/>
+    <addaction name="action_mirror_z"/>
+   </widget>
+   <addaction name="menu_file"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuView"/>
+   <addaction name="menu_help"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolbar">
+   <property name="focusPolicy">
+    <enum>Qt::ClickFocus</enum>
+   </property>
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="action_new"/>
+   <addaction name="action_open"/>
+   <addaction name="action_save"/>
+   <addaction name="separator"/>
+   <addaction name="action_undo"/>
+   <addaction name="action_redo"/>
+   <addaction name="separator"/>
+   <addaction name="action_axis_grids"/>
+   <addaction name="separator"/>
+   <addaction name="action_background"/>
+   <addaction name="separator"/>
+  </widget>
+  <widget class="QToolBar" name="toolbar_drawing">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>LeftToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QDockWidget" name="dock">
+   <property name="windowTitle">
+    <string>Palette</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="palette">
+    <property name="minimumSize">
+     <size>
+      <width>140</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_3">
+     <item row="0" column="0">
+      <widget class="QLineEdit" name="paletteRGBvalue">
+       <property name="focusPolicy">
+        <enum>Qt::ClickFocus</enum>
+       </property>
+       <property name="text">
+        <string>#ff0000</string>
+       </property>
+       <property name="readOnly">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <action name="action_exit">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/gfx/gfx/application-exit.png</normaloff>:/gfx/gfx/application-exit.png</iconset>
+   </property>
+   <property name="text">
+    <string>Quit</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="action_about">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/gfx/gfx/help-contents.png</normaloff>:/gfx/gfx/help-contents.png</iconset>
+   </property>
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="action_save">
+   <property name="icon">
+    <iconset resource="../goxel++/resources.qrc">
+     <normaloff>:/images/gfx/icons/disk.svg</normaloff>:/images/gfx/icons/disk.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Save</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="action_axis_grids">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../goxel++/resources.qrc">
+     <normaloff>:/images/gfx/icons/grid.svg</normaloff>:/images/gfx/icons/grid.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Axis Grids</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle Axis Grids</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+1</string>
+   </property>
+  </action>
+  <action name="action_new">
+   <property name="icon">
+    <iconset resource="../goxel++/resources.qrc">
+     <normaloff>:/images/gfx/icons/document-new.svg</normaloff>:/images/gfx/icons/document-new.svg</iconset>
+   </property>
+   <property name="text">
+    <string>New</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="action_saveas">
+   <property name="icon">
+    <iconset resource="../goxel++/resources.qrc">
+     <normaloff>:/images/gfx/icons/disk.svg</normaloff>:/images/gfx/icons/disk.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Save As...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="action_open">
+   <property name="icon">
+    <iconset resource="../goxel++/resources.qrc">
+     <normaloff>:/images/gfx/icons/folder.svg</normaloff>:/images/gfx/icons/folder.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Open...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="action_background">
+   <property name="icon">
+    <iconset resource="../goxel++/resources.qrc">
+     <normaloff>:/images/gfx/icons/palette.svg</normaloff>:/images/gfx/icons/palette.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Background</string>
+   </property>
+   <property name="toolTip">
+    <string>Choose background color</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+6</string>
+   </property>
+  </action>
+  <action name="action_undo">
+   <property name="icon">
+    <iconset resource="../goxel++/resources.qrc">
+     <normaloff>:/images/gfx/icons/edit-undo.svg</normaloff>:/images/gfx/icons/edit-undo.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="toolTip">
+    <string>Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="action_redo">
+   <property name="icon">
+    <iconset resource="../goxel++/resources.qrc">
+     <normaloff>:/images/gfx/icons/edit-redo.svg</normaloff>:/images/gfx/icons/edit-redo.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Redo</string>
+   </property>
+   <property name="toolTip">
+    <string>Redo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Z</string>
+   </property>
+  </action>
+  <action name="action_zoom_in">
+   <property name="text">
+    <string>Zoom in</string>
+   </property>
+   <property name="toolTip">
+    <string>Zoom in</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl++</string>
+   </property>
+  </action>
+  <action name="action_zoom_out">
+   <property name="text">
+    <string>Zoom out</string>
+   </property>
+   <property name="toolTip">
+    <string>Zoom out</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+-</string>
+   </property>
+  </action>
+  <action name="action_rotate_x">
+   <property name="text">
+    <string>Rotate Model X-Axis</string>
+   </property>
+   <property name="toolTip">
+    <string>Rotate voxels around X axis</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="action_rotate_y">
+   <property name="text">
+    <string>Rotate Model Y-Axis</string>
+   </property>
+   <property name="toolTip">
+    <string>Rotate voxels around Y axis</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+  </action>
+  <action name="action_rotate_z">
+   <property name="text">
+    <string>Rotate Model Z-Axis</string>
+   </property>
+   <property name="toolTip">
+    <string>Rotate voxels around Z axis</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
+   </property>
+  </action>
+  <action name="action_export_image">
+   <property name="text">
+    <string>Export Image...</string>
+   </property>
+   <property name="toolTip">
+    <string>Export image of current model view</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
+  </action>
+  <action name="action_mirror_x">
+   <property name="text">
+    <string>Mirror Model X-Axis</string>
+   </property>
+   <property name="toolTip">
+    <string>Mirror voxels in X axis</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+J</string>
+   </property>
+  </action>
+  <action name="action_mirror_y">
+   <property name="text">
+    <string>Mirror Model Y-Axis</string>
+   </property>
+   <property name="toolTip">
+    <string>Mirror voxels in Y axis</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K</string>
+   </property>
+  </action>
+  <action name="action_mirror_z">
+   <property name="text">
+    <string>Mirror Model Z-Axis</string>
+   </property>
+   <property name="toolTip">
+    <string>Mirror voxels in Z axis</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="action_export_troxel">
+   <property name="text">
+    <string>Export Troxel-link...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="../goxel++/resources.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>action_exit</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>501</x>
+     <y>361</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
