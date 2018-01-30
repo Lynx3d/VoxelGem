@@ -7,7 +7,8 @@
  */
 
 #include "glviewport.h"
-#include "voxelgrid.h"
+//#include "voxelgrid.h"
+#include "voxelaggregate.h"
 #include "util/shaderinfo.h"
 #include <iostream>
 #include <QSurfaceFormat>
@@ -18,7 +19,7 @@
 
 float GlViewportWidget::sRGB_LUT[1024];
 
-const char* v_shader = 
+const char* v_shader =
 "#version 330\n"
 "layout(location = 0) in vec3 v_position;\n"
 "layout(location = 1) in uvec4 v_color;\n"
@@ -29,11 +30,11 @@ const char* v_shader =
 "};\n"
 "void main() {\n"
 "	gl_Position = mvp_mat * vec4(v_position, 1);\n"
-"	frag_color = vec4(val[v_color.r], val[v_color.g], val[v_color.b], float(v_color.a)/255.0);\n" 
+"	frag_color = vec4(val[v_color.r], val[v_color.g], val[v_color.b], float(v_color.a)/255.0);\n"
 //"	frag_color = v_color;\n"
 "}\n";
 
-const char* flat_shader = 
+const char* flat_shader =
 "#version 330\n"
 "in vec4 frag_color;\n"
 "out vec4 final_color;\n"
@@ -41,7 +42,7 @@ const char* flat_shader =
 "	final_color = frag_color;\n"
 "}";
 
-const GlVertex_t testArray[] = 
+const GlVertex_t testArray[] =
 {
 	{{ -5.f, 0.f, 0.f }, { 255, 0, 0, 255 }},
 	{{ 5.f, 0.f, 0.f }, { 0, 255, 0, 255 }},
@@ -119,7 +120,8 @@ void ViewportSettings::updateViewMatrix()
 // TODO: create proper shader library
 QOpenGLShaderProgram *m_program, *m_voxel_program;
 GLRenderable *testObject;
-VoxelGrid *testGrid;
+//VoxelGrid *testGrid;
+VoxelAggregate *testAggreg;
 
 void GlViewportWidget::initializeGL()
 {
@@ -148,7 +150,7 @@ void GlViewportWidget::initializeGL()
 	// connect sRGB UBO
 	GLuint block_index = glGetUniformBlockIndex(m_program->programId(), "sRGB_LUT");
 	glUniformBlockBinding(m_program->programId(), block_index, 0);
-	
+
 	m_voxel_program = new QOpenGLShaderProgram(/*TODO: "self" as parent when stored in class*/);
 	m_voxel_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shader/voxel_fragment.glsl");
 	m_voxel_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shader/voxel_vertex.glsl");
@@ -176,17 +178,18 @@ void GlViewportWidget::initializeGL()
 	m_program->enableAttributeArray("v_color");
 	//glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(GlVertex_t), (const GLvoid*)offsetof(GlVertex_t, col));
 	glVertexAttribIPointer(1, 4, GL_UNSIGNED_BYTE, sizeof(GlVertex_t), (const GLvoid*)offsetof(GlVertex_t, col));
-	
+
 	m_vertexSpec.release();
 	m_program->release();
-	
+
 	//testobject
 	testObject = new LineGrid();
-	testGrid = new VoxelGrid();
+	//testGrid = new VoxelGrid();
+	testAggreg = new VoxelAggregate();
 	//
 
 	glEnable(GL_DEPTH_TEST);
-	
+
 	vpSettings = new ViewportSettings(this);
 }
 void GlViewportWidget::resizeGL(int w, int h)
@@ -221,7 +224,8 @@ void GlViewportWidget::paintGL()
 	// test voxel grid object
 	m_voxel_program->bind();
 	m_voxel_program->setUniformValue("mvp_mat", final);
-	testGrid->render(*this);
+	//testGrid->render(*this);
+	testAggreg->render(*this);
 	m_program->release();
 }
 
@@ -250,7 +254,7 @@ void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 		ray = vpSettings->unproject(QVector3D(event->x(), height() - event->y(), 0.f));
 		int hitPos[3];
 		intersect_t hitInfo;
-		bool didHit = testGrid->rayIntersect(ray, hitPos, hitInfo);
+		bool didHit = testAggreg->rayIntersect(ray, hitPos, hitInfo);
 		std::cout << "did hit:" << didHit << " voxel=(" << hitPos[0] << "," << hitPos[1] << "," << hitPos[2]
 					<< ") hit axis:" << hitInfo.entryAxis << std::endl;
 		if (!didHit)
@@ -264,8 +268,9 @@ void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 		{
 			hitPos[hitInfo.entryAxis & 3] += (hitInfo.entryAxis & intersect_t::AXIS_NEGATIVE) ? 1 : -1;
 			GridEntry vox = { { 128, 128, 255, 255 }, VF_NON_EMPTY };
-			if (hitPos[0] >= 0 && hitPos[0] < 16 && hitPos[1] >= 0 && hitPos[1] < 16 && hitPos[2] >= 0 && hitPos[2] < 16)
-				testGrid->setVoxel(hitPos[0], hitPos[1], hitPos[2], vox);
+			//if (hitPos[0] >= 0 && hitPos[0] < 16 && hitPos[1] >= 0 && hitPos[1] < 16 && hitPos[2] >= 0 && hitPos[2] < 16)
+			//	testGrid->setVoxel(hitPos[0], hitPos[1], hitPos[2], vox);
+			testAggreg->setVoxel(hitPos[0], hitPos[1], hitPos[2], vox);
 			update();
 		}
 	}
@@ -293,7 +298,7 @@ void GlViewportWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	if (dragStatus == DRAG_NONE)
 		return;
-	
+
 	QPoint delta = event->pos() - dragStart;
 	if (dragStatus == DRAG_ROTATE)
 	{

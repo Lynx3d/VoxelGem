@@ -33,9 +33,13 @@ const int neighbor_offset[] = {
 	 271,  272,  273
 };
 
-VoxelGrid::VoxelGrid(): bound(QVector3D(0.f, 0.f, 0.f), QVector3D(16.f, 16.f, 16.f)),
-					 voxels(GRID_LEN * GRID_LEN * GRID_LEN)
+VoxelGrid::VoxelGrid(const int pos[3]):
+	bound(QVector3D(pos[0], pos[1], pos[2]), QVector3D(pos[0] + GRID_LEN, pos[1] + GRID_LEN, pos[2] + GRID_LEN)),
+	voxels(GRID_LEN * GRID_LEN * GRID_LEN)
 {
+	gridPos[0] = pos[0];
+	gridPos[1] = pos[1];
+	gridPos[2] = pos[2];
 	memset(voxels.data(), 0, voxels.capacity());
 	/* TEST! TODO*/
 	GridEntry &testVoxel = voxels[voxelIndex(3,2,5)];
@@ -96,7 +100,7 @@ void VoxelGrid::render(QOpenGLFunctions_3_3_Core &glf)
 	glVAO.release();
 }
 
-bool VoxelGrid::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit)
+bool VoxelGrid::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) const
 {
 	//intersect_t hit;
 	if (!bound.rayIntersect(ray, &hit))
@@ -130,7 +134,9 @@ bool VoxelGrid::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit)
 		const GridEntry &voxel = voxels[voxelIndex(vPos[0], vPos[1], vPos[2])];
 		if (voxel.flags & VF_NON_EMPTY)
 		{
-			hitPos[0] = vPos[0], hitPos[1] = vPos[1], hitPos[2] = vPos[2];
+			hitPos[0] = vPos[0] + gridPos[0];
+			hitPos[1] = vPos[1] + gridPos[1];
+			hitPos[2] = vPos[2] + gridPos[2];
 			return true;
 		}
 		// Step to net voxel, find axis:

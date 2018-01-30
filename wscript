@@ -22,6 +22,7 @@ def build(bld):
 				'src/voxelgrid.cpp',
 				'src/util/shaderinfo.cpp',
 				'src/palette.cpp',
+				'src/voxelaggregate.cpp',
 				'resources.qrc',
 				'mainwindow.ui']
 	bld(
