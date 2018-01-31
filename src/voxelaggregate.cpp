@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-void VoxelAggregate::setVoxel(int x, int y, int z, const GridEntry &voxel)
+void VoxelAggregate::setVoxel(int x, int y, int z, const VoxelEntry &voxel)
 {
 	uint64_t id = blockID(x, y, z);
 	blockMap_t::iterator grid = blockMap.find(id);

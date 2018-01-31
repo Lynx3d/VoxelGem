@@ -42,7 +42,7 @@ VoxelGrid::VoxelGrid(const int pos[3]):
 	gridPos[2] = pos[2];
 	memset(voxels.data(), 0, voxels.capacity());
 	/* TEST! TODO*/
-	GridEntry &testVoxel = voxels[voxelIndex(3,2,5)];
+	VoxelEntry &testVoxel = voxels[voxelIndex(3,2,5)];
 	testVoxel = { { 255, 220, 200, 255 }, VF_NON_EMPTY };
 	//testVoxel.flags = VF_NON_EMPTY;
 }
@@ -131,7 +131,7 @@ bool VoxelGrid::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) 
 
 	while (true)
 	{
-		const GridEntry &voxel = voxels[voxelIndex(vPos[0], vPos[1], vPos[2])];
+		const VoxelEntry &voxel = voxels[voxelIndex(vPos[0], vPos[1], vPos[2])];
 		if (voxel.flags & VF_NON_EMPTY)
 		{
 			hitPos[0] = vPos[0] + gridPos[0];
@@ -160,7 +160,7 @@ int VoxelGrid::tesselate(GlVoxelVertex_t *vertices)
 		for (int y = 0; y < GRID_LEN; ++y)
 			for (int x = 0; x < GRID_LEN; ++x, ++index)
 	{
-		GridEntry &entry = voxels[index];
+		VoxelEntry &entry = voxels[index];
 		if (!entry.flags & VF_NON_EMPTY) continue;
 		for (int face=0; face < 6; ++face)
 		{

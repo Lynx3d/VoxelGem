@@ -61,7 +61,7 @@ int ColorPaletteModel::rowCount(const QModelIndex& /* parent */) const
 {
 	if (!activeColorSet)
         return 0;
-	
+
 	return activeColorSet->numEntries()/columnCount() + 1;
 }
 
@@ -104,7 +104,7 @@ void ColorPaletteDelegate::paint(QPainter * painter, const QStyleOptionViewItem 
     painter->save();
 	bool isSelected = option.state & QStyle::State_Selected;
 	int width = isSelected ? 2 : 1;
-	
+
 	if (isSelected)
 	{
 		painter->fillRect(option.rect, option.palette.highlight());

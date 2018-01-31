@@ -60,10 +60,11 @@ class BBox
 
 enum VoxelFlags
 {
-	VF_NON_EMPTY = 1
+	VF_NON_EMPTY = 1,
+	VF_ERASED = 2
 };
 
-class GridEntry
+class VoxelEntry
 {
 	public:
 		unsigned char col[4];
@@ -80,7 +81,7 @@ class VoxelGrid: public GLRenderable
 		{
 			return x + y * GRID_LEN + z * GRID_LEN * GRID_LEN;
 		}
-		void setVoxel(int x, int y, int z, const GridEntry &voxel)
+		void setVoxel(int x, int y, int z, const VoxelEntry &voxel)
 		{
 			voxels[voxelIndex(x, y, z)] = voxel;
 			dirty = true;
@@ -97,7 +98,7 @@ class VoxelGrid: public GLRenderable
 		BBox bound;
 		int gridPos[3];
 		int nTessTris;
-		std::vector<GridEntry> voxels;
+		std::vector<VoxelEntry> voxels;
 };
 
 #endif // VG_VOXELGRID_H
