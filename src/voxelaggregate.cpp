@@ -36,10 +36,16 @@ bool VoxelAggregate::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &
 	for (auto &grid: blockMap)
 	{
 		intersect_t isect;
-		if (grid.second->rayIntersect(ray, hitPos, isect))
+		int iPos[3];
+		if (grid.second->rayIntersect(ray, iPos, isect))
 		{
 			if (!didHit || isect.tNear < hit.tNear)
+			{
+				hitPos[0] = iPos[0];
+				hitPos[1] = iPos[1];
+				hitPos[2] = iPos[2];
 				hit = isect;
+			}
 			didHit = true;
 		}
 	}

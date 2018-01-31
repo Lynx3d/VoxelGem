@@ -9,6 +9,7 @@
 #include "glviewport.h"
 //#include "voxelgrid.h"
 #include "voxelaggregate.h"
+#include "voxelscene.h"
 #include "util/shaderinfo.h"
 #include <iostream>
 #include <QSurfaceFormat>
@@ -121,7 +122,8 @@ void ViewportSettings::updateViewMatrix()
 QOpenGLShaderProgram *m_program, *m_voxel_program;
 GLRenderable *testObject;
 //VoxelGrid *testGrid;
-VoxelAggregate *testAggreg;
+//VoxelAggregate *testAggreg;
+VoxelScene *testScene;
 
 void GlViewportWidget::initializeGL()
 {
@@ -185,7 +187,8 @@ void GlViewportWidget::initializeGL()
 	//testobject
 	testObject = new LineGrid();
 	//testGrid = new VoxelGrid();
-	testAggreg = new VoxelAggregate();
+	//testAggreg = new VoxelAggregate();
+	testScene = new VoxelScene();
 	//
 
 	glEnable(GL_DEPTH_TEST);
@@ -225,7 +228,8 @@ void GlViewportWidget::paintGL()
 	m_voxel_program->bind();
 	m_voxel_program->setUniformValue("mvp_mat", final);
 	//testGrid->render(*this);
-	testAggreg->render(*this);
+	//testAggreg->render(*this);
+	testScene->renderLayer->render(*this);
 	m_program->release();
 }
 
@@ -254,7 +258,7 @@ void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 		ray = vpSettings->unproject(QVector3D(event->x(), height() - event->y(), 0.f));
 		int hitPos[3];
 		intersect_t hitInfo;
-		bool didHit = testAggreg->rayIntersect(ray, hitPos, hitInfo);
+		bool didHit = testScene->renderLayer->rayIntersect(ray, hitPos, hitInfo);//testAggreg->rayIntersect(ray, hitPos, hitInfo);
 		std::cout << "did hit:" << didHit << " voxel=(" << hitPos[0] << "," << hitPos[1] << "," << hitPos[2]
 					<< ") hit axis:" << hitInfo.entryAxis << std::endl;
 		if (!didHit)
@@ -266,11 +270,18 @@ void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 		// voxel paint test
 		if (didHit)
 		{
-			hitPos[hitInfo.entryAxis & 3] += (hitInfo.entryAxis & intersect_t::AXIS_NEGATIVE) ? 1 : -1;
+			//hitPos[hitInfo.entryAxis & 3] += (hitInfo.entryAxis & intersect_t::AXIS_NEGATIVE) ? 1 : -1;
 			VoxelEntry vox = { { 128, 128, 255, 255 }, VF_NON_EMPTY };
 			//if (hitPos[0] >= 0 && hitPos[0] < 16 && hitPos[1] >= 0 && hitPos[1] < 16 && hitPos[2] >= 0 && hitPos[2] < 16)
 			//	testGrid->setVoxel(hitPos[0], hitPos[1], hitPos[2], vox);
-			testAggreg->setVoxel(hitPos[0], hitPos[1], hitPos[2], vox);
+			//testAggreg->setVoxel(hitPos[0], hitPos[1], hitPos[2], vox);
+			if (event->modifiers() & Qt::ShiftModifier)
+				testScene->eraseVoxel(hitPos);
+			else
+			{
+				hitPos[hitInfo.entryAxis & 3] += (hitInfo.entryAxis & intersect_t::AXIS_NEGATIVE) ? 1 : -1;
+				testScene->setVoxel(hitPos, vox);
+			}
 			update();
 		}
 	}
