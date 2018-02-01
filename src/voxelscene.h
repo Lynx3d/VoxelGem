@@ -13,6 +13,23 @@ class VoxelEntry;
 class VoxelAggregate;
 class GlViewportWidget;
 
+class SceneRayHit
+{
+	public:
+		enum
+		{
+			AXIS_MASK = 0x3,
+			AXIS_NEGATIVE = 0x4,
+			HIT_VOXEL = 0x100,
+			HIT_LINEGRID = 0x200,
+			HIT_HANDLE = 0x400,
+			HIT_MASK = 0x700
+		};
+		int voxelPos[3];
+		int flags { 0 };
+		float rayT;
+};
+
 /*! This class holds all the "scene" data for a file edit session.
 	Includes viewport and various UI information required for
 	editing tools to work on the scene.

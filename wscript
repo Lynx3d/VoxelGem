@@ -17,12 +17,13 @@ def build(bld):
 	#   Qt classes in foo.cpp -> include foo.moc at the end of foo.cpp
 	#
 	sources = [ 'src/main.cpp',
+				'src/edittool.cpp',
 				'src/glviewport.cpp',
-				'src/renderobject.cpp',
-				'src/voxelgrid.cpp',
-				'src/util/shaderinfo.cpp',
 				'src/palette.cpp',
+				'src/renderobject.cpp',
+				'src/util/shaderinfo.cpp',
 				'src/voxelaggregate.cpp',
+				'src/voxelgrid.cpp',
 				'src/voxelscene.cpp',
 				'resources.qrc',
 				'mainwindow.ui']
