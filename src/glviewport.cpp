@@ -79,6 +79,7 @@ ray_t ViewportSettings::unproject(const QVector3D &pNear)
 	QMatrix4x4 invProj = (port * glMatrix).inverted();
 	ray.from = invProj * pNear;
 	ray.dir = invProj * pFar - ray.from;
+	ray.t_min = 0;
 	ray.t_max = ray.dir.length();
 	ray.dir /= ray.t_max;
 	qDebug() << camPos << "\n ray.from:" << ray.from << "\n ray.dir:" << ray. dir << "\n t_max:" << ray.t_max;

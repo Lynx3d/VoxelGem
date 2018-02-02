@@ -102,13 +102,15 @@ bool LineGrid::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit)
 		tHit = (/*gridLevel[axis]*/ - ray.from[axis]) / ray.dir[axis];
 	}
 	else return false;
-	
+
 	std::cout << "tHit: " << tHit << std::endl;
 	if (tHit >= ray.t_min && tHit <= ray.t_max)
 	{
 		QVector3D pHit = ray.from + tHit * ray.dir;
 		for (int i = 0; i < 3; ++i)
 			hitPos[i] = floor(pHit[i]);
+		// floor() is not suitable for plane axis, but we know the value anyway...
+		hitPos[axis] = 0; /*gridLevel[axis]*/
 		// a plane has no volume, so if we shoot towards negative axis
 		// we actually hit one voxel pos lower than in opposite direction
 		if (axisDirFlag)
