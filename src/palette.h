@@ -81,6 +81,7 @@ class ColorPaletteView: public QTableView
 		QSize sizeHint() const override;
 		void updateView();
 		void setPaletteModel(ColorPaletteModel *model);
+		ColorPaletteModel* getPaletteModel() { return activeModel; }
 
 	public Q_SLOTS:
 		void paletteModelChanged();

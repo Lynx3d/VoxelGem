@@ -123,9 +123,6 @@ void ViewportSettings::updateViewMatrix()
 // TODO: create proper shader library
 QOpenGLShaderProgram *m_program, *m_voxel_program;
 GLRenderable *testObject;
-//VoxelGrid *testGrid;
-//VoxelAggregate *testAggreg;
-VoxelScene *testScene;
 EditTool *testTool;
 
 void GlViewportWidget::initializeGL()
@@ -189,9 +186,6 @@ void GlViewportWidget::initializeGL()
 
 	//testobject
 	testObject = new LineGrid();
-	//testGrid = new VoxelGrid();
-	//testAggreg = new VoxelAggregate();
-	testScene = new VoxelScene();
 	testTool = new PaintTool();
 	//
 
@@ -213,14 +207,9 @@ void GlViewportWidget::paintGL()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	m_program->bind();
 	m_vertexSpec.bind();
-	/* disabled for test:
-	QMatrix4x4 view, proj, final;
-	view.lookAt(QVector3D(0.f, 0.f, -10.f), QVector3D(0.f, 0.f, 0.f), QVector3D(0.f, 1.f, 0.f));
-	proj.perspective(45, (float)width()/float(height()), 1, 100);
-	final = proj * view;
-	-> test */
+
 	QMatrix4x4 final = vpSettings->getGlMatrix();
-	// end test
+
 	m_program->setUniformValue("mvp_mat", final);
 	glBindBuffer(GL_UNIFORM_BUFFER, m_ubo_LUT);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ubo_LUT);
@@ -228,30 +217,16 @@ void GlViewportWidget::paintGL()
 	m_vertexSpec.release();
 	// test object
 	testObject->render(*this);
-	// test voxel grid object
+
 	m_voxel_program->bind();
 	m_voxel_program->setUniformValue("mvp_mat", final);
-	//testGrid->render(*this);
-	//testAggreg->render(*this);
-	testScene->renderLayer->render(*this);
+
+	scene->renderLayer->render(*this);
 	m_program->release();
 }
 
 void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 {
-	QMatrix4x4 view, proj, port, final;
-	view.lookAt(QVector3D(0.f, 0.f, -10.f), QVector3D(0.f, 0.f, 0.f), QVector3D(0.f, 1.f, 0.f));
-	proj.perspective(45, (float)width()/float(height()), 1, 100);
-	final = proj * view;
-	// yields same as above
-	//proj.lookAt(QVector3D(0.f, 0.f, -10.f), QVector3D(0.f, 0.f, 0.f), QVector3D(0.f, 1.f, 0.f));
-	//qDebug() << proj;
-	port.viewport(0, 0, width(), height());
-	final = port * final;
-	QVector3D test(0.5f * width(), 0.5f * height(), 1.f);
-	test = final.inverted() * test;
-	//qDebug() << test;
-
 	if (event->button() == Qt::LeftButton)
 	{
 		ray_t ray;
@@ -259,7 +234,7 @@ void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 		//int hitPos[3];
 		SceneRayHit sceneHit;
 		intersect_t hitInfo;
-		bool didHit = testScene->renderLayer->rayIntersect(ray, sceneHit.voxelPos, hitInfo);//testAggreg->rayIntersect(ray, hitPos, hitInfo);
+		bool didHit = scene->renderLayer->rayIntersect(ray, sceneHit.voxelPos, hitInfo);//testAggreg->rayIntersect(ray, hitPos, hitInfo);
 		//std::cout << "did hit:" << didHit << " voxel=(" << hitPos[0] << "," << hitPos[1] << "," << hitPos[2]
 		//			<< ") hit axis:" << hitInfo.entryAxis << std::endl;
 		if (didHit)
@@ -289,7 +264,7 @@ void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 				testScene->setVoxel(hitPos, vox);
 			}*/
 			ToolEvent toolEvent(event, &sceneHit);
-			testTool->mouseDown(toolEvent, *testScene);
+			testTool->mouseDown(toolEvent, *scene);
 			update();
 		}
 	}
@@ -303,7 +278,6 @@ void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 		dragStatus = DRAG_PAN;
 		dragStart = event->pos();
 	}
-	//vpSettings->headBy(22.5f);
 	//update();
 }
 

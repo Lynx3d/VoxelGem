@@ -7,9 +7,8 @@
  */
 
 #include <QApplication>
-#include "ui_mainwindow.h"
-#include "glviewport.h"
-#include "palette.h"
+#include <QSurfaceFormat>
+#include "mainwindow.h"
 
 int main(int argc, char **argv)
 {
@@ -27,24 +26,8 @@ int main(int argc, char **argv)
 
 	// create application and load gui
 	QApplication app(argc, argv);
-	QMainWindow window;
-    Ui::MainWindow ui;
-    ui.setupUi(&window);
-	// create our specialized QOpenGlWidget
-	GlViewportWidget glvp(NULL);
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
-	glvp.setTextureFormat(GL_SRGB8_ALPHA8); /* Qt 5.10+ */
-#endif
-	ui.glparent->layout()->addWidget(&glvp);
-	
-	// color palette test
-	ColorSet* testPalette = getTestPalette();
-	ColorPaletteModel paletteModel;
-	ColorPaletteView paletteView;
-	paletteView.setPaletteModel(&paletteModel);
-	paletteModel.setColorSet(testPalette);
-	ui.gridLayout_3->addWidget(&paletteView, 1, 0, 1, 1);
-	
+
+	VGMainWindow window;
     window.show();
 
 	return app.exec();

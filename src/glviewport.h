@@ -27,11 +27,12 @@ enum DragType
 };
 
 class GlViewportWidget;
+class VoxelScene;
 
 class ViewportSettings
 {
 	public:
-		ViewportSettings(const GlViewportWidget *parentW): 
+		ViewportSettings(const GlViewportWidget *parentW):
 			heading(180), pitch(0), roll(0), fov(45), camPos(0.f, 0.f, -10.f), parent(parentW)
 			{
 				updateViewport();
@@ -57,7 +58,7 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 {
 	Q_OBJECT
 	public:
-		GlViewportWidget(void *pscene): scene(pscene), dragStatus(DRAG_NONE) {};
+		GlViewportWidget(VoxelScene *pscene): scene(pscene), dragStatus(DRAG_NONE) {};
 		static float sRGB_LUT[1024];
 	protected:
 		void initializeGL();
@@ -67,7 +68,7 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 		void mouseReleaseEvent(QMouseEvent *event);
 		void mouseMoveEvent(QMouseEvent *event);
 
-		void *scene;
+		VoxelScene *scene;
 		QOpenGLVertexArrayObject m_vertexSpec; // buffered vertex attribute layout
 		GLuint matrixID;
 		GLuint m_vbo;
