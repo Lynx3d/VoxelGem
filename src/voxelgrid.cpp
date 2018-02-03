@@ -161,7 +161,7 @@ int VoxelGrid::tesselate(GlVoxelVertex_t *vertices)
 			for (int x = 0; x < GRID_LEN; ++x, ++index)
 	{
 		VoxelEntry &entry = voxels[index];
-		if (!entry.flags & VF_NON_EMPTY) continue;
+		if (!(entry.flags & VF_NON_EMPTY)) continue;
 		for (int face=0; face < 6; ++face)
 		{
 			// TODO: determine if face is visible

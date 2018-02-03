@@ -17,7 +17,7 @@ ToolEvent::ToolEvent(QMouseEvent *qmEvent, SceneRayHit *srHit):
 
 bool ToolEvent::getAdjacentVoxel(int pos[3]) const
 {
-	if (rayHit->flags & SceneRayHit::HIT_MASK == 0)
+	if ((rayHit->flags & SceneRayHit::HIT_MASK) == 0)
 		return false;
 	pos[0] = rayHit->voxelPos[0];
 	pos[1] = rayHit->voxelPos[1];
@@ -63,7 +63,7 @@ void EditTool::mouseUp(const ToolEvent &event, VoxelScene &scene)
 void PaintTool::mouseDown(const ToolEvent &event, VoxelScene &scene)
 {
 	const SceneRayHit *hit = event.getCursorHit();
-	if (hit->flags & SceneRayHit::HIT_MASK == 0)
+	if ((hit->flags & SceneRayHit::HIT_MASK) == 0)
 		return;
 
 	if (event.isShiftPressed())

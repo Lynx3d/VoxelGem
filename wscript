@@ -8,7 +8,7 @@ def options(opt):
 
 def configure(conf):
 	conf.load('compiler_cxx qt5')
-	conf.env.append_value('CXXFLAGS', ['-g', '-std=c++11'])
+	conf.env.append_value('CXXFLAGS', ['-g', '-Wall', '-std=c++11'])
 
 def build(bld):
 	# According to the Qt5 documentation:

@@ -49,7 +49,7 @@ struct intersect_t
 class GLRenderable
 {
 	public:
-		GLRenderable(): dirty(true), glBufferSize(0) {}
+		GLRenderable(): glBufferSize(0), dirty(true) {}
 		virtual void setup(QOpenGLFunctions_3_3_Core &glf) = 0;
 		virtual void render(QOpenGLFunctions_3_3_Core &glf) = 0;
 		virtual bool rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) { return false; }

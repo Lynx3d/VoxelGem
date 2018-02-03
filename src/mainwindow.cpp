@@ -14,8 +14,8 @@
 
 VGMainWindow::VGMainWindow():
 	mainUi(new Ui::MainWindow),
-	scene(new VoxelScene),
-	paletteView(new ColorPaletteView)
+	paletteView(new ColorPaletteView),
+	scene(new VoxelScene)
 {
 	mainUi->setupUi(this);
 	viewport = new GlViewportWidget(scene),

@@ -37,7 +37,7 @@ ColorPaletteModel::ColorPaletteModel(QObject* parent):
 
 QVariant ColorPaletteModel::data(const QModelIndex& index, int role) const
 {
-	int setIndex = index.column() + index.row() * columnCount();
+	unsigned int setIndex = index.column() + index.row() * columnCount();
 	if (activeColorSet && setIndex < activeColorSet->numEntries())
 	{
 		const ColorSetEntry *setEntry = activeColorSet->get(setIndex);

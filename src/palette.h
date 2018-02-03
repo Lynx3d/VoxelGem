@@ -26,12 +26,12 @@ class ColorSetEntry
 class ColorSet
 {
 	public:
-		const ColorSetEntry* get(int index) const
+		const ColorSetEntry* get(unsigned int index) const
 		{
 			if (index >= colors.size()) return 0;
 			return &colors[index];
 		}
-		int numEntries() const
+		unsigned int numEntries() const
 		{
 			return colors.size();
 		}

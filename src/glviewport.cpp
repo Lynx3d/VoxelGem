@@ -12,6 +12,7 @@
 #include "voxelscene.h"
 #include "edittool.h"
 #include "util/shaderinfo.h"
+#include <cmath>
 #include <iostream>
 #include <QSurfaceFormat>
 #include <QOpenGLShaderProgram>
@@ -252,7 +253,7 @@ void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 		{
 			sceneHit.flags |= hitInfo.entryAxis;
 			//hitPos[hitInfo.entryAxis & 3] += (hitInfo.entryAxis & intersect_t::AXIS_NEGATIVE) ? 1 : -1;
-			VoxelEntry vox = { { 128, 128, 255, 255 }, VF_NON_EMPTY };
+			//VoxelEntry vox = { { 128, 128, 255, 255 }, VF_NON_EMPTY };
 			//if (hitPos[0] >= 0 && hitPos[0] < 16 && hitPos[1] >= 0 && hitPos[1] < 16 && hitPos[2] >= 0 && hitPos[2] < 16)
 			//	testGrid->setVoxel(hitPos[0], hitPos[1], hitPos[2], vox);
 			//testAggreg->setVoxel(hitPos[0], hitPos[1], hitPos[2], vox);
