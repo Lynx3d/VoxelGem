@@ -5,10 +5,13 @@ out = 'build'
 
 def options(opt):
 	opt.load('compiler_cxx qt5')
+	opt.add_option('--debug_gl', default=False, action='store_true', help='enable OpenGL debug context')
 
 def configure(conf):
 	conf.load('compiler_cxx qt5')
 	conf.env.append_value('CXXFLAGS', ['-g', '-Wall', '-std=c++11'])
+	if conf.options.debug_gl:
+		conf.define('DEBUG_GL', 1)
 
 def build(bld):
 	# According to the Qt5 documentation:

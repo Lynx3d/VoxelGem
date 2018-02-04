@@ -16,6 +16,7 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLWidget>
 #include <QMatrix4x4>
+#include <QOpenGLDebugLogger>
 
 
 enum DragType
@@ -76,6 +77,7 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 		ViewportSettings *vpSettings;
 		DragType dragStatus;
 		QPoint dragStart;
+		QOpenGLDebugLogger *glDebug;
 };
 
 #endif // VG_GLVIEWPORT_H

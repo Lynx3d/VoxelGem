@@ -19,6 +19,10 @@ int main(int argc, char **argv)
 	format.setDepthBufferSize(32);
 	format.setVersion(3, 3);
 	format.setRenderableType(QSurfaceFormat::OpenGL);
+	format.setProfile(QSurfaceFormat::CoreProfile);
+#if DEBUG_GL
+	format.setOption(QSurfaceFormat::DebugContext);
+#endif
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
 	format.setColorSpace(QSurfaceFormat::sRGBColorSpace); // Qt 5.10+
 #endif

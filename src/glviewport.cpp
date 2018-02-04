@@ -129,6 +129,10 @@ EditTool *testTool;
 void GlViewportWidget::initializeGL()
 {
 	initializeOpenGLFunctions();
+#if DEBUG_GL
+	glDebug = new QOpenGLDebugLogger(this);
+	glDebug->initialize();
+#endif
 	glClearColor(0.2f, 0.3f, 0.35f, 1.0f);
 	// debug
 	QSurfaceFormat fmt = format();
@@ -193,6 +197,13 @@ void GlViewportWidget::initializeGL()
 	glEnable(GL_DEPTH_TEST);
 
 	vpSettings = new ViewportSettings(this);
+
+#if DEBUG_GL
+	QDebug dbg = qDebug();
+	QList<QOpenGLDebugMessage> msgList = glDebug->loggedMessages();
+	for (auto &msg: msgList)
+		dbg << msg;
+#endif
 }
 void GlViewportWidget::resizeGL(int w, int h)
 {
@@ -224,6 +235,13 @@ void GlViewportWidget::paintGL()
 
 	scene->renderLayer->render(*this);
 	m_program->release();
+
+#if DEBUG_GL
+	QDebug dbg = qDebug();
+	QList<QOpenGLDebugMessage> msgList = glDebug->loggedMessages();
+	for (auto &msg: msgList)
+		dbg << msg;
+#endif
 }
 
 void GlViewportWidget::mousePressEvent(QMouseEvent *event)
