@@ -219,7 +219,7 @@
   </action>
   <action name="action_save">
    <property name="icon">
-    <iconset resource="../goxel++/resources.qrc">
+    <iconset resource="resources.qrc">
      <normaloff>:/images/gfx/icons/disk.svg</normaloff>:/images/gfx/icons/disk.svg</iconset>
    </property>
    <property name="text">
@@ -237,7 +237,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="../goxel++/resources.qrc">
+    <iconset resource="resources.qrc">
      <normaloff>:/images/gfx/icons/grid.svg</normaloff>:/images/gfx/icons/grid.svg</iconset>
    </property>
    <property name="text">
@@ -252,7 +252,7 @@
   </action>
   <action name="action_new">
    <property name="icon">
-    <iconset resource="../goxel++/resources.qrc">
+    <iconset resource="resources.qrc">
      <normaloff>:/images/gfx/icons/document-new.svg</normaloff>:/images/gfx/icons/document-new.svg</iconset>
    </property>
    <property name="text">
@@ -264,7 +264,7 @@
   </action>
   <action name="action_saveas">
    <property name="icon">
-    <iconset resource="../goxel++/resources.qrc">
+    <iconset resource="resources.qrc">
      <normaloff>:/images/gfx/icons/disk.svg</normaloff>:/images/gfx/icons/disk.svg</iconset>
    </property>
    <property name="text">
@@ -276,7 +276,7 @@
   </action>
   <action name="action_open">
    <property name="icon">
-    <iconset resource="../goxel++/resources.qrc">
+    <iconset resource="resources.qrc">
      <normaloff>:/images/gfx/icons/folder.svg</normaloff>:/images/gfx/icons/folder.svg</iconset>
    </property>
    <property name="text">
@@ -288,7 +288,7 @@
   </action>
   <action name="action_background">
    <property name="icon">
-    <iconset resource="../goxel++/resources.qrc">
+    <iconset resource="resources.qrc">
      <normaloff>:/images/gfx/icons/palette.svg</normaloff>:/images/gfx/icons/palette.svg</iconset>
    </property>
    <property name="text">
@@ -303,7 +303,7 @@
   </action>
   <action name="action_undo">
    <property name="icon">
-    <iconset resource="../goxel++/resources.qrc">
+    <iconset resource="resources.qrc">
      <normaloff>:/images/gfx/icons/edit-undo.svg</normaloff>:/images/gfx/icons/edit-undo.svg</iconset>
    </property>
    <property name="text">
@@ -318,7 +318,7 @@
   </action>
   <action name="action_redo">
    <property name="icon">
-    <iconset resource="../goxel++/resources.qrc">
+    <iconset resource="resources.qrc">
      <normaloff>:/images/gfx/icons/edit-redo.svg</normaloff>:/images/gfx/icons/edit-redo.svg</iconset>
    </property>
    <property name="text">
@@ -440,7 +440,7 @@
   </action>
  </widget>
  <resources>
-  <include location="../goxel++/resources.qrc"/>
+  <include location="resources.qrc"/>
  </resources>
  <connections>
   <connection>
