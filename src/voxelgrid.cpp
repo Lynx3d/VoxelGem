@@ -43,7 +43,7 @@ VoxelGrid::VoxelGrid(const int pos[3]):
 	memset(voxels.data(), 0, voxels.capacity());
 	/* TEST! TODO*/
 	VoxelEntry &testVoxel = voxels[voxelIndex(3,2,5)];
-	testVoxel = { { 255, 220, 200, 255 }, VF_NON_EMPTY };
+	testVoxel = VoxelEntry(255, 220, 200, 255);
 	//testVoxel.flags = VF_NON_EMPTY;
 }
 
@@ -72,6 +72,9 @@ void VoxelGrid::setup(QOpenGLFunctions_3_3_Core &glf)
 	m_voxel_program->enableAttributeArray("v_normal");
 	glf.glVertexAttribPointer(2, 3, GL_FLOAT, false, sizeof(GlVoxelVertex_t),
 								(const GLvoid*)offsetof(GlVoxelVertex_t, normal));
+	m_voxel_program->enableAttributeArray("v_mat_index");
+	glf.glVertexAttribIPointer(3, 1, GL_UNSIGNED_BYTE, sizeof(GlVoxelVertex_t),
+								(const GLvoid*)offsetof(GlVoxelVertex_t, matIndex));
 }
 
 void VoxelGrid::render(QOpenGLFunctions_3_3_Core &glf)
@@ -132,7 +135,7 @@ bool VoxelGrid::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) 
 	while (true)
 	{
 		const VoxelEntry &voxel = voxels[voxelIndex(vPos[0], vPos[1], vPos[2])];
-		if (voxel.flags & VF_NON_EMPTY)
+		if (voxel.flags & Voxel::VF_NON_EMPTY)
 		{
 			hitPos[0] = vPos[0] + gridPos[0];
 			hitPos[1] = vPos[1] + gridPos[1];
@@ -161,7 +164,12 @@ int VoxelGrid::tesselate(GlVoxelVertex_t *vertices)
 			for (int x = 0; x < GRID_LEN; ++x, ++index)
 	{
 		VoxelEntry &entry = voxels[index];
-		if (!(entry.flags & VF_NON_EMPTY)) continue;
+		if (!(entry.flags & Voxel::VF_NON_EMPTY)) continue;
+		unsigned char matIndex = 0;
+		//test
+		if (entry.getMaterial() == Voxel::GLOWING_SOLID)
+			matIndex = 8;
+
 		for (int face=0; face < 6; ++face)
 		{
 			// TODO: determine if face is visible
@@ -180,6 +188,7 @@ int VoxelGrid::tesselate(GlVoxelVertex_t *vertices)
 				vertices[v].normal[0] = FACE_NORMALS[face][0];
 				vertices[v].normal[1] = FACE_NORMALS[face][1];
 				vertices[v].normal[2] = FACE_NORMALS[face][2];
+				vertices[v].matIndex = matIndex;
 			}
 			nTriangles += 2;
 		}

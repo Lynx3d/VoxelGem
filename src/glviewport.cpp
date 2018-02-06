@@ -126,6 +126,41 @@ QOpenGLShaderProgram *m_program, *m_voxel_program;
 GLRenderable *testObject;
 EditTool *testTool;
 
+void GlViewportWidget::generateUBOs()
+{
+	// sRGB lookup table
+	// init sRGB transfer function LUT (not exactly a gamma curve, but close)
+	for (int i=0; i < 11; ++i) sRGB_LUT[i*4] = float(i)/(255.f * 12.92f);
+	for (int i=11; i < 256; ++i) sRGB_LUT[i*4] = std::pow((float(i) + 0.055f)/(255.f * 1.055f), 2.4);
+
+	glGenBuffers(1, &m_ubo_LUT);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_ubo_LUT);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(sRGB_LUT), sRGB_LUT, GL_STATIC_DRAW);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ubo_LUT);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	// material properties for trove
+	static const float materialProps[10][4] =
+	{
+		/* spec_amount; spec_sharpness; spec_tinting; emit; */
+		{ 0.3, 30, 0, 0 }, // solid, rough
+		{ 0.3, 30, 1, 0 }, // solid, metal
+		{ 0.3, 30, 0, 0 }, // solid, water ???
+		{ 0.3, 30, 0, 0 }, // solid, iridescent (not implemented yet)
+		{ 0.3, 30, 0, 0 }, // solid, wave ???
+		{ 0.3, 30, 0, 0 }, // solid, waxy ???
+		{ 0.3, 30, 0, 0 }, // glass
+		{ 0.3, 30, 0, 0 }, // tiled glass (redundant?)
+		{ 0.3, 30, 0, 1 }, // glowing solid
+		{ 0.3, 30, 0, 1 }, // glowing glass
+	};
+	glGenBuffers(1, &m_ubo_material);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_ubo_material);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(materialProps), materialProps, GL_STATIC_DRAW);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_ubo_material);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
 void GlViewportWidget::initializeGL()
 {
 	initializeOpenGLFunctions();
@@ -142,10 +177,8 @@ void GlViewportWidget::initializeGL()
 			<< " Color Space: " << fmt.colorSpace() /* Qt 5.10+ */
 #endif
 			<< std::endl;
-	// init sRGB transfer function LUT (not exactly a gamma curve, but close)
-	for (int i=0; i < 11; ++i) sRGB_LUT[i*4] = float(i)/(255.f * 12.92f);
-	for (int i=11; i < 256; ++i) sRGB_LUT[i*4] = std::pow((float(i) + 0.055f)/(255.f * 1.055f), 2.4);
 
+	generateUBOs();
 	// load shaders
 	m_program = new QOpenGLShaderProgram(/*TODO: "self" as parent when stored in class*/);
 	m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, v_shader);
@@ -163,16 +196,13 @@ void GlViewportWidget::initializeGL()
 	m_voxel_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shader/voxel_vertex.glsl");
 	m_voxel_program->link();
 	m_voxel_program->bind();
-	// connect sRGB UBO
+	// connect sRGB and material UBO
 	block_index = glGetUniformBlockIndex(m_voxel_program->programId(), "sRGB_LUT");
 	glUniformBlockBinding(m_voxel_program->programId(), block_index, 0);
-
-	// load LUT into ubo:
-	glGenBuffers(1, &m_ubo_LUT);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_ubo_LUT);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(sRGB_LUT), sRGB_LUT, GL_STATIC_DRAW);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ubo_LUT);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	block_index = glGetUniformBlockIndex(m_voxel_program->programId(), "materials");
+	glUniformBlockBinding(m_voxel_program->programId(), block_index, 1);
+	// test: print UBO layout info
+	GLInfoLib::getUniformsInfo(m_voxel_program->programId());
 
 	m_vertexSpec.create();
 	m_vertexSpec.bind();

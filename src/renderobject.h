@@ -25,6 +25,7 @@ struct GlVoxelVertex_t
 	float pos[3];
 	unsigned char col[4];
 	float normal[3];
+	unsigned char matIndex;
 };
 
 struct ray_t

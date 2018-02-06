@@ -62,6 +62,7 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 		GlViewportWidget(VoxelScene *pscene): scene(pscene), dragStatus(DRAG_NONE) {};
 		static float sRGB_LUT[1024];
 	protected:
+		void generateUBOs();
 		void initializeGL();
 		void paintGL();
 		void resizeGL(int w, int h);
@@ -74,6 +75,7 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 		GLuint matrixID;
 		GLuint m_vbo;
 		GLuint m_ubo_LUT;
+		GLuint m_ubo_material;
 		ViewportSettings *vpSettings;
 		DragType dragStatus;
 		QPoint dragStart;

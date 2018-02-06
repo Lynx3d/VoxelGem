@@ -32,7 +32,7 @@ void VoxelScene::setVoxel(const int pos[3], const VoxelEntry &voxel)
 
 void VoxelScene::eraseVoxel(const int pos[3])
 {
-	VoxelEntry voxel = { { 0, 0, 0, 0 }, 0 };
+	VoxelEntry voxel; // = { { 0, 0, 0, 0 }, 0 };
 	renderLayer->setVoxel(pos[0], pos[1], pos[2], voxel);
 }
 
