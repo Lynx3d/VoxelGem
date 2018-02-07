@@ -25,7 +25,7 @@ void VoxelAggregate::setVoxel(int x, int y, int z, const VoxelEntry &voxel)
 		voxelGridPtr_t posGrid(new VoxelGrid(gridPos));
 		grid = blockMap.emplace(id, posGrid).first;
 	}
-	std::cout << "setting voxel (" << (x & (int)(GRID_LEN - 1)) << ", " << (y & (int)(GRID_LEN - 1)) << ", " << (z & (int)(GRID_LEN - 1)) << ")\n";
+//	std::cout << "setting voxel (" << (x & (int)(GRID_LEN - 1)) << ", " << (y & (int)(GRID_LEN - 1)) << ", " << (z & (int)(GRID_LEN - 1)) << ")\n";
 	grid->second->setVoxel(x & (int)(GRID_LEN - 1), y & (int)(GRID_LEN - 1), z & (int)(GRID_LEN - 1), voxel);
 }
 

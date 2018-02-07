@@ -264,6 +264,7 @@ void GlViewportWidget::paintGL()
 
 	m_voxel_program->bind();
 	m_voxel_program->setUniformValue("mvp_mat", final);
+	m_voxel_program->setUniformValue("view_mat", vpSettings->getViewMatrix());
 
 	scene->renderLayer->render(*this);
 	m_program->release();

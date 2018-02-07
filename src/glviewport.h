@@ -40,6 +40,7 @@ class ViewportSettings
 				updateViewMatrix();
 			}
 		QMatrix4x4 getGlMatrix();
+		QMatrix4x4 getViewMatrix() { return view; }
 		ray_t unproject(const QVector3D &vec);
 		void rotateBy(float dHead, float dPitch);
 		void panBy(float dX, float dY);

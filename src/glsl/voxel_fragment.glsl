@@ -1,8 +1,11 @@
 #version 330
 in vec4 frag_color;
 in vec3 frag_normal;
+in vec3 frag_pos_view;
 flat in uint frag_mat_index;
 out vec4 final_color;
+
+uniform mat4 view_mat;
 
 struct Material
 {
@@ -25,7 +28,14 @@ const vec4 light_col = vec4(0.8, 0.8, 0.8, 1.0);
 
 void main()
 {
-	// hardcoded 0.2 diffuse for now...
-	final_color = frag_color * (0.2 + max(0, dot(light_dir, normalize(frag_normal)))) * light_col;
+	// we calculate in vew space; TODO: we should transform lights outside the fragment shader...
+	vec3 ldir = mat3(view_mat) * light_dir;
+	// hardcoded 0.2 ambient for now...
+	final_color = frag_color * (0.2 + max(0, dot(ldir, normalize(frag_normal)))) * light_col;
 	final_color += frag_color * mat_prop[frag_mat_index].emit;
+	// specular
+	vec3 viewdir = normalize(-frag_pos_view);
+	vec3 reflected = reflect(-ldir, frag_normal);
+	float spec = pow(max(dot(viewdir, reflected), 0.0), mat_prop[frag_mat_index].spec_sharpness);
+	final_color += spec * mat_prop[frag_mat_index].spec_amount * light_col;
 }
