@@ -166,7 +166,8 @@ void GlViewportWidget::initializeGL()
 	initializeOpenGLFunctions();
 #if DEBUG_GL
 	glDebug = new QOpenGLDebugLogger(this);
-	glDebug->initialize();
+	if (glDebug->initialize())
+		std::cout << "OpenGL debug logging enabled!\n";
 #endif
 	glClearColor(0.2f, 0.3f, 0.35f, 1.0f);
 	// debug
@@ -232,7 +233,8 @@ void GlViewportWidget::initializeGL()
 	QDebug dbg = qDebug();
 	QList<QOpenGLDebugMessage> msgList = glDebug->loggedMessages();
 	for (auto &msg: msgList)
-		dbg << msg;
+		if (msg.severity() < QOpenGLDebugMessage::NotificationSeverity)
+			dbg << msg;
 #endif
 }
 void GlViewportWidget::resizeGL(int w, int h)
@@ -270,7 +272,8 @@ void GlViewportWidget::paintGL()
 	QDebug dbg = qDebug();
 	QList<QOpenGLDebugMessage> msgList = glDebug->loggedMessages();
 	for (auto &msg: msgList)
-		dbg << msg;
+		if (msg.severity() < QOpenGLDebugMessage::NotificationSeverity)
+			dbg << msg;
 #endif
 }
 
