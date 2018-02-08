@@ -146,6 +146,7 @@ class VoxelGrid: public GLRenderable
 		bool rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) const;
 	protected:
 		int tesselate(GlVoxelVertex_t *vertices);
+		std::vector<int> getNeighbourMasks() const;
 		BBox bound;
 		int gridPos[3];
 		int nTessTris;

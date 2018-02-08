@@ -75,6 +75,9 @@ void VoxelGrid::setup(QOpenGLFunctions_3_3_Core &glf)
 	m_voxel_program->enableAttributeArray("v_mat_index");
 	glf.glVertexAttribIPointer(3, 1, GL_UNSIGNED_BYTE, sizeof(GlVoxelVertex_t),
 								(const GLvoid*)offsetof(GlVoxelVertex_t, matIndex));
+	m_voxel_program->enableAttributeArray("v_occlusion");
+	glf.glVertexAttribPointer(4, 1, GL_UNSIGNED_BYTE, false, sizeof(GlVoxelVertex_t),
+								(const GLvoid*)offsetof(GlVoxelVertex_t, occlusion));
 }
 
 void VoxelGrid::render(QOpenGLFunctions_3_3_Core &glf)
@@ -156,10 +159,28 @@ bool VoxelGrid::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) 
 	}
 	return false;
 }
+static void getOcclusionValues(int face, int mask, uint8_t occ[4])
+{
+	const int *faceFlags = FACE_OCCLUSION_FLAGS[face];
+	for (int i = 0; i < 4; ++i)
+	{
+		if (mask & faceFlags[i]) // coners
+		{
+			++occ[i];
+		}
+		if (mask & faceFlags[i+4]) // edges
+		{
+			++occ[i];
+			++occ[(i+1)&3];
+		}
+	}
+}
 
 int VoxelGrid::tesselate(GlVoxelVertex_t *vertices)
 {
 	int index = 0, nTriangles = 0;
+	std::vector<int> masks = getNeighbourMasks();
+
 	for (int z = 0; z < GRID_LEN; ++z)
 		for (int y = 0; y < GRID_LEN; ++y)
 			for (int x = 0; x < GRID_LEN; ++x, ++index)
@@ -173,7 +194,11 @@ int VoxelGrid::tesselate(GlVoxelVertex_t *vertices)
 
 		for (int face=0; face < 6; ++face)
 		{
-			// TODO: determine if face is visible
+			if (masks[index] & FACE_NEIGHBOUR_FLAGS[face])
+				continue;
+
+			uint8_t occlusion[4] = {};
+			getOcclusionValues(face, masks[index], occlusion);
 			for (int i=0; i < 4; ++i)
 			{
 				int v = 2 * nTriangles + i;
@@ -181,7 +206,6 @@ int VoxelGrid::tesselate(GlVoxelVertex_t *vertices)
 				vertices[v].pos[0] = bound.pMin[0] + float(x + vpos[0]);
 				vertices[v].pos[1] = bound.pMin[1] + float(y + vpos[1]);
 				vertices[v].pos[2] = bound.pMin[2] + float(z + vpos[2]);
-				// TODO implement acutal voxel coloring
 				vertices[v].col[0] = entry.col[0];
 				vertices[v].col[1] = entry.col[1];
 				vertices[v].col[2] = entry.col[2];
@@ -190,9 +214,39 @@ int VoxelGrid::tesselate(GlVoxelVertex_t *vertices)
 				vertices[v].normal[1] = FACE_NORMALS[face][1];
 				vertices[v].normal[2] = FACE_NORMALS[face][2];
 				vertices[v].matIndex = matIndex;
+				vertices[v].occlusion = occlusion[i];
 			}
 			nTriangles += 2;
 		}
 	}
 	return nTriangles;
+}
+
+std::vector<int> VoxelGrid::getNeighbourMasks() const
+{
+	std::vector<int> masks(GRID_LEN * GRID_LEN * GRID_LEN);
+	for (int z = 1; z < GRID_LEN -1; ++z)
+		for (int y = 1; y < GRID_LEN -1; ++y)
+			for (int x = 1; x < GRID_LEN -1; ++x)
+	{
+		int index = voxelIndex(x, y, z);
+		const VoxelEntry &vox = voxels[index];
+		if (!(vox.flags & Voxel::VF_NON_EMPTY))
+			continue;
+
+		int mask = 0;
+		for (int nz = -1, i = 0; nz < 2; ++nz)
+			for (int ny = -1; ny < 2; ++ny)
+				for (int nx = -1; nx < 2; ++nx, ++i)
+		{
+			int neighbourIndex = index + voxelIndex(nx, ny, nz);
+			const VoxelEntry &neighbour = voxels[neighbourIndex];
+			// TODO: handle semi-transparent voxels
+			if (neighbour.flags & Voxel::VF_NON_EMPTY)
+				mask |= 1 << i;
+		}
+		masks[index] = mask;
+	}
+	// TODO: fill voxel masks that touch neighbour grids
+	return masks;
 }

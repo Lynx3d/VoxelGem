@@ -3,6 +3,7 @@ in vec4 frag_color;
 in vec3 frag_normal;
 in vec3 frag_pos_view;
 flat in uint frag_mat_index;
+in float frag_occlusion;
 out vec4 final_color;
 
 uniform mat4 view_mat;
@@ -31,7 +32,7 @@ void main()
 	// we calculate in vew space; TODO: we should transform lights outside the fragment shader...
 	vec3 ldir = mat3(view_mat) * light_dir;
 	// hardcoded 0.2 ambient for now...
-	final_color = frag_color * (0.2 + max(0, dot(ldir, normalize(frag_normal)))) * light_col;
+	final_color = frag_color * (0.2 * frag_occlusion + max(0, dot(ldir, normalize(frag_normal)))) * light_col;
 	final_color += frag_color * mat_prop[frag_mat_index].emit;
 	// specular
 	vec3 viewdir = normalize(-frag_pos_view);
