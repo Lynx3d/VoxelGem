@@ -95,11 +95,12 @@ void VoxelGrid::render(QOpenGLFunctions_3_3_Core &glf)
 	{
 		glf.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_indexBuffer);
 		nTessTris = tesselate(g_vertexBuffer);
-		uploadBuffer(glf, g_vertexBuffer, 2 * nTessTris * sizeof(GlVoxelVertex_t));
+		if (nTessTris > 0)
+			uploadBuffer(glf, g_vertexBuffer, 2 * nTessTris * sizeof(GlVoxelVertex_t));
 		dirty = false;
 	}
-	glf.glDrawElements(GL_TRIANGLES, nTessTris * 3, GL_UNSIGNED_SHORT, 0);
-	//glf.glDrawArrays(GL_TRIANGLES, 0, 3);
+	if (nTessTris > 0)
+		glf.glDrawElements(GL_TRIANGLES, nTessTris * 3, GL_UNSIGNED_SHORT, 0);
 	glVAO.release();
 }
 
