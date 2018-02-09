@@ -164,7 +164,7 @@
   </widget>
   <widget class="QDockWidget" name="dock">
    <property name="windowTitle">
-    <string>Palette</string>
+    <string>Material</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -180,7 +180,7 @@
      <enum>Qt::ClickFocus</enum>
     </property>
     <layout class="QGridLayout" name="gridLayout_3">
-     <item row="0" column="0">
+     <item row="2" column="0">
       <widget class="QLineEdit" name="paletteRGBvalue">
        <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
@@ -191,6 +191,69 @@
        <property name="readOnly">
         <bool>false</bool>
        </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QComboBox" name="material">
+       <item>
+        <property name="text">
+         <string>Solid</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Glass</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Tiled Glass</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Glowing Solid</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Glowing Glass</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QComboBox" name="specular">
+       <item>
+        <property name="text">
+         <string>Rough</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Metal</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Water</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Iridescent</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Wave</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Waxy</string>
+        </property>
+       </item>
       </widget>
      </item>
     </layout>

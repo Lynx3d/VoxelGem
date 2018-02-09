@@ -9,6 +9,8 @@
 #ifndef VG_VOXELSCENE_H
 #define VG_VOXELSCENE_H
 
+#include "voxelgem.h"
+
 class VoxelEntry;
 class VoxelAggregate;
 class GlViewportWidget;
@@ -49,9 +51,13 @@ class VoxelScene
 		void eraseVoxel(const int pos[3]);
 		/* read a voxel from the scene (exclude current edit changes) */
 		const VoxelEntry* getVoxel(const int pos[3]);
+		const VoxelEntry* getVoxelTemplate() const { return &voxelTemplate; }
+		void setTemplateMaterial(Voxel::Material mat) { voxelTemplate.setMaterial(mat); }
+		void setTemplateSpecular(Voxel::Specular spec) { voxelTemplate.setSpecular(spec); }
 	protected:
 		GlViewportWidget *viewport;
 		VoxelAggregate *renderLayer;
+		VoxelEntry voxelTemplate;
 };
 
 #endif // VG_VOXELSCENE_H

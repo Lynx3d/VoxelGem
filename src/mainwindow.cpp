@@ -29,7 +29,7 @@ VGMainWindow::VGMainWindow():
 	colorSet = getTestPalette();
 	paletteModel->setColorSet(colorSet);
 	paletteView->setPaletteModel(paletteModel);
-	mainUi->gridLayout_3->addWidget(paletteView, 1, 0, 1, 1);
+	mainUi->gridLayout_3->addWidget(paletteView, 3, 0, 1, 1);
 }
 
 VGMainWindow::~VGMainWindow()
@@ -48,4 +48,16 @@ VGMainWindow::~VGMainWindow()
 
 void VGMainWindow::on_action_axis_grids_triggered(bool checked)
 {
+}
+
+void VGMainWindow::on_material_currentIndexChanged(int index)
+{
+	if (index > 0 && index <= Voxel::GLOWING_GLASS)
+	scene->setTemplateMaterial(static_cast<Voxel::Material>(index));
+}
+
+void VGMainWindow::on_specular_currentIndexChanged(int index)
+{
+	if (index > 0 && index <= Voxel::WAXY)
+	scene->setTemplateSpecular(static_cast<Voxel::Specular>(index));
 }

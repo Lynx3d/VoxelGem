@@ -10,7 +10,7 @@
 #include "voxelaggregate.h"
 #include "glviewport.h"
 
-VoxelScene::VoxelScene(): viewport(0)
+VoxelScene::VoxelScene(): viewport(0), voxelTemplate(128, 128, 255, 255)
 {
 	renderLayer = new VoxelAggregate();
 }

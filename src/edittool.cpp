@@ -62,7 +62,7 @@ void EditTool::mouseUp(const ToolEvent &event, VoxelScene &scene)
 #include "voxelgrid.h" // for VoxelEntry...
 void PaintTool::mouseDown(const ToolEvent &event, VoxelScene &scene)
 {
-	static bool test = false;
+//	static bool test = false;
 	const SceneRayHit *hit = event.getCursorHit();
 	if ((hit->flags & SceneRayHit::HIT_MASK) == 0)
 		return;
@@ -71,12 +71,12 @@ void PaintTool::mouseDown(const ToolEvent &event, VoxelScene &scene)
 		scene.eraseVoxel(hit->voxelPos);
 	else
 	{
-		VoxelEntry vox(128, 128, 255, 255);
-		if (test)
-			vox.setMaterial(Voxel::GLOWING_SOLID);
-		test = !test;
+		//VoxelEntry vox(128, 128, 255, 255);
+//		if (test)
+//			vox.setMaterial(Voxel::GLOWING_SOLID);
+//		test = !test;
 		int fillPos[3];
 		event.getAdjacentVoxel(fillPos);
-		scene.setVoxel(fillPos, vox);
+		scene.setVoxel(fillPos, *scene.getVoxelTemplate());
 	}
 }
