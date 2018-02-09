@@ -112,7 +112,7 @@ static const int FACE_OCCLUSION_FLAGS[6][8] =
 	//	v0		v1		v2		v3		0->1	1->2	2->3	3->0
 	{ VN_xyz, VN_xyZ, VN_xYZ, VN_xYz, 	VN_xyn, VN_xnZ, VN_xYn, VN_xnz }, // f0 (-x)
 	//	v7		v6		v5		v4		7->6	6->5	5->4	4->7
-	{ VN_XYz, VN_XYZ, VN_XyZ, VN_Xyz, 	VN_Xnz, VN_XnZ, VN_Xyn, VN_XYn }, // f1 (+x)
+	{ VN_XYz, VN_XYZ, VN_XyZ, VN_Xyz, 	VN_XYn, VN_XnZ, VN_Xyn, VN_Xnz }, // f1 (+x)
 	//	v0		v4		v5		v1		0->4	4->5	5->1	1->0
 	{ VN_xyz, VN_Xyz, VN_XyZ, VN_xyZ, 	VN_nyz, VN_Xyn, VN_nyZ, VN_xyn }, // f2 (-y)
 	//	v2		v6		v7		v3		2->6	6->7	7->3	3->2
