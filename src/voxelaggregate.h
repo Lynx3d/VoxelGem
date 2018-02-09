@@ -31,6 +31,7 @@ class VoxelAggregate
 		bool rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) const;
 		void render(QOpenGLFunctions_3_3_Core &glf);
 	protected:
+		void getNeighbours(const int gridPos[3], const VoxelGrid* neighbours[27]);
 		blockMap_t blockMap;
 };
 

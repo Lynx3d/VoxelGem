@@ -54,6 +54,26 @@ bool VoxelAggregate::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &
 
 void VoxelAggregate::render(QOpenGLFunctions_3_3_Core &glf)
 {
+	const VoxelGrid* neighbourGrids[27];
 	for (auto &grid: blockMap)
-		grid.second->render(glf);
+	{
+		if (grid.second->isDirty())
+			getNeighbours(grid.second->getGridPos(), neighbourGrids);
+		grid.second->render(glf, neighbourGrids);
+	}
+}
+
+void VoxelAggregate::getNeighbours(const int gridPos[3], const VoxelGrid* neighbours[27])
+{
+	for (int z = -1, i = 0; z < 2; ++z)
+		for (int y = -1; y < 2; ++y)
+			for (int x = -1; x < 2; ++x, ++i)
+	{
+		uint64_t id = blockID(gridPos[0] + x * GRID_LEN, gridPos[1] + y * GRID_LEN, gridPos[2] + z * GRID_LEN);
+		blockMap_t::iterator grid = blockMap.find(id);
+		if (grid == blockMap.end())
+			neighbours[i] = 0;
+		else
+			neighbours[i] = grid->second.get();
+	}
 }

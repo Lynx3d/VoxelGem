@@ -80,7 +80,7 @@ void VoxelGrid::setup(QOpenGLFunctions_3_3_Core &glf)
 								(const GLvoid*)offsetof(GlVoxelVertex_t, occlusion));
 }
 
-void VoxelGrid::render(QOpenGLFunctions_3_3_Core &glf)
+void VoxelGrid::render(QOpenGLFunctions_3_3_Core &glf, const VoxelGrid* neighbourGrids[27])
 {
 	// TODO: move to a better place...
 	if (!g_vertexBuffer)
@@ -97,7 +97,7 @@ void VoxelGrid::render(QOpenGLFunctions_3_3_Core &glf)
 	if (dirty)
 	{
 		glf.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_indexBuffer);
-		nTessTris = tesselate(g_vertexBuffer);
+		nTessTris = tesselate(g_vertexBuffer, neighbourGrids);
 		if (nTessTris > 0)
 			uploadBuffer(glf, g_vertexBuffer, 2 * nTessTris * sizeof(GlVoxelVertex_t));
 		dirty = false;
@@ -176,10 +176,10 @@ static void getOcclusionValues(int face, int mask, uint8_t occ[4])
 	}
 }
 
-int VoxelGrid::tesselate(GlVoxelVertex_t *vertices)
+int VoxelGrid::tesselate(GlVoxelVertex_t *vertices, const VoxelGrid* neighbourGrids[27])
 {
 	int index = 0, nTriangles = 0;
-	std::vector<int> masks = getNeighbourMasks();
+	std::vector<int> masks = getNeighbourMasks(neighbourGrids);
 
 	for (int z = 0; z < GRID_LEN; ++z)
 		for (int y = 0; y < GRID_LEN; ++y)
@@ -222,12 +222,12 @@ int VoxelGrid::tesselate(GlVoxelVertex_t *vertices)
 	return nTriangles;
 }
 
-std::vector<int> VoxelGrid::getNeighbourMasks() const
+std::vector<int> VoxelGrid::getNeighbourMasks(const VoxelGrid* neighbourGrids[27]) const
 {
 	std::vector<int> masks(GRID_LEN * GRID_LEN * GRID_LEN);
-	for (int z = 1; z < GRID_LEN -1; ++z)
-		for (int y = 1; y < GRID_LEN -1; ++y)
-			for (int x = 1; x < GRID_LEN -1; ++x)
+	for (int z = 0; z < GRID_LEN; ++z)
+		for (int y = 0; y < GRID_LEN; ++y)
+			for (int x = 0; x < GRID_LEN; ++x)
 	{
 		int index = voxelIndex(x, y, z);
 		const VoxelEntry &vox = voxels[index];
@@ -235,18 +235,43 @@ std::vector<int> VoxelGrid::getNeighbourMasks() const
 			continue;
 
 		int mask = 0;
-		for (int nz = -1, i = 0; nz < 2; ++nz)
-			for (int ny = -1; ny < 2; ++ny)
-				for (int nx = -1; nx < 2; ++nx, ++i)
+		if (x == 0 || x ==  GRID_LEN - 1 || y == 0 || y == GRID_LEN - 1 || z == 0 || z == GRID_LEN - 1)
+		{	// touching neighbour grids
+			for (int nz = -1, i = 0; nz < 2; ++nz)
+				for (int ny = -1; ny < 2; ++ny)
+					for (int nx = -1; nx < 2; ++nx, ++i)
+			{
+				int block_x = (x + nx + GRID_LEN) >> LOG_GRID_LEN;
+				int block_y = (y + ny + GRID_LEN) >> LOG_GRID_LEN; // could be moved to outer loop
+				int block_z = (z + nz + GRID_LEN) >> LOG_GRID_LEN; // could be moved to outer loop
+				int block_index = block_x + 3 * block_y + 9 * block_z;
+
+				const VoxelGrid *nGrid = neighbourGrids[block_index];
+				if (!nGrid)
+					continue;
+				int neighbourIndex = voxelIndex((x + nx) & (GRID_LEN - 1),
+												(y + ny) & (GRID_LEN - 1),
+												(z + nz) & (GRID_LEN - 1));
+				const VoxelEntry &neighbour = nGrid->voxels[neighbourIndex];
+				// TODO: handle semi-transparent voxels
+				if (neighbour.flags & Voxel::VF_NON_EMPTY)
+					mask |= 1 << i;
+			}
+		}
+		else // don't need neighbour grids
 		{
-			int neighbourIndex = index + voxelIndex(nx, ny, nz);
-			const VoxelEntry &neighbour = voxels[neighbourIndex];
-			// TODO: handle semi-transparent voxels
-			if (neighbour.flags & Voxel::VF_NON_EMPTY)
-				mask |= 1 << i;
+			for (int nz = -1, i = 0; nz < 2; ++nz)
+				for (int ny = -1; ny < 2; ++ny)
+					for (int nx = -1; nx < 2; ++nx, ++i)
+			{
+				int neighbourIndex = index + voxelIndex(nx, ny, nz);
+				const VoxelEntry &neighbour = voxels[neighbourIndex];
+				// TODO: handle semi-transparent voxels
+				if (neighbour.flags & Voxel::VF_NON_EMPTY)
+					mask |= 1 << i;
+			}
 		}
 		masks[index] = mask;
 	}
-	// TODO: fill voxel masks that touch neighbour grids
 	return masks;
 }

@@ -127,7 +127,8 @@ class VoxelGrid: public GLRenderable
 	public:
 		VoxelGrid(const int pos[3]);
 		void setup(QOpenGLFunctions_3_3_Core &glf);
-		void render(QOpenGLFunctions_3_3_Core &glf);
+		void render(QOpenGLFunctions_3_3_Core &glf) {} // TODO; rethink abstract base class...
+		void render(QOpenGLFunctions_3_3_Core &glf, const VoxelGrid* neighbourGrids[27]);
 		inline int voxelIndex(int x, int y, int z) const
 		{
 			return x + y * GRID_LEN + z * GRID_LEN * GRID_LEN;
@@ -142,11 +143,12 @@ class VoxelGrid: public GLRenderable
 			int val = pos - bound.pMin[axis];
 			return val < 0 ? 0 : (val > GRID_LEN - 1 ? GRID_LEN - 1 : val);
 		}
+		const int* getGridPos() const { return gridPos; }
 		float voxelEdge(int pos, int axis) const { return bound.pMin[axis] + (float)pos; }
 		bool rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) const;
 	protected:
-		int tesselate(GlVoxelVertex_t *vertices);
-		std::vector<int> getNeighbourMasks() const;
+		int tesselate(GlVoxelVertex_t *vertices, const VoxelGrid* neighbourGrids[27]);
+		std::vector<int> getNeighbourMasks(const VoxelGrid* neighbourGrids[27]) const;
 		BBox bound;
 		int gridPos[3];
 		int nTessTris;

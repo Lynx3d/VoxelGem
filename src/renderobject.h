@@ -52,6 +52,7 @@ class GLRenderable
 {
 	public:
 		GLRenderable(): glBufferSize(0), dirty(true) {}
+		bool isDirty() const { return dirty; }
 		virtual void setup(QOpenGLFunctions_3_3_Core &glf) = 0;
 		virtual void render(QOpenGLFunctions_3_3_Core &glf) = 0;
 		virtual bool rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) { return false; }
