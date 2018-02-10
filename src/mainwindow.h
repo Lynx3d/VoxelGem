@@ -27,10 +27,13 @@ class VGMainWindow : public QMainWindow
 		virtual ~VGMainWindow();
 	protected:
 		void loadTools();
-	private slots:
+	private Q_SLOTS:
 		void on_action_axis_grids_triggered(bool checked);
 		void on_material_currentIndexChanged(int index);
 		void on_specular_currentIndexChanged(int index);
+		void on_colorSelectionChanged(QColor col);
+	Q_SIGNALS:
+		void colorSelectionChanged(QColor col);
 	// TODO: tool list
 	private:
 		Ui::MainWindow *mainUi;

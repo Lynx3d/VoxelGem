@@ -90,5 +90,19 @@ class ColorPaletteView: public QTableView
 		ColorPaletteModel *activeModel;
 };
 
+class ColorSwatch: public QWidget
+{
+	Q_OBJECT
+	public:
+		ColorSwatch(QWidget *parent = Q_NULLPTR);
+	public Q_SLOTS:
+		void on_colorSelectionChanged(QColor col);
+	Q_SIGNALS:
+		void colorSelectionChanged(QColor col);
+	protected:
+		void mouseReleaseEvent(QMouseEvent *event) override;
+		void paintEvent(QPaintEvent *event) override;
+		QColor color;
+};
 
 #endif // VG_PALETTE_H

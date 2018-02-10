@@ -180,7 +180,7 @@
      <enum>Qt::ClickFocus</enum>
     </property>
     <layout class="QGridLayout" name="gridLayout_3">
-     <item row="2" column="0">
+     <item row="4" column="0">
       <widget class="QLineEdit" name="paletteRGBvalue">
        <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
@@ -193,7 +193,7 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="0">
+     <item row="2" column="0">
       <widget class="QComboBox" name="material">
        <item>
         <property name="text">
@@ -222,7 +222,7 @@
        </item>
       </widget>
      </item>
-     <item row="1" column="0">
+     <item row="3" column="0">
       <widget class="QComboBox" name="specular">
        <item>
         <property name="text">
@@ -254,6 +254,22 @@
          <string>Waxy</string>
         </property>
        </item>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="ColorSwatch" name="colorswatch" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>48</width>
+         <height>48</height>
+        </size>
+       </property>
       </widget>
      </item>
     </layout>
@@ -502,6 +518,14 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ColorSwatch</class>
+   <extends>QWidget</extends>
+   <header>palette.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="resources.qrc"/>
  </resources>

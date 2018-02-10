@@ -29,7 +29,9 @@ VGMainWindow::VGMainWindow():
 	colorSet = getTestPalette();
 	paletteModel->setColorSet(colorSet);
 	paletteView->setPaletteModel(paletteModel);
-	mainUi->gridLayout_3->addWidget(paletteView, 3, 0, 1, 1);
+	mainUi->gridLayout_3->addWidget(paletteView, 5, 0, 1, 1);
+	connect(mainUi->colorswatch, SIGNAL(colorSelectionChanged(QColor)), this, SLOT(on_colorSelectionChanged(QColor)));
+	connect(this, SIGNAL(colorSelectionChanged(QColor)), mainUi->colorswatch, SLOT(on_colorSelectionChanged(QColor)));
 }
 
 VGMainWindow::~VGMainWindow()
@@ -52,12 +54,18 @@ void VGMainWindow::on_action_axis_grids_triggered(bool checked)
 
 void VGMainWindow::on_material_currentIndexChanged(int index)
 {
-	if (index > 0 && index <= Voxel::GLOWING_GLASS)
+	if (index >= 0 && index <= Voxel::GLOWING_GLASS)
 	scene->setTemplateMaterial(static_cast<Voxel::Material>(index));
 }
 
 void VGMainWindow::on_specular_currentIndexChanged(int index)
 {
-	if (index > 0 && index <= Voxel::WAXY)
+	if (index >= 0 && index <= Voxel::WAXY)
 	scene->setTemplateSpecular(static_cast<Voxel::Specular>(index));
+}
+
+void VGMainWindow::on_colorSelectionChanged(QColor col)
+{
+	scene->setTemplateColor(col.red(), col.green(), col.blue(), col.alpha());
+	emit(colorSelectionChanged(col));
 }

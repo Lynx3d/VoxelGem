@@ -11,6 +11,7 @@
 #include <QPainter>
 #include <QHeaderView>
 #include <QAbstractItemDelegate>
+#include <QColorDialog>
 
 ColorSet* getTestPalette()
 {
@@ -182,4 +183,34 @@ void ColorPaletteView::setPaletteModel(ColorPaletteModel *model)
 	connect(activeModel, SIGNAL(rowsRemoved(QModelIndex,int,int)), this, SLOT(paletteModelChanged()));
 	connect(activeModel, SIGNAL(modelReset()), this, SLOT(paletteModelChanged()));
 
+}
+
+/*============================
+// ColorSwatch
+=============================*/
+
+ColorSwatch::ColorSwatch(QWidget *parent):
+	QWidget(parent), color(128, 128, 255)
+{}
+
+void ColorSwatch::on_colorSelectionChanged(QColor col)
+{
+	color = col;
+	update();
+}
+
+void ColorSwatch::mouseReleaseEvent(QMouseEvent *event)
+{
+	 QColor new_color = QColorDialog::getColor(color);
+	if (new_color.isValid())
+	{
+		color = new_color;
+		emit(colorSelectionChanged(color));
+	}
+}
+
+void ColorSwatch::paintEvent(QPaintEvent *event)
+{
+	QPainter painter(this);
+	painter.fillRect(rect(), color);
 }

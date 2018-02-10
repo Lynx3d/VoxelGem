@@ -33,11 +33,11 @@ def build(bld):
 				'mainwindow.ui']
 	bld(
 		features = 'qt5 cxx cxxprogram',
-		use      = 'QT5CORE QT5GUI QT5SVG QT5WIDGETS',
+		use      = 'QT5CORE QT5GUI QT5SVG QT5WIDGETS QT5OPENGL',
 		source   = sources, #'main.cpp glviewport.cpp renderobject.cpp voxelgrid.cpp resources.qrc mainwindow.ui',
 		moc      = ['src/glviewport.h', 'src/mainwindow.h', 'src/palette.h'],
 		target   = 'voxelGem',
-		includes = '.',
+		includes = ['.', './src'],
 		#lang     = bld.path.ant_glob('linguist/*.ts'),
 		#langname = 'somefile', # include the .qm files from somefile.qrc
 	)

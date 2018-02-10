@@ -52,6 +52,13 @@ class VoxelScene
 		/* read a voxel from the scene (exclude current edit changes) */
 		const VoxelEntry* getVoxel(const int pos[3]);
 		const VoxelEntry* getVoxelTemplate() const { return &voxelTemplate; }
+		void setTemplateColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+		{
+			voxelTemplate.col[0] = r;
+			voxelTemplate.col[1] = g;
+			voxelTemplate.col[2] = b;
+			voxelTemplate.col[4] = a;
+		}
 		void setTemplateMaterial(Voxel::Material mat) { voxelTemplate.setMaterial(mat); }
 		void setTemplateSpecular(Voxel::Specular spec) { voxelTemplate.setSpecular(spec); }
 	protected:
