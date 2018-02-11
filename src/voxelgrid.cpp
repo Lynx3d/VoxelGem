@@ -137,7 +137,7 @@ bool VoxelGrid::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) 
 	while (true)
 	{
 		const VoxelEntry &voxel = voxels[voxelIndex(vPos[0], vPos[1], vPos[2])];
-		if (voxel.flags & Voxel::VF_NON_EMPTY)
+		if ((voxel.flags & (Voxel::VF_NON_EMPTY | Voxel::VF_NO_COLLISION)) == Voxel::VF_NON_EMPTY)
 		{
 			hitPos[0] = vPos[0] + gridPos[0];
 			hitPos[1] = vPos[1] + gridPos[1];

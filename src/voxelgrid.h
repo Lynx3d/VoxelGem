@@ -24,6 +24,7 @@ class BBox
 {
 	public:
 		BBox(const QVector3D &min, const QVector3D &max): pMin(min), pMax(max) {}
+		BBox(const BBox &other): pMin(other.pMin), pMax(other.pMax) {}
 		bool includes(const QVector3D &p) const
 		{
 			return ( (p.x() >= pMin.x()) && (p.x() <= pMax.x()) &&

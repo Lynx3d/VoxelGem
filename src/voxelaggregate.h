@@ -27,7 +27,7 @@ class VoxelAggregate
 					uint64_t(z & POS_MASK) << (42 - LOG_GRID_LEN);
 			#undef POS_MASK
 		}
-		void setVoxel(int x, int y, int z, const VoxelEntry &voxel);
+		uint64_t setVoxel(int x, int y, int z, const VoxelEntry &voxel);
 		bool rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) const;
 		void render(QOpenGLFunctions_3_3_Core &glf);
 	protected:

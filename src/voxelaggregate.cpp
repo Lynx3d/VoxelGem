@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-void VoxelAggregate::setVoxel(int x, int y, int z, const VoxelEntry &voxel)
+uint64_t VoxelAggregate::setVoxel(int x, int y, int z, const VoxelEntry &voxel)
 {
 	uint64_t id = blockID(x, y, z);
 	blockMap_t::iterator grid = blockMap.find(id);
@@ -27,6 +27,7 @@ void VoxelAggregate::setVoxel(int x, int y, int z, const VoxelEntry &voxel)
 	}
 //	std::cout << "setting voxel (" << (x & (int)(GRID_LEN - 1)) << ", " << (y & (int)(GRID_LEN - 1)) << ", " << (z & (int)(GRID_LEN - 1)) << ")\n";
 	grid->second->setVoxel(x & (int)(GRID_LEN - 1), y & (int)(GRID_LEN - 1), z & (int)(GRID_LEN - 1), voxel);
+	return id;
 }
 
 bool VoxelAggregate::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) const

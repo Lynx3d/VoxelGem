@@ -15,8 +15,9 @@ namespace Voxel
 {
 	enum VoxelFlags
 	{
-		VF_NON_EMPTY = 1,
-		VF_ERASED = 2
+		VF_NON_EMPTY = 		1,
+		VF_ERASED = 		1 << 1,
+		VF_NO_COLLISION = 	1 << 2
 	};
 	enum Material
 	{
