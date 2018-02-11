@@ -108,11 +108,13 @@ bool VoxelGrid::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) 
 	//intersect_t hit;
 	if (!bound.rayIntersect(ray, &hit))
 		return false;
+	// for interior ray origin, bound intersection returns negative tMin
+	hit.tNear = std::max(ray.t_min, hit.tNear);
 	QVector3D gridIntersect = ray.from + hit.tNear * ray.dir;
 	float nextVoxelT[3], deltaT[3];
 	float rayT = hit.tNear;
 	int vPos[3], vOut[3], stepDir[3];
-	// TODO: calc vPos from gridIntersect
+	// TODO: handle ray cast from inside voxel, currently causes paint tool to replace that voxel
 	for (int axis = 0; axis < 3; ++axis)
 	{
 		vPos[axis] = posToVoxel(gridIntersect[axis], axis);
