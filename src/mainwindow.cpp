@@ -12,6 +12,8 @@
 #include "palette.h"
 #include "voxelscene.h"
 
+#include <QFileDialog>
+
 VGMainWindow::VGMainWindow():
 	mainUi(new Ui::MainWindow),
 	paletteView(new ColorPaletteView),
@@ -50,6 +52,18 @@ VGMainWindow::~VGMainWindow()
 
 void VGMainWindow::on_action_axis_grids_triggered(bool checked)
 {
+}
+
+void qubicle_import(const QString &filename, VoxelScene &scene);
+
+void VGMainWindow::on_action_open_triggered()
+{
+	QString browseDir;
+	QString fileName = QFileDialog::getOpenFileName(this, "Open File",
+			browseDir, "Qubicle (*.qb)");
+	if (fileName.isEmpty())
+		return;
+	qubicle_import(fileName, *scene);
 }
 
 void VGMainWindow::on_material_currentIndexChanged(int index)

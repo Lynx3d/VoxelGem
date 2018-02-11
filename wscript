@@ -29,6 +29,7 @@ def build(bld):
 				'src/voxelaggregate.cpp',
 				'src/voxelgrid.cpp',
 				'src/voxelscene.cpp',
+				'src/file_io/qubicle.cpp',
 				'resources.qrc',
 				'mainwindow.ui']
 	bld(
