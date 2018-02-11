@@ -41,10 +41,6 @@ VoxelGrid::VoxelGrid(const int pos[3]):
 	gridPos[1] = pos[1];
 	gridPos[2] = pos[2];
 	memset(voxels.data(), 0, voxels.capacity());
-	/* TEST! TODO*/
-	VoxelEntry &testVoxel = voxels[voxelIndex(3,2,5)];
-	testVoxel = VoxelEntry(255, 220, 200, 255);
-	//testVoxel.flags = VF_NON_EMPTY;
 }
 
 void initIndexBuffer(QOpenGLFunctions_3_3_Core &glf)

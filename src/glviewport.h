@@ -72,9 +72,6 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 		void mouseMoveEvent(QMouseEvent *event);
 
 		VoxelScene *scene;
-		QOpenGLVertexArrayObject m_vertexSpec; // buffered vertex attribute layout
-		GLuint matrixID;
-		GLuint m_vbo;
 		GLuint m_ubo_LUT;
 		GLuint m_ubo_material;
 		ViewportSettings *vpSettings;

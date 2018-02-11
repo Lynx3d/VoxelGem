@@ -45,16 +45,6 @@ const char* flat_shader =
 "	final_color = frag_color;\n"
 "}";
 
-const GlVertex_t testArray[] =
-{
-	{{ -5.f, 0.f, 0.f }, { 255, 0, 0, 255 }},
-	{{ 5.f, 0.f, 0.f }, { 0, 255, 0, 255 }},
-	{{ 0.f, 5.f, 0.f }, { 0, 0, 255, 255 }},
-	// small triangle
-	{{ -1.f, 0.f, -0.1f }, { 128, 0, 0, 255 }},
-	{{ 1.f, 0.f, -0.1f }, { 0, 128, 0, 255 }},
-	{{ 0.f, 1.f, -0.1f }, { 0, 0, 128, 255 }}
-};
 
 /* ========== GlViewportSettings ==============*/
 /* QMatrix4x4().perspective(...) * QMatrix().lookAt(...);
@@ -187,10 +177,11 @@ void GlViewportWidget::initializeGL()
 	m_program->link();
 	m_program->bind();
 	// test: print UBO layout info
-	GLInfoLib::getUniformsInfo(m_program->programId());
+	//GLInfoLib::getUniformsInfo(m_program->programId());
 	// connect sRGB UBO
 	GLuint block_index = glGetUniformBlockIndex(m_program->programId(), "sRGB_LUT");
 	glUniformBlockBinding(m_program->programId(), block_index, 0);
+	m_program->release();
 
 	m_voxel_program = new QOpenGLShaderProgram(/*TODO: "self" as parent when stored in class*/);
 	m_voxel_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shader/voxel_fragment.glsl");
@@ -203,27 +194,11 @@ void GlViewportWidget::initializeGL()
 	block_index = glGetUniformBlockIndex(m_voxel_program->programId(), "materials");
 	glUniformBlockBinding(m_voxel_program->programId(), block_index, 1);
 	// test: print UBO layout info
-	GLInfoLib::getUniformsInfo(m_voxel_program->programId());
-
-	m_vertexSpec.create();
-	m_vertexSpec.bind();
-	glGenBuffers(1, &m_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(testArray), testArray, GL_STATIC_DRAW);
-	m_program->enableAttributeArray("v_position");
-	//m_program->setAttributeBuffer(0, GL_FLOAT, ??, 3
-	glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(GlVertex_t), (const GLvoid*)offsetof(GlVertex_t, pos));
-	m_program->enableAttributeArray("v_color");
-	//glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(GlVertex_t), (const GLvoid*)offsetof(GlVertex_t, col));
-	glVertexAttribIPointer(1, 4, GL_UNSIGNED_BYTE, sizeof(GlVertex_t), (const GLvoid*)offsetof(GlVertex_t, col));
-
-	m_vertexSpec.release();
-	m_program->release();
+	//GLInfoLib::getUniformsInfo(m_voxel_program->programId());
 
 	//testobject
 	testObject = new LineGrid();
 	testTool = new PaintTool();
-	//
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -250,24 +225,24 @@ void GlViewportWidget::paintGL()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	m_program->bind();
-	m_vertexSpec.bind();
 
 	QMatrix4x4 final = vpSettings->getGlMatrix();
 
 	m_program->setUniformValue("mvp_mat", final);
 	glBindBuffer(GL_UNIFORM_BUFFER, m_ubo_LUT);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ubo_LUT);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	m_vertexSpec.release();
 	// test object
 	testObject->render(*this);
 
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 	m_voxel_program->bind();
 	m_voxel_program->setUniformValue("mvp_mat", final);
 	m_voxel_program->setUniformValue("view_mat", vpSettings->getViewMatrix());
 
 	scene->renderLayer->render(*this);
 	m_program->release();
+	glDisable(GL_CULL_FACE);
 
 #if DEBUG_GL
 	QDebug dbg = qDebug();
