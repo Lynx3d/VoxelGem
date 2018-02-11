@@ -34,7 +34,7 @@ class ViewportSettings
 {
 	public:
 		ViewportSettings(const GlViewportWidget *parentW):
-			heading(180), pitch(0), roll(0), fov(45), camPos(0.f, 0.f, -10.f), parent(parentW)
+			heading(180), pitch(0), roll(0), fov(45), camDistance(10), camPivot(0.f, 2.f, 0.f), parent(parentW)
 			{
 				updateViewport();
 				updateViewMatrix();
@@ -50,8 +50,8 @@ class ViewportSettings
 		QMatrix4x4 proj;
 		QMatrix4x4 view;
 		float heading, pitch, roll;
-		float fov;
-		QVector3D camPos;
+		float fov, camDistance;
+		QVector3D camPivot;
 		const GlViewportWidget *parent;
 };
 

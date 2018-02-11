@@ -73,14 +73,14 @@ ray_t ViewportSettings::unproject(const QVector3D &pNear)
 	ray.t_min = 0;
 	ray.t_max = ray.dir.length();
 	ray.dir /= ray.t_max;
-	qDebug() << camPos << "\n ray.from:" << ray.from << "\n ray.dir:" << ray. dir << "\n t_max:" << ray.t_max;
+	qDebug() << camPivot << "\n ray.from:" << ray.from << "\n ray.dir:" << ray. dir << "\n t_max:" << ray.t_max;
 	return ray;
 }
 
 void ViewportSettings::rotateBy(float dHead, float dPitch)
 {
-	heading += dHead;
-	pitch += dPitch;
+	heading += 0.5f * dHead;
+	pitch += 0.5f * dPitch;
 	while (heading < 0) heading += 360;
 	while (heading > 360) heading -= 360;
 	while (pitch < -180) pitch += 360;
@@ -91,7 +91,7 @@ void ViewportSettings::rotateBy(float dHead, float dPitch)
 void ViewportSettings::panBy(float dX, float dY)
 {
 	QVector4D offset = dX * view.row(0) + dY * view.row(1);
-	camPos += QVector3D(offset);
+	camPivot += QVector3D(offset);
 	updateViewMatrix();
 }
 
@@ -104,10 +104,12 @@ void ViewportSettings::updateViewport()
 void ViewportSettings::updateViewMatrix()
 {
 	view.setToIdentity();
-	view.rotate(QQuaternion::fromEulerAngles(pitch, heading, roll));
-	//test
-	view = view.transposed();
-	view.translate(-camPos);
+	view.translate(0, 0, -camDistance);
+	QMatrix4x4 rot;
+	rot.rotate(QQuaternion::fromEulerAngles(pitch, heading, roll));
+	rot = rot.transposed();
+	rot.translate(-camPivot);
+	view *= rot;
 }
 
 /* ========== GlViewportWidget ==============*/
