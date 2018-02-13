@@ -60,10 +60,18 @@ class BBox
 		QVector3D pMin, pMax;
 };
 
+class GridMemento
+{
+	friend class VoxelGrid;
+	std::vector<VoxelEntry> voxels;
+};
+
 class VoxelGrid: public GLRenderable
 {
 	public:
 		VoxelGrid(const int pos[3]);
+		VoxelGrid(const VoxelGrid &other);
+		virtual ~VoxelGrid();
 		void setup(QOpenGLFunctions_3_3_Core &glf);
 		void render(QOpenGLFunctions_3_3_Core &glf) {} // TODO; rethink abstract base class...
 		void render(QOpenGLFunctions_3_3_Core &glf, const VoxelGrid* neighbourGrids[27]);
@@ -84,6 +92,10 @@ class VoxelGrid: public GLRenderable
 		const int* getGridPos() const { return gridPos; }
 		float voxelEdge(int pos, int axis) const { return bound.pMin[axis] + (float)pos; }
 		bool rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) const;
+		void merge(const VoxelGrid &topLayer, VoxelGrid *targetGrid = 0);
+		void applyChanges(const VoxelGrid &toolLayer, GridMemento *memento);
+		// the memento shall be altered to allow reversing the restore (i.e. "redo" operation)
+		void restoreState(GridMemento *memento);
 	protected:
 		int tesselate(GlVoxelVertex_t *vertices, const VoxelGrid* neighbourGrids[27]);
 		std::vector<int> getNeighbourMasks(const VoxelGrid* neighbourGrids[27]) const;

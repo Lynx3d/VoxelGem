@@ -40,7 +40,19 @@ VoxelGrid::VoxelGrid(const int pos[3]):
 	gridPos[0] = pos[0];
 	gridPos[1] = pos[1];
 	gridPos[2] = pos[2];
-	memset(voxels.data(), 0, voxels.capacity());
+	memset(voxels.data(), 0, voxels.capacity()); // TODO: should be redundant with current VoxelEntry() constructor...
+}
+
+VoxelGrid::VoxelGrid(const VoxelGrid &other):
+	bound(other.bound), nTessTris(0), voxels(other.voxels)
+{
+	gridPos[0] = other.gridPos[0];
+	gridPos[1] = other.gridPos[1];
+	gridPos[2] = other.gridPos[2];
+}
+
+VoxelGrid::~VoxelGrid()
+{
 }
 
 void initIndexBuffer(QOpenGLFunctions_3_3_Core &glf)
@@ -157,6 +169,48 @@ bool VoxelGrid::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) 
 	}
 	return false;
 }
+
+void VoxelGrid::merge(const VoxelGrid &topLayer, VoxelGrid *targetGrid)
+{
+	// TODO: combination modes/flags could be useful, maybe to use it in applyChanges()
+	VoxelGrid *target = targetGrid ? targetGrid : this;
+	for (int i = 0; i < GRID_LEN * GRID_LEN * GRID_LEN; ++i)
+	{
+		const VoxelEntry &entry = topLayer.voxels[i];
+		if (entry.flags & Voxel::VF_ERASED)
+			target->voxels[i] = VoxelEntry();
+		else if(entry.flags & Voxel::VF_NON_EMPTY)
+		{
+			target->voxels[i] = entry;
+		}
+	}
+	target->dirty = true;
+}
+
+void VoxelGrid::applyChanges(const VoxelGrid &toolLayer, GridMemento *memento)
+{
+	memento->voxels = voxels;
+	for (int i = 0; i < GRID_LEN * GRID_LEN * GRID_LEN; ++i)
+	{
+		const VoxelEntry &entry = toolLayer.voxels[i];
+		if (entry.flags & Voxel::VF_ERASED)
+			voxels[i] = VoxelEntry();
+		else if(entry.flags & Voxel::VF_NON_EMPTY)
+		{
+			voxels[i] = entry;
+			// clear VF_NO_COLLISION flag, currently only valid for tool and rendering layer
+			voxels[i].flags &= ~Voxel::VF_NO_COLLISION;
+		}
+	}
+	dirty = true;
+}
+
+void VoxelGrid::restoreState(GridMemento *memento)
+{
+	voxels.swap(memento->voxels);
+	dirty = true;
+}
+
 static void getOcclusionValues(int face, int mask, uint8_t occ[4])
 {
 	const int *faceFlags = FACE_OCCLUSION_FLAGS[face];

@@ -25,6 +25,13 @@ uint64_t VoxelAggregate::setVoxel(int x, int y, int z, const VoxelEntry &voxel)
 		voxelGridPtr_t posGrid(new VoxelGrid(gridPos));
 		grid = blockMap.emplace(id, posGrid).first;
 	}
+	// TODO: this should only ever happen when render and editing layer share data, which would be okay.
+	// we should find a way to ensure this and throw an error otherwise.
+	else if (grid->second.use_count() > 1)
+	{
+		std::cout << "grid is currently shared, creating copy.\n";
+		grid->second = voxelGridPtr_t(new VoxelGrid(*grid->second));
+	}
 //	std::cout << "setting voxel (" << (x & (int)(GRID_LEN - 1)) << ", " << (y & (int)(GRID_LEN - 1)) << ", " << (z & (int)(GRID_LEN - 1)) << ")\n";
 	grid->second->setVoxel(x & (int)(GRID_LEN - 1), y & (int)(GRID_LEN - 1), z & (int)(GRID_LEN - 1), voxel);
 	return id;
@@ -61,6 +68,96 @@ void VoxelAggregate::render(QOpenGLFunctions_3_3_Core &glf)
 		if (grid.second->isDirty())
 			getNeighbours(grid.second->getGridPos(), neighbourGrids);
 		grid.second->render(glf, neighbourGrids);
+	}
+}
+
+void VoxelAggregate::clear()
+{
+	//TODO! cache some grids for later use
+	blockMap.clear();
+}
+
+void VoxelAggregate::clearBlocks(const std::unordered_set<uint64_t> &blocks)
+{
+	for (auto &id: blocks)
+	{
+		blockMap.erase(id);
+	}
+}
+
+void VoxelAggregate::merge(const VoxelAggregate &topLayer, const std::unordered_set<uint64_t> &blocks)
+{
+	for (auto &block_id: blocks)
+	{
+		blockMap_t::iterator grid = blockMap.find(block_id);
+		blockMap_t::const_iterator topGrid = topLayer.blockMap.find(block_id);
+		if (topGrid == topLayer.blockMap.end())
+			continue;
+		if (grid == blockMap.end())
+		{
+			// no need to merge grid
+			blockMap.emplace(topGrid->first, topGrid->second);
+		}
+		else if (grid->second != topGrid->second) // only merge if we actually reference different grids
+		{
+			if (grid->second.use_count() > 1) // need to copy or we modify multiple aggregates
+			{
+				grid->second = voxelGridPtr_t(new VoxelGrid(*grid->second));
+			}
+			grid->second->merge(*topGrid->second);
+		}
+	}
+}
+
+void VoxelAggregate::applyChanges(const VoxelAggregate &toolLayer, AggregateMemento *memento)
+{
+	for (auto &toolGrid: toolLayer.blockMap)
+	{
+		blockMap_t::iterator grid = blockMap.find(toolGrid.first);
+		GridMemento *gridMem = new GridMemento;
+		if (grid == blockMap.end())
+		{
+			// TODO: implement empty grid memento handling and emplace tool grid
+			voxelGridPtr_t posGrid(new VoxelGrid(toolGrid.second->getGridPos()));
+			posGrid->applyChanges(*toolGrid.second, gridMem);
+			grid = blockMap.emplace(toolGrid.first, posGrid).first;
+		}
+		else
+		{
+			if (grid->second.use_count() > 1) // need to copy or we modify multiple aggregates
+			{
+				grid->second = voxelGridPtr_t(new VoxelGrid(*grid->second));
+			}
+			grid->second->applyChanges(*toolGrid.second, gridMem);
+		}
+		memento->blockMap.emplace(toolGrid.first, gridMementoPtr_t(gridMem));
+	}
+}
+
+void VoxelAggregate::restoreState(AggregateMemento *memento, std::unordered_set<uint64_t> &changed)
+{
+	for (auto &memGrid: memento->blockMap)
+	{
+		if (memGrid.second)
+		{
+			blockMap_t::iterator grid = blockMap.find(memGrid.first);
+			if (grid == blockMap.end())
+			{
+				// TODO: restore deleted grid
+				std::cout << "ERR: restoring erased grid unimplemented!\n";
+			}
+			else
+			{
+				// this modifies the GridMemento to reflect its previous state!
+				grid->second->restoreState(memGrid.second.get());
+			}
+		}
+		// TODO: null pointer denotes deleted grid
+		else
+		{
+			std::cout << "ERR: grid erasing unimplemented!\n";
+		}
+		changed.insert(memGrid.first);
 	}
 }
 
