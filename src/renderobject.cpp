@@ -37,6 +37,13 @@ void GLRenderable::uploadBuffer(QOpenGLFunctions_3_3_Core &glf, void *data, GLsi
 	}
 }
 
+void GLRenderable::deleteBuffer(QOpenGLFunctions_3_3_Core &glf)
+{
+	glf.glDeleteBuffers(1, &glVBO);
+	glVBO = 0;
+	glBufferSize = 0;
+}
+
 void LineGrid::setup(QOpenGLFunctions_3_3_Core &glf)
 {
 	m_program->bind();

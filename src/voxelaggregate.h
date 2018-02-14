@@ -29,17 +29,22 @@ class AggregateMemento
 class VoxelAggregate
 {
 	public:
+		#define POS_MASK (0x1FFFFF * GRID_LEN)
 		static inline uint64_t blockID(int x, int y, int z)
 		{
-			#define POS_MASK (0x1FFFFF * GRID_LEN)
 			return  uint64_t(x & POS_MASK) >> LOG_GRID_LEN |
 					uint64_t(y & POS_MASK) << (21 - LOG_GRID_LEN) |
 					uint64_t(z & POS_MASK) << (42 - LOG_GRID_LEN);
-			#undef POS_MASK
 		}
+		static inline void blockPos(uint64_t id, int pos[3])
+		{
+			pos[0] = (id << LOG_GRID_LEN) & POS_MASK;
+			pos[1] = (id >> (21 - LOG_GRID_LEN)) & POS_MASK;
+			pos[2] = (id >> (42 - LOG_GRID_LEN)) & POS_MASK;
+		}
+		#undef POS_MASK
 		uint64_t setVoxel(int x, int y, int z, const VoxelEntry &voxel);
 		bool rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) const;
-		void render(QOpenGLFunctions_3_3_Core &glf);
 		void clear();
 		void clearBlocks(const std::unordered_set<uint64_t> &blocks);
 		void merge(const VoxelAggregate &topLayer, const std::unordered_set<uint64_t> &blocks);
@@ -47,8 +52,10 @@ class VoxelAggregate
 		// the memento shall be altered to allow reversing the restore (i.e. "redo" operation)
 		void restoreState(AggregateMemento *memento, std::unordered_set<uint64_t> &changed);
 		int blockCount() { return blockMap.size(); }
-	protected:
+		const VoxelGrid* getBlock(uint64_t blockId) const;
+		static void markDirtyBlocks(const DirtyVolume &vol, std::unordered_set<uint64_t> &blocks);
 		void getNeighbours(const int gridPos[3], const VoxelGrid* neighbours[27]);
+	protected:
 		blockMap_t blockMap;
 };
 

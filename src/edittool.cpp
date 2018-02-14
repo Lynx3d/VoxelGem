@@ -79,4 +79,7 @@ void PaintTool::mouseDown(const ToolEvent &event, VoxelScene &scene)
 		event.getAdjacentVoxel(fillPos);
 		scene.setVoxel(fillPos, *scene.getVoxelTemplate());
 	}
+	// TEST! this should go to mouseUp of course, when a stroke is done
+	if (!event.isControlPressed())
+		scene.completeToolAction();
 }

@@ -44,7 +44,7 @@ VoxelGrid::VoxelGrid(const int pos[3]):
 }
 
 VoxelGrid::VoxelGrid(const VoxelGrid &other):
-	bound(other.bound), nTessTris(0), voxels(other.voxels)
+	bound(other.bound), voxels(other.voxels)
 {
 	gridPos[0] = other.gridPos[0];
 	gridPos[1] = other.gridPos[1];
@@ -53,66 +53,6 @@ VoxelGrid::VoxelGrid(const VoxelGrid &other):
 
 VoxelGrid::~VoxelGrid()
 {
-}
-
-void initIndexBuffer(QOpenGLFunctions_3_3_Core &glf)
-{
-	const int faceIndices[6] = { 0, 1, 2,  2, 3, 0 }; // one quad => 2 triangles
-	const int maxIndices = GRID_LEN * GRID_LEN * GRID_LEN * 6 * 2 * 3; // 6 faces * 2 triangles * 3 indices
-	uint16_t *index_array = new uint16_t[maxIndices];
-	for (int i = 0; i < maxIndices; ++i)
-		index_array[i] = (i / 6) * 4 + faceIndices[i % 6];
-	glf.glGenBuffers(1, &g_indexBuffer);
-	glf.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_indexBuffer);
-	glf.glBufferData(GL_ELEMENT_ARRAY_BUFFER, maxIndices * sizeof(uint16_t), index_array, GL_STATIC_DRAW);
-	delete[] index_array;
-}
-
-void VoxelGrid::setup(QOpenGLFunctions_3_3_Core &glf)
-{
-	m_voxel_program->bind();
-	m_voxel_program->enableAttributeArray("v_position");
-	glf.glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(GlVoxelVertex_t),
-								(const GLvoid*)offsetof(GlVoxelVertex_t, pos));
-	m_voxel_program->enableAttributeArray("v_color");
-	glf.glVertexAttribIPointer(1, 4, GL_UNSIGNED_BYTE, sizeof(GlVoxelVertex_t),
-								(const GLvoid*)offsetof(GlVoxelVertex_t, col));
-	m_voxel_program->enableAttributeArray("v_normal");
-	glf.glVertexAttribPointer(2, 3, GL_FLOAT, false, sizeof(GlVoxelVertex_t),
-								(const GLvoid*)offsetof(GlVoxelVertex_t, normal));
-	m_voxel_program->enableAttributeArray("v_mat_index");
-	glf.glVertexAttribIPointer(3, 1, GL_UNSIGNED_BYTE, sizeof(GlVoxelVertex_t),
-								(const GLvoid*)offsetof(GlVoxelVertex_t, matIndex));
-	m_voxel_program->enableAttributeArray("v_occlusion");
-	glf.glVertexAttribPointer(4, 1, GL_UNSIGNED_BYTE, false, sizeof(GlVoxelVertex_t),
-								(const GLvoid*)offsetof(GlVoxelVertex_t, occlusion));
-}
-
-void VoxelGrid::render(QOpenGLFunctions_3_3_Core &glf, const VoxelGrid* neighbourGrids[27])
-{
-	// TODO: move to a better place...
-	if (!g_vertexBuffer)
-	{
-		initIndexBuffer(glf);
-		g_vertexBuffer = new GlVoxelVertex_t[GRID_LEN * GRID_LEN * GRID_LEN * 6 * 4];
-	}
-
-	if (!glVAO.isCreated())
-		glVAO.create();
-
-	glVAO.bind();
-
-	if (dirty)
-	{
-		glf.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_indexBuffer);
-		nTessTris = tesselate(g_vertexBuffer, neighbourGrids);
-		if (nTessTris > 0)
-			uploadBuffer(glf, g_vertexBuffer, 2 * nTessTris * sizeof(GlVoxelVertex_t));
-		dirty = false;
-	}
-	if (nTessTris > 0)
-		glf.glDrawElements(GL_TRIANGLES, nTessTris * 3, GL_UNSIGNED_SHORT, 0);
-	glVAO.release();
 }
 
 bool VoxelGrid::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) const
@@ -184,7 +124,6 @@ void VoxelGrid::merge(const VoxelGrid &topLayer, VoxelGrid *targetGrid)
 			target->voxels[i] = entry;
 		}
 	}
-	target->dirty = true;
 }
 
 void VoxelGrid::applyChanges(const VoxelGrid &toolLayer, GridMemento *memento)
@@ -202,13 +141,11 @@ void VoxelGrid::applyChanges(const VoxelGrid &toolLayer, GridMemento *memento)
 			voxels[i].flags &= ~Voxel::VF_NO_COLLISION;
 		}
 	}
-	dirty = true;
 }
 
 void VoxelGrid::restoreState(GridMemento *memento)
 {
 	voxels.swap(memento->voxels);
-	dirty = true;
 }
 
 static void getOcclusionValues(int face, int mask, uint8_t occ[4])
@@ -228,7 +165,7 @@ static void getOcclusionValues(int face, int mask, uint8_t occ[4])
 	}
 }
 
-int VoxelGrid::tesselate(GlVoxelVertex_t *vertices, const VoxelGrid* neighbourGrids[27])
+int VoxelGrid::tesselate(GlVoxelVertex_t *vertices, const VoxelGrid* neighbourGrids[27]) const
 {
 	int index = 0, nTriangles = 0;
 	std::vector<int> masks = getNeighbourMasks(neighbourGrids);
@@ -237,7 +174,7 @@ int VoxelGrid::tesselate(GlVoxelVertex_t *vertices, const VoxelGrid* neighbourGr
 		for (int y = 0; y < GRID_LEN; ++y)
 			for (int x = 0; x < GRID_LEN; ++x, ++index)
 	{
-		VoxelEntry &entry = voxels[index];
+		const VoxelEntry &entry = voxels[index];
 		if (!(entry.flags & Voxel::VF_NON_EMPTY)) continue;
 		unsigned char matIndex = 0;
 		//test
@@ -326,4 +263,82 @@ std::vector<int> VoxelGrid::getNeighbourMasks(const VoxelGrid* neighbourGrids[27
 		masks[index] = mask;
 	}
 	return masks;
+}
+
+/*=================================
+	RenderGrid
+==================================*/
+
+void initIndexBuffer(QOpenGLFunctions_3_3_Core &glf)
+{
+	const int faceIndices[6] = { 0, 1, 2,  2, 3, 0 }; // one quad => 2 triangles
+	const int maxIndices = GRID_LEN * GRID_LEN * GRID_LEN * 6 * 2 * 3; // 6 faces * 2 triangles * 3 indices
+	uint16_t *index_array = new uint16_t[maxIndices];
+	for (int i = 0; i < maxIndices; ++i)
+		index_array[i] = (i / 6) * 4 + faceIndices[i % 6];
+	glf.glGenBuffers(1, &g_indexBuffer);
+	glf.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_indexBuffer);
+	glf.glBufferData(GL_ELEMENT_ARRAY_BUFFER, maxIndices * sizeof(uint16_t), index_array, GL_STATIC_DRAW);
+	delete[] index_array;
+}
+
+void RenderGrid::setup(QOpenGLFunctions_3_3_Core &glf)
+{
+	m_voxel_program->bind();
+	m_voxel_program->enableAttributeArray("v_position");
+	glf.glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(GlVoxelVertex_t),
+								(const GLvoid*)offsetof(GlVoxelVertex_t, pos));
+	m_voxel_program->enableAttributeArray("v_color");
+	glf.glVertexAttribIPointer(1, 4, GL_UNSIGNED_BYTE, sizeof(GlVoxelVertex_t),
+								(const GLvoid*)offsetof(GlVoxelVertex_t, col));
+	m_voxel_program->enableAttributeArray("v_normal");
+	glf.glVertexAttribPointer(2, 3, GL_FLOAT, false, sizeof(GlVoxelVertex_t),
+								(const GLvoid*)offsetof(GlVoxelVertex_t, normal));
+	m_voxel_program->enableAttributeArray("v_mat_index");
+	glf.glVertexAttribIPointer(3, 1, GL_UNSIGNED_BYTE, sizeof(GlVoxelVertex_t),
+								(const GLvoid*)offsetof(GlVoxelVertex_t, matIndex));
+	m_voxel_program->enableAttributeArray("v_occlusion");
+	glf.glVertexAttribPointer(4, 1, GL_UNSIGNED_BYTE, false, sizeof(GlVoxelVertex_t),
+								(const GLvoid*)offsetof(GlVoxelVertex_t, occlusion));
+}
+
+void RenderGrid::cleanupGL(QOpenGLFunctions_3_3_Core &glf)
+{
+	if (glVBO)
+		deleteBuffer(glf);
+	glVAO.destroy();
+}
+
+void RenderGrid::update(QOpenGLFunctions_3_3_Core &glf, const VoxelGrid* neighbourGrids[27])
+{
+	// TODO: move to a better place...
+	if (!g_vertexBuffer)
+	{
+		initIndexBuffer(glf);
+		g_vertexBuffer = new GlVoxelVertex_t[GRID_LEN * GRID_LEN * GRID_LEN * 6 * 4];
+	}
+
+	if (!glVAO.isCreated())
+		glVAO.create();
+	glVAO.bind();
+
+	const VoxelGrid *tessGrid = neighbourGrids[13];
+	nTessTris = tessGrid->tesselate(g_vertexBuffer, neighbourGrids);
+	if (nTessTris > 0)
+		uploadBuffer(glf, g_vertexBuffer, 2 * nTessTris * sizeof(GlVoxelVertex_t));
+	dirty = false;
+}
+
+void RenderGrid::render(QOpenGLFunctions_3_3_Core &glf)
+{
+	if (dirty)
+	{
+		//std::cout << "RenderGrid outdated; skipping\n";
+		return;
+	}
+	glVAO.bind();
+	glf.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_indexBuffer);
+	if (nTessTris > 0)
+		glf.glDrawElements(GL_TRIANGLES, nTessTris * 3, GL_UNSIGNED_SHORT, 0);
+	glVAO.release();
 }

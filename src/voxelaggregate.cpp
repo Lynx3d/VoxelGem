@@ -16,7 +16,6 @@ uint64_t VoxelAggregate::setVoxel(int x, int y, int z, const VoxelEntry &voxel)
 	blockMap_t::iterator grid = blockMap.find(id);
 	if (grid == blockMap.end())
 	{
-		// TODO: pass proper bound to voxel grid
 		int gridPos[3] = {
 			x & ~(int)(GRID_LEN - 1),
 			y & ~(int)(GRID_LEN - 1),
@@ -58,17 +57,6 @@ bool VoxelAggregate::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &
 		}
 	}
 	return didHit;
-}
-
-void VoxelAggregate::render(QOpenGLFunctions_3_3_Core &glf)
-{
-	const VoxelGrid* neighbourGrids[27];
-	for (auto &grid: blockMap)
-	{
-		if (grid.second->isDirty())
-			getNeighbours(grid.second->getGridPos(), neighbourGrids);
-		grid.second->render(glf, neighbourGrids);
-	}
 }
 
 void VoxelAggregate::clear()
@@ -174,4 +162,35 @@ void VoxelAggregate::getNeighbours(const int gridPos[3], const VoxelGrid* neighb
 		else
 			neighbours[i] = grid->second.get();
 	}
+}
+
+// important! the dirty volume must not span blocks!
+// while we could adjust the calculation, it would defeat the purpose of of saving adjacent block re-tesselations
+void VoxelAggregate::markDirtyBlocks(const DirtyVolume &vol, std::unordered_set<uint64_t> &blocks)
+{
+	int start[3] = { 0, 0, 0 };
+	int end[3] = { 0, 0, 0 };
+	for (int i = 0; i < 3; ++i)
+	{
+		int low = vol.low[i] & (GRID_LEN - 1);
+		int high = vol.high[i] & (GRID_LEN - 1);
+		if (low == 0)
+			start[i] = -1;
+		if (high == GRID_LEN - 1)
+			end[i] = 1;
+	}
+
+	for (int z = start[2]; z <= end[2]; ++z)
+		for (int y = start[1]; y <= end[1]; ++y)
+			for (int x = start[0]; x <= end[0]; ++x)
+				blocks.insert(blockID(vol.low[0] + x * GRID_LEN, vol.low[1] + y * GRID_LEN, vol.low[2] + z * GRID_LEN));
+}
+
+
+const VoxelGrid* VoxelAggregate::getBlock(uint64_t blockId) const
+{
+	blockMap_t::const_iterator block = blockMap.find(blockId);
+	if (block != blockMap.end())
+		return block->second.get();
+	return 0;
 }

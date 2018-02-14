@@ -11,9 +11,16 @@
 
 #include "voxelgem.h"
 
+#include <unordered_map>
+#include <unordered_set>
+#include <list>
+
 class VoxelEntry;
 class VoxelAggregate;
+class AggregateMemento;
+class RenderGrid;
 class GlViewportWidget;
+class QOpenGLFunctions_3_3_Core;
 
 class SceneRayHit
 {
@@ -32,11 +39,22 @@ class SceneRayHit
 		float rayT;
 };
 
+class UndoItem
+{
+	public:
+		UndoItem(AggregateMemento *mem): memento(mem) {}
+		UndoItem(UndoItem &&other): memento(other.memento) { other.memento = 0; }
+		~UndoItem();
+		AggregateMemento* getMemento() { return memento; }
+	protected:
+		AggregateMemento *memento {0};
+};
+
+typedef std::unordered_map<uint64_t, DirtyVolume> dirtyMap_t;
+
 /*! This class holds all the "scene" data for a file edit session.
 	Includes viewport and various UI information required for
 	editing tools to work on the scene.
-	Maybe another class holding application-wide state information
-	such as tool settings might be useful though...
 */
 
 class VoxelScene
@@ -52,19 +70,32 @@ class VoxelScene
 		/* read a voxel from the scene (exclude current edit changes) */
 		const VoxelEntry* getVoxel(const int pos[3]);
 		const VoxelEntry* getVoxelTemplate() const { return &voxelTemplate; }
+		bool needsUpdate() const { return !changedBlocks.empty(); }
 		void setTemplateColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 		{
 			voxelTemplate.col[0] = r;
 			voxelTemplate.col[1] = g;
 			voxelTemplate.col[2] = b;
-			voxelTemplate.col[4] = a;
+			voxelTemplate.col[3] = a;
 		}
 		void setTemplateMaterial(Voxel::Material mat) { voxelTemplate.setMaterial(mat); }
 		void setTemplateSpecular(Voxel::Specular spec) { voxelTemplate.setSpecular(spec); }
+		void completeToolAction();
+		void update();
+		void render(QOpenGLFunctions_3_3_Core &glf);
+		void undo();
 	protected:
 		GlViewportWidget *viewport;
 		VoxelAggregate *renderLayer;
+		VoxelAggregate *editingLayer;
+		VoxelAggregate *toolLayer;
 		VoxelEntry voxelTemplate;
+		std::unordered_map<uint64_t, RenderGrid*> renderBlocks;
+		std::unordered_set<uint64_t> changedBlocks;
+		std::unordered_set<uint64_t> dirtyBlocks;
+		dirtyMap_t dirtyVolumes;
+		std::list<UndoItem> undoList;
+		std::list<UndoItem>::iterator undoState;
 };
 
 #endif // VG_VOXELSCENE_H

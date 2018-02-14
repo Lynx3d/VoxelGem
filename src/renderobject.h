@@ -51,13 +51,15 @@ struct intersect_t
 class GLRenderable
 {
 	public:
-		GLRenderable(): glBufferSize(0), dirty(true) {}
+		GLRenderable(): glVBO(0), glBufferSize(0), dirty(true) {}
+		virtual ~GLRenderable() {} // TODO: add checks to ensure OpenGL data was freed, now is too late!
 		bool isDirty() const { return dirty; }
 		virtual void setup(QOpenGLFunctions_3_3_Core &glf) = 0;
 		virtual void render(QOpenGLFunctions_3_3_Core &glf) = 0;
 		virtual bool rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) { return false; }
 	protected:
 		virtual void uploadBuffer(QOpenGLFunctions_3_3_Core &glf, void *data, GLsizeiptr size);
+		void deleteBuffer(QOpenGLFunctions_3_3_Core &glf);
 		QOpenGLVertexArrayObject glVAO;
 		GLuint glVBO;
 		GLsizei glBufferSize;

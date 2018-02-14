@@ -242,7 +242,8 @@ void GlViewportWidget::paintGL()
 	m_voxel_program->setUniformValue("mvp_mat", final);
 	m_voxel_program->setUniformValue("view_mat", vpSettings->getViewMatrix());
 
-	scene->renderLayer->render(*this);
+	//scene->renderLayer->render(*this);
+	scene->render(*this);
 	m_program->release();
 	glDisable(GL_CULL_FACE);
 
@@ -295,7 +296,12 @@ void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 			}*/
 			ToolEvent toolEvent(event, &sceneHit);
 			testTool->mouseDown(toolEvent, *scene);
-			update();
+
+			if (scene->needsUpdate())
+			{
+				scene->update();
+				update();
+			}
 		}
 	}
 	if (event->button() == Qt::RightButton)

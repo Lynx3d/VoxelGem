@@ -54,6 +54,16 @@ void VGMainWindow::on_action_axis_grids_triggered(bool checked)
 {
 }
 
+void VGMainWindow::on_action_undo_triggered()
+{
+	scene->undo();
+	if (scene->needsUpdate())
+	{
+		scene->update();
+		viewport->update();
+	}
+}
+
 void qubicle_import(const QString &filename, VoxelScene &scene);
 
 void VGMainWindow::on_action_open_triggered()

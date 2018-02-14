@@ -10,6 +10,7 @@
 #define VG_VOXELGEM_H
 
 #include <cstdint>
+#include <algorithm>
 
 namespace Voxel
 {
@@ -73,6 +74,29 @@ class VoxelEntry
 			unsigned char col[4];
 		};
 		unsigned int flags;
+};
+
+class DirtyVolume
+{
+	public:
+		void addPosition(const int pos[3])
+		{
+			if (valid)
+				for (int i = 0; i < 3; ++i)
+				{
+					low[i] = std::min(low[i], pos[i]);
+					high[i] = std::max(high[i], pos[i]);
+				}
+			else
+			{
+				for (int i = 0; i < 3; ++i)
+					low[i] = high[i] = pos[i];
+				valid = true;
+			}
+		}
+		int low[3];
+		int high[3];
+		bool valid = false;
 };
 
 #endif // VG_VOXELGEM_H
