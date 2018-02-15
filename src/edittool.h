@@ -9,6 +9,8 @@
 #ifndef VG_EDITTOOL_H
 #define VG_EDITTOOL_H
 
+#include "voxelgem.h"
+
 class QMouseEvent;
 class SceneRayHit;
 class VoxelScene;
@@ -17,21 +19,20 @@ class VoxelScene;
 class ToolEvent
 {
 	public:
-		ToolEvent(QMouseEvent *qmEvent, SceneRayHit *srHit);
-		const SceneRayHit* getCursorHit() const;
-		bool getAdjacentVoxel(int pos[3]) const;
+		ToolEvent(QMouseEvent *qmEvent, ray_t cRay);
+		const ray_t& getCursorRay() const { return cursorRay; }
 		bool isShiftPressed() const;
 		bool isAltPressed() const;
 		bool isControlPressed() const;
 	protected:
 		QMouseEvent *mouseEvent;
-		SceneRayHit *rayHit;
+		ray_t cursorRay;
 };
 
 class EditTool
 {
 	public:
-		virtual void mouseMoved(const ToolEvent &event);
+		virtual void mouseMoved(const ToolEvent &event, VoxelScene &scene);
 		virtual void mouseDown(const ToolEvent &event, VoxelScene &scene);
 		virtual void mouseUp(const ToolEvent &event, VoxelScene &scene);
 };
@@ -39,9 +40,14 @@ class EditTool
 class PaintTool: public EditTool
 {
 	public:
+		void mouseMoved(const ToolEvent &event, VoxelScene &scene) override;
 		void mouseDown(const ToolEvent &event, VoxelScene &scene) override;
+		void mouseUp(const ToolEvent &event, VoxelScene &scene) override;
 	private:
 		bool painting = false;
+		bool deleting;
+		bool haveLastPos;
+		int lastPos[3];
 };
 
 

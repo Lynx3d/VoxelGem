@@ -52,12 +52,12 @@ const char* flat_shader =
    ( QMatrix4x4().perspective(...) ).lookAt(...);
 */
 
-QMatrix4x4 ViewportSettings::getGlMatrix()
+QMatrix4x4 ViewportSettings::getGlMatrix() const
 {
 	return proj * view;
 }
 
-ray_t ViewportSettings::unproject(const QVector3D &pNear)
+ray_t ViewportSettings::unproject(const QVector3D &pNear) const
 {
 	// TODO: cache matrices in class
 	// pNear shall be on the near plane (z = 0), and the ray goes til the far plane (z = 1)
@@ -221,6 +221,9 @@ void GlViewportWidget::resizeGL(int w, int h)
 
 void GlViewportWidget::paintGL()
 {
+	// TODO: scene->render() without scene->update() loses dirty info, so probably force call internally
+	if (scene->needsUpdate())
+		scene->update();
 	// TODO: multiply with devicePixelRatio() or the devicePixelRatioF() for Qt 5.6+
 	glViewport(0, 0, width(), height());
 	glEnable(GL_FRAMEBUFFER_SRGB); // no effect prior to Qt 5.10+ (no way to request sRGB buffers)
@@ -256,52 +259,24 @@ void GlViewportWidget::paintGL()
 #endif
 }
 
+GLRenderable* GlViewportWidget::getGrid()
+{
+	return testObject;
+}
+
 void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 {
 	if (event->button() == Qt::LeftButton)
 	{
-		ray_t ray;
-		ray = vpSettings->unproject(QVector3D(event->x(), height() - event->y(), 0.f));
-		//int hitPos[3];
-		SceneRayHit sceneHit;
-		intersect_t hitInfo;
-		bool didHit = scene->renderLayer->rayIntersect(ray, sceneHit.voxelPos, hitInfo);//testAggreg->rayIntersect(ray, hitPos, hitInfo);
-		//std::cout << "did hit:" << didHit << " voxel=(" << hitPos[0] << "," << hitPos[1] << "," << hitPos[2]
-		//			<< ") hit axis:" << hitInfo.entryAxis << std::endl;
-		if (didHit)
-			sceneHit.flags |= SceneRayHit::HIT_VOXEL;
-		else
-		{
-			didHit = testObject->rayIntersect(ray, sceneHit.voxelPos, hitInfo);
-			if (didHit)
-				sceneHit.flags |= SceneRayHit::HIT_LINEGRID;
-		//	std::cout << "Grid hit:" << didHit << " voxel=(" << hitPos[0] << "," << hitPos[1] << "," << hitPos[2]
-		//			<< ") hit axis:" << hitInfo.entryAxis << std::endl;
-		}
-		// voxel paint test
-		if (didHit)
-		{
-			sceneHit.flags |= hitInfo.entryAxis;
-			//hitPos[hitInfo.entryAxis & 3] += (hitInfo.entryAxis & intersect_t::AXIS_NEGATIVE) ? 1 : -1;
-			//VoxelEntry vox = { { 128, 128, 255, 255 }, VF_NON_EMPTY };
-			//if (hitPos[0] >= 0 && hitPos[0] < 16 && hitPos[1] >= 0 && hitPos[1] < 16 && hitPos[2] >= 0 && hitPos[2] < 16)
-			//	testGrid->setVoxel(hitPos[0], hitPos[1], hitPos[2], vox);
-			//testAggreg->setVoxel(hitPos[0], hitPos[1], hitPos[2], vox);
-			/*if (event->modifiers() & Qt::ShiftModifier)
-				testScene->eraseVoxel(hitPos);
-			else
-			{
-				hitPos[hitInfo.entryAxis & 3] += (hitInfo.entryAxis & intersect_t::AXIS_NEGATIVE) ? 1 : -1;
-				testScene->setVoxel(hitPos, vox);
-			}*/
-			ToolEvent toolEvent(event, &sceneHit);
-			testTool->mouseDown(toolEvent, *scene);
+		dragStatus = DRAG_TOOL;
+		ray_t ray = vpSettings->unproject(QVector3D(event->x(), height() - event->y(), 0.f));
+		ToolEvent toolEvent(event, ray);
+		testTool->mouseDown(toolEvent, *scene);
 
-			if (scene->needsUpdate())
-			{
-				scene->update();
-				update();
-			}
+		if (scene->needsUpdate())
+		{
+//			scene->update();
+			update();
 		}
 	}
 	if (event->button() == Qt::RightButton)
@@ -319,6 +294,13 @@ void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 
 void GlViewportWidget::mouseReleaseEvent(QMouseEvent *event)
 {
+	if (event->button() == Qt::LeftButton)
+	{
+		// TODO: cache ray; currently don't need ray hit yet
+		ray_t ray = vpSettings->unproject(QVector3D(event->x(), height() - event->y(), 0.f));
+		ToolEvent toolEvent(event, ray);
+		testTool->mouseUp(toolEvent, *scene);
+	}
 	dragStatus = DRAG_NONE;
 }
 
@@ -338,6 +320,17 @@ void GlViewportWidget::mouseMoveEvent(QMouseEvent *event)
 	{
 		vpSettings->panBy(-0.05f * delta.x(), 0.05f * delta.y());
 		update();
+	}
+	else if (dragStatus == DRAG_TOOL)
+	{
+		ray_t ray = vpSettings->unproject(QVector3D(event->x(), height() - event->y(), 0.f));
+		ToolEvent toolEvent(event, ray);
+		testTool->mouseMoved(toolEvent, *scene);
+
+		if (scene->needsUpdate())
+		{
+			update();
+		}
 	}
 	dragStart = event->pos();
 }

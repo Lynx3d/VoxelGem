@@ -137,8 +137,8 @@ void VoxelGrid::applyChanges(const VoxelGrid &toolLayer, GridMemento *memento)
 		else if(entry.flags & Voxel::VF_NON_EMPTY)
 		{
 			voxels[i] = entry;
-			// clear VF_NO_COLLISION flag, currently only valid for tool and rendering layer
-			voxels[i].flags &= ~Voxel::VF_NO_COLLISION;
+			// (doesn't work) clear VF_NO_COLLISION flag, currently only valid for tool and rendering layer
+			// voxels[i].flags &= ~Voxel::VF_NO_COLLISION;
 		}
 	}
 }

@@ -9,6 +9,7 @@
 #ifndef VG_VOXELGEM_H
 #define VG_VOXELGEM_H
 
+#include <QVector3D>
 #include <cstdint>
 #include <algorithm>
 
@@ -97,6 +98,14 @@ class DirtyVolume
 		int low[3];
 		int high[3];
 		bool valid = false;
+};
+
+struct ray_t
+{
+	QVector3D dir;
+	QVector3D from;
+	float t_min;
+	float t_max;
 };
 
 #endif // VG_VOXELGEM_H

@@ -34,6 +34,18 @@ class SceneRayHit
 			HIT_HANDLE = 0x400,
 			HIT_MASK = 0x700
 		};
+		bool didHit() const { return (flags & HIT_MASK) != 0; }
+		bool getAdjacentVoxel(int pos[3]) const
+		{
+			if ((flags & SceneRayHit::HIT_MASK) == 0)
+				return false;
+			pos[0] = voxelPos[0];
+			pos[1] = voxelPos[1];
+			pos[2] = voxelPos[2];
+			// TODO: invert meaning of SceneRayHit::AXIS_NEGATIVE
+			pos[flags & SceneRayHit::AXIS_MASK] += (flags & SceneRayHit::AXIS_NEGATIVE) ? 1 : -1;
+			return true;
+		}
 		int voxelPos[3];
 		int flags { 0 };
 		float rayT;
@@ -84,6 +96,7 @@ class VoxelScene
 		void update();
 		void render(QOpenGLFunctions_3_3_Core &glf);
 		void undo();
+		bool rayIntersect(const ray_t &ray, SceneRayHit &hit, int flags = SceneRayHit::HIT_MASK) const;
 	protected:
 		GlViewportWidget *viewport;
 		VoxelAggregate *renderLayer;

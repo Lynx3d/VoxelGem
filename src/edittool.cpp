@@ -11,26 +11,9 @@
 
 #include <QMouseEvent>
 
-ToolEvent::ToolEvent(QMouseEvent *qmEvent, SceneRayHit *srHit):
-	mouseEvent(qmEvent), rayHit(srHit)
+ToolEvent::ToolEvent(QMouseEvent *qmEvent, ray_t cRay):
+	mouseEvent(qmEvent), cursorRay(cRay)
 {}
-
-bool ToolEvent::getAdjacentVoxel(int pos[3]) const
-{
-	if ((rayHit->flags & SceneRayHit::HIT_MASK) == 0)
-		return false;
-	pos[0] = rayHit->voxelPos[0];
-	pos[1] = rayHit->voxelPos[1];
-	pos[2] = rayHit->voxelPos[2];
-	// TODO: invert meaning of SceneRayHit::AXIS_NEGATIVE
-	pos[rayHit->flags & SceneRayHit::AXIS_MASK] += (rayHit->flags & SceneRayHit::AXIS_NEGATIVE) ? 1 : -1;
-	return true;
-}
-
-const SceneRayHit* ToolEvent::getCursorHit() const
-{
-	return rayHit;
-}
 
 bool ToolEvent::isShiftPressed() const
 {
@@ -49,7 +32,7 @@ bool ToolEvent::isControlPressed() const
 
 /*========= EditTool ==========*/
 
-void EditTool::mouseMoved(const ToolEvent &event)
+void EditTool::mouseMoved(const ToolEvent &event, VoxelScene &scene)
 {}
 
 void EditTool::mouseDown(const ToolEvent &event, VoxelScene &scene)
@@ -63,23 +46,72 @@ void EditTool::mouseUp(const ToolEvent &event, VoxelScene &scene)
 void PaintTool::mouseDown(const ToolEvent &event, VoxelScene &scene)
 {
 //	static bool test = false;
-	const SceneRayHit *hit = event.getCursorHit();
-	if ((hit->flags & SceneRayHit::HIT_MASK) == 0)
+	SceneRayHit hit;
+	scene.rayIntersect(event.getCursorRay(), hit);
+	if (!hit.didHit())
 		return;
 
 	if (event.isShiftPressed())
-		scene.eraseVoxel(hit->voxelPos);
+	{
+		deleting = true;
+		scene.eraseVoxel(hit.voxelPos);
+		lastPos[0] = hit.voxelPos[0];
+		lastPos[1] = hit.voxelPos[1];
+		lastPos[2] = hit.voxelPos[2];
+		haveLastPos = true;
+	}
 	else
 	{
-		//VoxelEntry vox(128, 128, 255, 255);
-//		if (test)
-//			vox.setMaterial(Voxel::GLOWING_SOLID);
-//		test = !test;
+		deleting = false;
 		int fillPos[3];
-		event.getAdjacentVoxel(fillPos);
+		hit.getAdjacentVoxel(fillPos);
 		scene.setVoxel(fillPos, *scene.getVoxelTemplate());
+		lastPos[0] = fillPos[0];
+		lastPos[1] = fillPos[1];
+		lastPos[2] = fillPos[2];
+		haveLastPos = true;
 	}
-	// TEST! this should go to mouseUp of course, when a stroke is done
-	if (!event.isControlPressed())
-		scene.completeToolAction();
+}
+
+void PaintTool::mouseUp(const ToolEvent &event, VoxelScene &scene)
+{
+	haveLastPos = false;
+	scene.completeToolAction();
+}
+
+void PaintTool::mouseMoved(const ToolEvent &event, VoxelScene &scene)
+{
+	//const SceneRayHit *hit = event.getCursorHit();
+	SceneRayHit hit;
+	scene.rayIntersect(event.getCursorRay(), hit);
+	if (!hit.didHit())
+		return;
+
+	if (deleting)
+	{
+		if (haveLastPos)
+		{
+			int fillPos[3];
+			hit.getAdjacentVoxel(fillPos);
+			if (lastPos[0] == fillPos[0] && lastPos[1] == fillPos[1] && lastPos[2] == fillPos[2])
+				return;
+		}
+		lastPos[0] = hit.voxelPos[0];
+		lastPos[1] = hit.voxelPos[1];
+		lastPos[2] = hit.voxelPos[2];
+		haveLastPos = true;
+		scene.eraseVoxel(hit.voxelPos);
+	}
+	else
+	{
+		int fillPos[3];
+		hit.getAdjacentVoxel(fillPos);
+		if (haveLastPos && lastPos[0] == fillPos[0] && lastPos[1] == fillPos[1] && lastPos[2] == fillPos[2])
+			return;
+		scene.setVoxel(fillPos, *scene.getVoxelTemplate());
+		lastPos[0] = fillPos[0];
+		lastPos[1] = fillPos[1];
+		lastPos[2] = fillPos[2];
+		haveLastPos = true;
+	}
 }

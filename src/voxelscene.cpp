@@ -94,7 +94,7 @@ void VoxelScene::render(QOpenGLFunctions_3_3_Core &glf)
 		VoxelAggregate::markDirtyBlocks(volume.second, dirtyBlocks);
 	}
 	dirtyVolumes.clear();
-	std::cout << "VoxelScene::render()" << std::endl;
+	//std::cout << "VoxelScene::render()" << std::endl;
 	for (auto &blockId: dirtyBlocks)
 	{
 		std::cout << "dirty block: " << blockId << std::endl;
@@ -126,10 +126,36 @@ void VoxelScene::render(QOpenGLFunctions_3_3_Core &glf)
 	}
 	for (auto &block: renderBlocks)
 	{
-		std::cout << "redering block: " << block.first << std::endl;
+		//std::cout << "redering block: " << block.first << std::endl;
 		block.second->render(glf);
 	}
 	dirtyBlocks.clear();
+}
+
+bool VoxelScene::rayIntersect(const ray_t &ray, SceneRayHit &hit, int flags) const
+{
+	bool didHit = false;
+	intersect_t hitInfo;
+	if (flags & SceneRayHit::HIT_VOXEL)
+	{
+		didHit = editingLayer->rayIntersect(ray, hit.voxelPos, hitInfo);
+		if (didHit)
+			hit.flags |= SceneRayHit::HIT_VOXEL;
+	}
+	// TODO: currently it's purely a fallback, not a test which is hit first
+	// tools probably should query separately if they want a fallback
+	if (!didHit && (flags & SceneRayHit::HIT_LINEGRID))
+	{
+		didHit = viewport->getGrid()->rayIntersect(ray, hit.voxelPos, hitInfo);
+		if (didHit)
+			hit.flags |= SceneRayHit::HIT_LINEGRID;
+	}
+	if (didHit)
+	{
+		hit.flags |= hitInfo.entryAxis;
+		hit.rayT = hitInfo.tNear;
+	}
+	return didHit;
 }
 
 void VoxelScene::undo()

@@ -29,6 +29,8 @@ enum DragType
 
 class GlViewportWidget;
 class VoxelScene;
+class SceneRayHit;
+class GLRenderable;
 
 class ViewportSettings
 {
@@ -39,9 +41,9 @@ class ViewportSettings
 				updateViewport();
 				updateViewMatrix();
 			}
-		QMatrix4x4 getGlMatrix();
+		QMatrix4x4 getGlMatrix() const;
 		QMatrix4x4 getViewMatrix() { return view; }
-		ray_t unproject(const QVector3D &vec);
+		ray_t unproject(const QVector3D &vec) const;
 		void rotateBy(float dHead, float dPitch);
 		void panBy(float dX, float dY);
 		void updateViewport();
@@ -62,6 +64,7 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 	public:
 		GlViewportWidget(VoxelScene *pscene): scene(pscene), dragStatus(DRAG_NONE) {};
 		static float sRGB_LUT[1024];
+		GLRenderable* getGrid();
 	protected:
 		void generateUBOs();
 		void initializeGL();

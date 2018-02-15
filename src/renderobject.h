@@ -9,11 +9,12 @@
 #ifndef VG_RENDEROBJECT_H
 #define VG_RENDEROBJECT_H
 
+#include "voxelgem.h"
+
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLVertexArrayObject>
-#include <QVector3D>
+//#include <QVector3D>
 
-// TODO: move to renderobject.h
 struct GlVertex_t
 {
 	float pos[3];
@@ -29,14 +30,7 @@ struct GlVoxelVertex_t
 	unsigned char occlusion;
 };
 
-struct ray_t
-{
-	QVector3D dir;
-	QVector3D from;
-	float t_min;
-	float t_max;
-};
-
+// TODO: cleanup
 struct intersect_t
 {
 	static const int AXIS_NONE = 1 << 7;
