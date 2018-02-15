@@ -166,18 +166,32 @@ void VoxelScene::undo()
 		// undoState always points to the element past the last saved state.
 		// i.e. in the case of no available redo, it will be undoList.end()
 		--undoState;
-		// TODO: determine layer of memento
-		// TODO: get the dirty blocks caused by changedBlocks
-		editingLayer->restoreState(undoState->getMemento(), changedBlocks);
-		// convert changed blocks to dirty volumes, can't recover one (yet?) unfortunately
-		for (auto &block: changedBlocks)
-		{
-			DirtyVolume vol;
-			VoxelAggregate::blockPos(block, vol.low);
-			for (int i = 0; i < 3; ++i)
-				vol.high[i] = vol.low[i] + GRID_LEN - 1;
-			vol.valid = true;
-			dirtyVolumes[block] = vol;
-		}
+		restoreState(*undoState);
+	}
+}
+
+void VoxelScene::redo()
+{
+	if (undoState != undoList.end())
+	{
+		restoreState(*undoState);
+		++undoState;
+	}
+}
+
+void VoxelScene::restoreState(UndoItem &state)
+{
+	// TODO: determine layer of memento
+	// TODO: get the dirty blocks caused by changedBlocks
+	editingLayer->restoreState(state.getMemento(), changedBlocks);
+	// convert changed blocks to dirty volumes, can't recover one (yet?) unfortunately
+	for (auto &block: changedBlocks)
+	{
+		DirtyVolume vol;
+		VoxelAggregate::blockPos(block, vol.low);
+		for (int i = 0; i < 3; ++i)
+			vol.high[i] = vol.low[i] + GRID_LEN - 1;
+		vol.valid = true;
+		dirtyVolumes[block] = vol;
 	}
 }

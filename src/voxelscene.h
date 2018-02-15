@@ -96,8 +96,10 @@ class VoxelScene
 		void update();
 		void render(QOpenGLFunctions_3_3_Core &glf);
 		void undo();
+		void redo();
 		bool rayIntersect(const ray_t &ray, SceneRayHit &hit, int flags = SceneRayHit::HIT_MASK) const;
 	protected:
+		void restoreState(UndoItem &state);
 		GlViewportWidget *viewport;
 		VoxelAggregate *renderLayer;
 		VoxelAggregate *editingLayer;

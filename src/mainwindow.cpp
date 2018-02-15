@@ -64,6 +64,16 @@ void VGMainWindow::on_action_undo_triggered()
 	}
 }
 
+void VGMainWindow::on_action_redo_triggered()
+{
+	scene->redo();
+	if (scene->needsUpdate())
+	{
+		scene->update();
+		viewport->update();
+	}
+}
+
 void qubicle_import(const QString &filename, VoxelScene &scene);
 
 void VGMainWindow::on_action_open_triggered()

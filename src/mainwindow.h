@@ -31,6 +31,7 @@ class VGMainWindow : public QMainWindow
 		void on_action_axis_grids_triggered(bool checked);
 		void on_action_open_triggered();
 		void on_action_undo_triggered();
+		void on_action_redo_triggered();
 		void on_material_currentIndexChanged(int index);
 		void on_specular_currentIndexChanged(int index);
 		void on_colorSelectionChanged(QColor col);
