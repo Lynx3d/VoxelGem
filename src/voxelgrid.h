@@ -80,6 +80,10 @@ class VoxelGrid
 		{
 			voxels[voxelIndex(x, y, z)] = voxel;
 		}
+		const VoxelEntry* getVoxel(int pos[3]) const
+		{
+			return &voxels[voxelIndex(pos[0], pos[1], pos[2])];
+		}
 		int posToVoxel(float pos, int axis) const
 		{
 			int val = pos - bound.pMin[axis];

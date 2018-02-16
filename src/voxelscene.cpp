@@ -58,6 +58,15 @@ const VoxelEntry* VoxelScene::getVoxel(const int pos[3])
 	return 0;
 }
 
+const VoxelAggregate* VoxelScene::getAggregate(int layer)
+{
+	if (layer == 0)
+		return toolLayer;
+	if (layer == 1)
+		return editingLayer;
+	return 0;
+}
+
 void VoxelScene::completeToolAction()
 {
 	// rendering should not be affected by this as it effectively only transfers data

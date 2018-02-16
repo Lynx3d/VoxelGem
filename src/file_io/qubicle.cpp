@@ -7,7 +7,7 @@
  */
 
 #include "../voxelscene.h"
-#include "../voxelgrid.h"
+#include "../voxelaggregate.h"
 
 #include <QFile>
 #include <QFileInfo>
@@ -28,12 +28,41 @@ union rgba_t
 		r(b1), g(b2), b(b3), a(b4) {}
 };
 
+struct mat_map_t
+{
+	rgba_t col;
+	int property;
+};
+
+static const rgba_t col_mask(255, 255, 255, 0);
+static const mat_map_t TypeMap[] =
+{
+	{ rgba_t(255, 255, 255, 255), Voxel::SOLID },
+	{ rgba_t(128, 128, 128, 255), Voxel::GLASS },
+	{ rgba_t( 64,  64,  64, 255), Voxel::TILED_GLASS },
+	{ rgba_t(255,   0,   0, 255), Voxel::GLOWING_SOLID },
+	{ rgba_t(255, 255,   0, 255), Voxel::GLOWING_GLASS }
+};
+
+static const mat_map_t SpecularMap[] =
+{
+	{ rgba_t(128,   0,   0, 255), Voxel::ROUGH },
+	{ rgba_t(  0, 128,   0, 255), Voxel::METAL },
+	{ rgba_t(  0,   0, 128, 255), Voxel::WATER },
+	{ rgba_t(128, 128,   0, 255), Voxel::IRIDESCENT },
+	{ rgba_t(  0, 128, 128, 255), Voxel::WAVE },
+	{ rgba_t(128,   0, 128, 255), Voxel::WAXY }
+};
 
 class SceneOp
 {
 	public:
 		SceneOp(VoxelScene &lscene): scene(lscene) {}
 		virtual void operator()(rgba_t data, int x, int y, int z) = 0;
+		bool matches(rgba_t c1, rgba_t c2)
+		{
+			return ((c1.raw ^ c2.raw) & col_mask.raw) == 0;
+		}
 	protected:
 		VoxelScene &scene;
 };
@@ -44,13 +73,84 @@ class BaseColOp: public SceneOp
 		BaseColOp(VoxelScene &lscene): SceneOp(lscene) {}
 		void operator()(rgba_t data, int x, int y, int z) override
 		{
-			if (data.a)
+			VoxelEntry voxel(data.raw, Voxel::VF_NON_EMPTY);
+			int pos[3] = { x, y, z };
+			scene.setVoxel(pos, voxel);
+		}
+};
+
+class TypeMapOp: public SceneOp
+{
+	public:
+		TypeMapOp(VoxelScene &lscene, const VoxelAggregate* bv): SceneOp(lscene), base(bv) {}
+		void operator()(rgba_t data, int x, int y, int z) override
+		{
+			int mat_type = -1;
+			for (int i = 0; i < 5; ++i)
+				if (matches(data, TypeMap[i].col))
+				{
+					mat_type = TypeMap[i].property;
+					break;
+				}
+			if (mat_type != -1)
 			{
-				VoxelEntry voxel(data.raw, Voxel::VF_NON_EMPTY);
 				int pos[3] = { x, y, z };
+				const VoxelEntry *entry = base->getVoxel(pos);
+				if (!entry || !(entry->flags & Voxel::VF_NON_EMPTY))
+					return;
+				VoxelEntry voxel(*entry);
+				voxel.setMaterial(static_cast<Voxel::Material>(mat_type));
 				scene.setVoxel(pos, voxel);
 			}
 		}
+		const VoxelAggregate* base;
+};
+
+class SpecMapOp: public SceneOp
+{
+	public:
+		SpecMapOp(VoxelScene &lscene, const VoxelAggregate* bv): SceneOp(lscene), base(bv) {}
+		void operator()(rgba_t data, int x, int y, int z) override
+		{
+			int spec_type = -1;
+			for (int i = 0; i < 6; ++i)
+				if (matches(data, SpecularMap[i].col))
+				{
+					spec_type = SpecularMap[i].property;
+					break;
+				}
+			if (spec_type != -1)
+			{
+				int pos[3] = { x, y, z };
+				const VoxelEntry *entry = base->getVoxel(pos);
+				if (!entry || !(entry->flags & Voxel::VF_NON_EMPTY))
+					return;
+				VoxelEntry voxel(*entry);
+				voxel.setSpecular(static_cast<Voxel::Specular>(spec_type));
+				scene.setVoxel(pos, voxel);
+			}
+		}
+		const VoxelAggregate* base;
+};
+
+class AlphaMapOp: public SceneOp
+{
+	public:
+		AlphaMapOp(VoxelScene &lscene, const VoxelAggregate* bv): SceneOp(lscene), base(bv) {}
+		void operator()(rgba_t data, int x, int y, int z) override
+		{
+			if (data.r != data.b || data.r != data.g)
+				return;
+
+			int pos[3] = { x, y, z };
+			const VoxelEntry *entry = base->getVoxel(pos);
+			if (!entry || !(entry->flags & Voxel::VF_NON_EMPTY))
+				return;
+			VoxelEntry voxel(*entry);
+			voxel.col[3] = data.a;
+			scene.setVoxel(pos, voxel);
+		}
+		const VoxelAggregate* base;
 };
 
 void parse_file(QDataStream &fstream, SceneOp &dataOp)
@@ -59,10 +159,10 @@ void parse_file(QDataStream &fstream, SceneOp &dataOp)
 	fstream.setByteOrder(QDataStream::LittleEndian);
 	const rgba_t CODEFLAG(2, 0, 0, 0);
 	const rgba_t NEXTSLICEFLAG(6, 0, 0, 0);
-	uint32_t version, colorFormat, zAxisOrientation, compressed, visibilityMaskEncoded, numMatrices;
+	uint32_t version, colorFormat, zRight, compressed, visibilityMaskEncoded, numMatrices;
 	fstream >> version;
 	fstream >> colorFormat;
-	fstream >> zAxisOrientation;
+	fstream >> zRight;
 	fstream >> compressed;
 	fstream >> visibilityMaskEncoded;
 	fstream >> numMatrices;
@@ -87,10 +187,11 @@ void parse_file(QDataStream &fstream, SceneOp &dataOp)
 			for (uint32_t z = 0; z < sizeZ; z++)
 				for (uint32_t y = 0; y < sizeY; y++)
 					for (uint32_t x = 0; x < sizeX; x++)
-					{
-						fstream.readRawData(data.bytes, 4);
-						dataOp(data, x, y, z);
-					}
+			{
+				fstream.readRawData(data.bytes, 4);
+				if (data.a)
+					dataOp(data, posX + sizeX-1 - x, posY + y, posZ + (zRight ? z : sizeZ-1 - z));
+			}
 		}
 		else // RLE compressed
 		{
@@ -115,7 +216,8 @@ void parse_file(QDataStream &fstream, SceneOp &dataOp)
 						uint32_t x = index % sizeX;
 						uint32_t y = index / sizeX;
 						++index;
-						dataOp(data, posX + x, posY + y, posZ + z);
+						if (data.a)
+							dataOp(data, posX + x, posY + y, posZ + z);
 					}
 				}
 			}
@@ -139,11 +241,43 @@ void qubicle_import(const QString &filename, VoxelScene &scene)
 	// check if we have files with _t, _a and _s suffix for material properties
 	QString base = file_info.completeBaseName();
 	QString suffix = file_info.suffix();
+	//== Type Map ==//
 	QFileInfo typemap_info(file_info.dir(), base + "_t." + suffix);
 	std::cout << "looking for " << typemap_info.filePath().toStdString() << std::endl;
 	if (typemap_info.isReadable())
 	{
 		std::cout << "reading type map '" << typemap_info.filePath().toStdString() << "'\n";
+		QFile type_file(typemap_info.filePath());
+		if (!type_file.open(QIODevice::ReadOnly))
+			return;
+		QDataStream type_stream(&type_file);
+		TypeMapOp typeOp(scene, scene.getAggregate(0));
+		parse_file(type_stream, typeOp);
 	}
-
+	//== Specular Map ==//
+	QFileInfo specmap_info(file_info.dir(), base + "_s." + suffix);
+	std::cout << "looking for " << specmap_info.filePath().toStdString() << std::endl;
+	if (specmap_info.isReadable())
+	{
+		std::cout << "reading type map '" << specmap_info.filePath().toStdString() << "'\n";
+		QFile spec_file(specmap_info.filePath());
+		if (!spec_file.open(QIODevice::ReadOnly))
+			return;
+		QDataStream spec_stream(&spec_file);
+		SpecMapOp specOp(scene, scene.getAggregate(0));
+		parse_file(spec_stream, specOp);
+	}
+	//== Alpha Map ==//
+	QFileInfo alphamap_info(file_info.dir(), base + "_a." + suffix);
+	std::cout << "looking for " << specmap_info.filePath().toStdString() << std::endl;
+	if (alphamap_info.isReadable())
+	{
+		std::cout << "reading type map '" << alphamap_info.filePath().toStdString() << "'\n";
+		QFile alpha_file(alphamap_info.filePath());
+		if (!alpha_file.open(QIODevice::ReadOnly))
+			return;
+		QDataStream alpha_stream(&alpha_file);
+		AlphaMapOp alphaOp(scene, scene.getAggregate(0));
+		parse_file(alpha_stream, alphaOp);
+	}
 }

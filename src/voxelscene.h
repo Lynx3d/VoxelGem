@@ -82,6 +82,8 @@ class VoxelScene
 		/* read a voxel from the scene (exclude current edit changes) */
 		const VoxelEntry* getVoxel(const int pos[3]);
 		const VoxelEntry* getVoxelTemplate() const { return &voxelTemplate; }
+		/* probably an iterator/accessor class would be better */
+		const VoxelAggregate* getAggregate(int layer);
 		bool needsUpdate() const { return !changedBlocks.empty(); }
 		void setTemplateColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 		{

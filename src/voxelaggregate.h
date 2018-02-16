@@ -44,6 +44,7 @@ class VoxelAggregate
 		}
 		#undef POS_MASK
 		uint64_t setVoxel(int x, int y, int z, const VoxelEntry &voxel);
+		const VoxelEntry* getVoxel(const int pos[3]) const;
 		bool rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) const;
 		void clear();
 		void clearBlocks(const std::unordered_set<uint64_t> &blocks);

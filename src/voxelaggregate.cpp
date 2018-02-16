@@ -36,6 +36,16 @@ uint64_t VoxelAggregate::setVoxel(int x, int y, int z, const VoxelEntry &voxel)
 	return id;
 }
 
+const VoxelEntry* VoxelAggregate::getVoxel(const int pos[3]) const
+{
+	uint64_t id = blockID(pos[0], pos[1], pos[2]);
+	blockMap_t::const_iterator grid = blockMap.find(id);
+	if (grid == blockMap.end())
+		return 0;
+	int gridPos[3] = { pos[0] & (int)(GRID_LEN - 1), pos[1] & (int)(GRID_LEN - 1), pos[2] & (int)(GRID_LEN - 1) };
+	return grid->second->getVoxel(gridPos);
+}
+
 bool VoxelAggregate::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) const
 {
 	// TODO: this is a brute force place holder implementation
