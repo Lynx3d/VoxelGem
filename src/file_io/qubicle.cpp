@@ -144,10 +144,10 @@ class AlphaMapOp: public SceneOp
 
 			int pos[3] = { x, y, z };
 			const VoxelEntry *entry = base->getVoxel(pos);
-			if (!entry || !(entry->flags & Voxel::VF_NON_EMPTY))
+			if (!entry || !(entry->flags & Voxel::VF_NON_EMPTY) || !entry->isTransparent())
 				return;
 			VoxelEntry voxel(*entry);
-			voxel.col[3] = data.a;
+			voxel.col[3] = data.r;
 			scene.setVoxel(pos, voxel);
 		}
 		const VoxelAggregate* base;
@@ -269,10 +269,10 @@ void qubicle_import(const QString &filename, VoxelScene &scene)
 	}
 	//== Alpha Map ==//
 	QFileInfo alphamap_info(file_info.dir(), base + "_a." + suffix);
-	std::cout << "looking for " << specmap_info.filePath().toStdString() << std::endl;
+	std::cout << "looking for " << alphamap_info.filePath().toStdString() << std::endl;
 	if (alphamap_info.isReadable())
 	{
-		std::cout << "reading type map '" << alphamap_info.filePath().toStdString() << "'\n";
+		std::cout << "reading alpha map '" << alphamap_info.filePath().toStdString() << "'\n";
 		QFile alpha_file(alphamap_info.filePath());
 		if (!alpha_file.open(QIODevice::ReadOnly))
 			return;
