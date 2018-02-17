@@ -202,17 +202,17 @@
        </item>
        <item>
         <property name="text">
+         <string>Glowing Solid</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
          <string>Glass</string>
         </property>
        </item>
        <item>
         <property name="text">
          <string>Tiled Glass</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Glowing Solid</string>
         </property>
        </item>
        <item>

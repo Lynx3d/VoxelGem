@@ -10,8 +10,6 @@
 
 #include "voxelgrid.h"
 #include "voxel_def.h"
-#include <algorithm>
-#include <cstdint>
 #include <cstring>
 
 #include <QOpenGLShaderProgram>
@@ -165,50 +163,85 @@ static void getOcclusionValues(int face, int mask, uint8_t occ[4])
 	}
 }
 
-int VoxelGrid::tesselate(GlVoxelVertex_t *vertices, const VoxelGrid* neighbourGrids[27]) const
+inline int VoxelGrid::writeFaces(const VoxelEntry &entry, uint8_t matIndex, int mask, int pos[3], GlVoxelVertex_t *vertices) const
 {
-	int index = 0, nTriangles = 0;
+	int nTriangles = 0;
+	for (int face=0; face < 6; ++face)
+	{
+		if (mask & FACE_NEIGHBOUR_FLAGS[face])
+			continue;
+
+		uint8_t occlusion[4] = {};
+		getOcclusionValues(face, mask, occlusion);
+		for (int i=0; i < 4; ++i)
+		{
+			int v = 2 * nTriangles + i;
+			GlVoxelVertex_t &vertex = vertices[v];
+			const int *vpos = VERTEX_POSITIONS[FACE_VERTICES[face][i]];
+			vertex.pos[0] = bound.pMin[0] + float(pos[0] + vpos[0]);
+			vertex.pos[1] = bound.pMin[1] + float(pos[1] + vpos[1]);
+			vertex.pos[2] = bound.pMin[2] + float(pos[2] + vpos[2]);
+			vertex.col[0] = entry.col[0];
+			vertex.col[1] = entry.col[1];
+			vertex.col[2] = entry.col[2];
+			vertex.col[3] = entry.col[3];
+			vertex.normal[0] = FACE_NORMALS[face][0];
+			vertex.normal[1] = FACE_NORMALS[face][1];
+			vertex.normal[2] = FACE_NORMALS[face][2];
+			vertex.matIndex = matIndex;
+			vertex.occlusion = occlusion[i];
+		}
+		nTriangles += 2;
+	}
+	return nTriangles;
+}
+
+void VoxelGrid::tesselate(GlVoxelVertex_t *vertices, int nTris[2], const VoxelGrid* neighbourGrids[27]) const
+{
+	nTris[0] = nTris[1] = 0;
+	bool haveTransparent = false;
 	std::vector<int> masks = getNeighbourMasks(neighbourGrids);
 
-	for (int z = 0; z < GRID_LEN; ++z)
+	for (int z = 0, index = 0; z < GRID_LEN; ++z)
 		for (int y = 0; y < GRID_LEN; ++y)
 			for (int x = 0; x < GRID_LEN; ++x, ++index)
 	{
 		const VoxelEntry &entry = voxels[index];
-		if (!(entry.flags & Voxel::VF_NON_EMPTY)) continue;
-		unsigned char matIndex = 0;
-		//test
-		if (entry.getMaterial() == Voxel::GLOWING_SOLID)
-			matIndex = 8;
-
-		for (int face=0; face < 6; ++face)
+		if (!(entry.flags & Voxel::VF_NON_EMPTY))
+			continue;
+		if (entry.isTransparent())
 		{
-			if (masks[index] & FACE_NEIGHBOUR_FLAGS[face])
-				continue;
-
-			uint8_t occlusion[4] = {};
-			getOcclusionValues(face, masks[index], occlusion);
-			for (int i=0; i < 4; ++i)
-			{
-				int v = 2 * nTriangles + i;
-				const int *vpos = VERTEX_POSITIONS[FACE_VERTICES[face][i]];
-				vertices[v].pos[0] = bound.pMin[0] + float(x + vpos[0]);
-				vertices[v].pos[1] = bound.pMin[1] + float(y + vpos[1]);
-				vertices[v].pos[2] = bound.pMin[2] + float(z + vpos[2]);
-				vertices[v].col[0] = entry.col[0];
-				vertices[v].col[1] = entry.col[1];
-				vertices[v].col[2] = entry.col[2];
-				vertices[v].col[3] = entry.col[3];
-				vertices[v].normal[0] = FACE_NORMALS[face][0];
-				vertices[v].normal[1] = FACE_NORMALS[face][1];
-				vertices[v].normal[2] = FACE_NORMALS[face][2];
-				vertices[v].matIndex = matIndex;
-				vertices[v].occlusion = occlusion[i];
-			}
-			nTriangles += 2;
+			haveTransparent = true;
+			continue;
 		}
+		uint8_t matIndex = entry.getMaterialIndex();
+
+		int pos[3] = { x, y, z };
+		nTris[0] += writeFaces(entry, matIndex, masks[index], pos, vertices + 2 * nTris[0]);
 	}
-	return nTriangles;
+	// TODO: tesselating in two passes is probably not the fastest
+	if (!haveTransparent)
+		return;
+
+	vertices += 2 * nTris[0];
+	for (int z = 0, index = 0; z < GRID_LEN; ++z)
+		for (int y = 0; y < GRID_LEN; ++y)
+			for (int x = 0; x < GRID_LEN; ++x, ++index)
+	{
+		const VoxelEntry &entry = voxels[index];
+		if (!(entry.flags & Voxel::VF_NON_EMPTY) || !entry.isTransparent())
+			continue;
+
+		uint8_t matIndex = entry.getMaterialIndex();
+		int pos[3] = { x, y, z };
+		nTris[1] += writeFaces(entry, matIndex, masks[index], pos, vertices + 2 * nTris[1]);
+	}
+}
+
+static inline bool isFaceHidden(const VoxelEntry &vox, const VoxelEntry &neighbour)
+{
+	return (neighbour.flags & Voxel::VF_NON_EMPTY) &&
+			(vox.isTransparent() || !neighbour.isTransparent());
 }
 
 std::vector<int> VoxelGrid::getNeighbourMasks(const VoxelGrid* neighbourGrids[27]) const
@@ -242,8 +275,8 @@ std::vector<int> VoxelGrid::getNeighbourMasks(const VoxelGrid* neighbourGrids[27
 												(y + ny) & (GRID_LEN - 1),
 												(z + nz) & (GRID_LEN - 1));
 				const VoxelEntry &neighbour = nGrid->voxels[neighbourIndex];
-				// TODO: handle semi-transparent voxels
-				if (neighbour.flags & Voxel::VF_NON_EMPTY)
+
+				if (isFaceHidden(vox, neighbour))
 					mask |= 1 << i;
 			}
 		}
@@ -255,8 +288,8 @@ std::vector<int> VoxelGrid::getNeighbourMasks(const VoxelGrid* neighbourGrids[27
 			{
 				int neighbourIndex = index + voxelIndex(nx, ny, nz);
 				const VoxelEntry &neighbour = voxels[neighbourIndex];
-				// TODO: handle semi-transparent voxels
-				if (neighbour.flags & Voxel::VF_NON_EMPTY)
+
+				if (isFaceHidden(vox, neighbour))
 					mask |= 1 << i;
 			}
 		}
@@ -323,22 +356,29 @@ void RenderGrid::update(QOpenGLFunctions_3_3_Core &glf, const VoxelGrid* neighbo
 	glVAO.bind();
 
 	const VoxelGrid *tessGrid = neighbourGrids[13];
-	nTessTris = tessGrid->tesselate(g_vertexBuffer, neighbourGrids);
-	if (nTessTris > 0)
-		uploadBuffer(glf, g_vertexBuffer, 2 * nTessTris * sizeof(GlVoxelVertex_t));
+	tessGrid->tesselate(g_vertexBuffer, nTessTris, neighbourGrids);
+	int totalTris = nTessTris[0] + nTessTris[1];
+	if (totalTris > 0)
+		uploadBuffer(glf, g_vertexBuffer, 2 * totalTris * sizeof(GlVoxelVertex_t));
 	dirty = false;
 }
 
 void RenderGrid::render(QOpenGLFunctions_3_3_Core &glf)
 {
-	if (dirty)
-	{
-		//std::cout << "RenderGrid outdated; skipping\n";
+	if (dirty || nTessTris[0] == 0)
 		return;
-	}
 	glVAO.bind();
 	glf.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_indexBuffer);
-	if (nTessTris > 0)
-		glf.glDrawElements(GL_TRIANGLES, nTessTris * 3, GL_UNSIGNED_SHORT, 0);
+	glf.glDrawElements(GL_TRIANGLES, nTessTris[0] * 3, GL_UNSIGNED_SHORT, 0);
+	glVAO.release();
+}
+
+void RenderGrid::renderTransparent(QOpenGLFunctions_3_3_Core &glf)
+{
+	if (dirty || nTessTris[1] == 0)
+		return;
+	glVAO.bind();
+	glf.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_indexBuffer);
+	glf.glDrawElements(GL_TRIANGLES, nTessTris[1] * 3, GL_UNSIGNED_SHORT, (void*)(nTessTris[0] * 3 * sizeof(uint16_t)));
 	glVAO.release();
 }

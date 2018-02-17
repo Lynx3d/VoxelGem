@@ -39,4 +39,6 @@ void main()
 	vec3 reflected = reflect(-ldir, frag_normal);
 	float spec = pow(max(dot(viewdir, reflected), 0.0), mat_prop[frag_mat_index].spec_sharpness);
 	final_color += spec * mat_prop[frag_mat_index].spec_amount * light_col;
+	// Trove renders specular highlights increasingly opaque rather than as additive effect
+	final_color.a = frag_color.a + spec;
 }

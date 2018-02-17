@@ -106,7 +106,7 @@ void VoxelScene::render(QOpenGLFunctions_3_3_Core &glf)
 	//std::cout << "VoxelScene::render()" << std::endl;
 	for (auto &blockId: dirtyBlocks)
 	{
-		std::cout << "dirty block: " << blockId << std::endl;
+//		std::cout << "dirty block: " << blockId << std::endl;
 		const VoxelGrid* blockGrid = renderLayer->getBlock(blockId);
 		// TODO: Typedef ^^
 		std::unordered_map<uint64_t, RenderGrid*>::iterator rgrid = renderBlocks.find(blockId);
@@ -123,7 +123,7 @@ void VoxelScene::render(QOpenGLFunctions_3_3_Core &glf)
 		}
 		else
 		{
-			std::cout << "    block is empty." << std::endl;
+//			std::cout << "    block is empty." << std::endl;
 			// does not exist (anymore)
 			if (rgrid != renderBlocks.end())
 			{
@@ -138,6 +138,15 @@ void VoxelScene::render(QOpenGLFunctions_3_3_Core &glf)
 		//std::cout << "redering block: " << block.first << std::endl;
 		block.second->render(glf);
 	}
+	// TODO: probably should not be rendered here but after all opaque things
+	glf.glEnable(GL_BLEND);
+    glf.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	for (auto &block: renderBlocks)
+	{
+		//std::cout << "redering block: " << block.first << std::endl;
+		block.second->renderTransparent(glf);
+	}
+	glf.glDisable(GL_BLEND);
 	dirtyBlocks.clear();
 }
 

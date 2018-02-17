@@ -141,9 +141,9 @@ void GlViewportWidget::generateUBOs()
 		{ 0.3, 30, 0, 0 }, // solid, iridescent (not implemented yet)
 		{ 0.3, 30, 0, 0 }, // solid, wave ???
 		{ 0.3, 30, 0, 0 }, // solid, waxy ???
+		{ 0.3, 30, 0, 1 }, // glowing solid
 		{ 0.3, 30, 0, 0 }, // glass
 		{ 0.3, 30, 0, 0 }, // tiled glass (redundant?)
-		{ 0.3, 30, 0, 1 }, // glowing solid
 		{ 0.3, 30, 0, 1 }, // glowing glass
 	};
 	glGenBuffers(1, &m_ubo_material);

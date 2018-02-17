@@ -23,11 +23,11 @@ namespace Voxel
 	};
 	enum Material
 	{
-		SOLID,
-		GLASS,
-		TILED_GLASS,
-		GLOWING_SOLID,
-		GLOWING_GLASS
+		SOLID,			// 0
+		GLOWING_SOLID,	// 1
+		GLASS,			// 2
+		TILED_GLASS,	// 3
+		GLOWING_GLASS	// 4
 	};
 	enum Specular
 	{
@@ -67,6 +67,17 @@ class VoxelEntry
 		Voxel::Specular getSpecular() const
 		{
 			return static_cast<Voxel::Specular>((flags & 0xF000) >> 12);
+		}
+		bool isTransparent() const
+		{
+			return (flags & 0x600) != 0;
+		}
+		uint8_t getMaterialIndex() const
+		{
+			if (getMaterial() == 0)
+				return getSpecular();
+			else
+				return getMaterial() + 5;
 		}
 		// data members
 		union

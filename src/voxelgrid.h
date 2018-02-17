@@ -96,8 +96,9 @@ class VoxelGrid
 		void applyChanges(const VoxelGrid &toolLayer, GridMemento *memento);
 		// the memento shall be altered to allow reversing the restore (i.e. "redo" operation)
 		void restoreState(GridMemento *memento);
-		int tesselate(GlVoxelVertex_t *vertices, const VoxelGrid* neighbourGrids[27]) const;
+		void tesselate(GlVoxelVertex_t *vertices, int nTris[2], const VoxelGrid* neighbourGrids[27]) const;
 	protected:
+		int writeFaces(const VoxelEntry &entry, uint8_t matIndex, int mask, int pos[3], GlVoxelVertex_t *vertices) const;
 		std::vector<int> getNeighbourMasks(const VoxelGrid* neighbourGrids[27]) const;
 		BBox bound;
 		int gridPos[3];
@@ -113,8 +114,9 @@ class RenderGrid: public GLRenderable
 		/*! @param neighbourGrids: neighbourGrids[13] is the center to generate the mesh from */
 		void update(QOpenGLFunctions_3_3_Core &glf, const VoxelGrid* neighbourGrids[27]);
 		void render(QOpenGLFunctions_3_3_Core &glf) override;
+		void renderTransparent(QOpenGLFunctions_3_3_Core &glf);
 	protected:
-		int nTessTris;
+		int nTessTris[2];
 };
 
 #endif // VG_VOXELGRID_H
