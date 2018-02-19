@@ -155,7 +155,7 @@ class AlphaMapOp: public SceneOp
 
 void parse_file(QDataStream &fstream, SceneOp &dataOp)
 {
-	// Qubicle files are little endian, and this code currently only works on little endian arch too...
+	// Qubicle files are little endian...
 	fstream.setByteOrder(QDataStream::LittleEndian);
 	const rgba_t CODEFLAG(2, 0, 0, 0);
 	const rgba_t NEXTSLICEFLAG(6, 0, 0, 0);
@@ -190,7 +190,7 @@ void parse_file(QDataStream &fstream, SceneOp &dataOp)
 			{
 				fstream.readRawData(data.bytes, 4);
 				if (data.a)
-					dataOp(data, posX + sizeX-1 - x, posY + y, posZ + (zRight ? z : sizeZ-1 - z));
+					dataOp(data, -posX - x, posY + y, (zRight ? posZ + z : - posZ - z));
 			}
 		}
 		else // RLE compressed
@@ -217,7 +217,7 @@ void parse_file(QDataStream &fstream, SceneOp &dataOp)
 						uint32_t y = index / sizeX;
 						++index;
 						if (data.a)
-							dataOp(data, posX + x, posY + y, posZ + z);
+							dataOp(data, -posX - x, posY + y, (zRight ? posZ + z : - posZ - z));
 					}
 				}
 			}
