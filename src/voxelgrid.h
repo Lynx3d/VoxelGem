@@ -12,8 +12,6 @@
 #include "voxelgem.h"
 #include "renderobject.h"
 
-#include <QVector3D>
-
 #include <cfloat>
 #include <vector>
 
@@ -23,13 +21,27 @@
 class BBox
 {
 	public:
-		BBox(const QVector3D &min, const QVector3D &max): pMin(min), pMax(max) {}
+		BBox(const IVector3D &min, const IVector3D &max): pMin(min), pMax(max) {}
 		BBox(const BBox &other): pMin(other.pMin), pMax(other.pMax) {}
-		bool includes(const QVector3D &p) const
+		bool includes(const IVector3D &p) const
 		{
-			return ( (p.x() >= pMin.x()) && (p.x() <= pMax.x()) &&
-					(p.y() >= pMin.y()) && (p.y() <= pMax.y()) &&
-					(p.z() >= pMin.z()) && (p.z() <= pMax.z()) );
+			return ((p.x >= pMin.x) && (p.x <= pMax.x) &&
+					(p.y >= pMin.y) && (p.y <= pMax.y) &&
+					(p.z >= pMin.z) && (p.z <= pMax.z));
+		}
+		bool includes(const BBox &b) const
+		{
+			return ((b.pMin.x >= pMin.x) && (b.pMax.x <= pMax.x) &&
+					(b.pMin.y >= pMin.y) && (b.pMax.y <= pMax.y) &&
+					(b.pMin.z >= pMin.z) && (b.pMax.z <= pMax.z));
+		}
+		void join(const BBox &b)
+		{
+			for (int i = 0; i < 3; ++i)
+			{
+				pMin[i] = std::min(pMin[i], b.pMin[i]);
+				pMax[i] = std::max(pMax[i], b.pMax[i]);
+			}
 		}
 		bool rayIntersect(const ray_t &ray, intersect_t *hit = 0) const
 		{
@@ -38,8 +50,8 @@ class BBox
 			{
 				int axisDirFlag = 0;
 				float invDir = 1.f / ray.dir[i];
-				float tNear = invDir * (pMin[i] - ray.from[i]);
-				float tFar = invDir * (pMax[i] - ray.from[i]);
+				float tNear = invDir * ((float)pMin[i] - ray.from[i]);
+				float tFar = invDir * ((float)pMax[i] - ray.from[i]);
 				if (tNear > tFar)
 				{
 					std::swap(tNear, tFar);
@@ -57,7 +69,7 @@ class BBox
 			// valid hit when interval [tNear, tFar] overlaps ray interval [t_min, t_max]
 			return ray.t_max >= h.tNear && h.tFar >= ray.t_min;
 		}
-		QVector3D pMin, pMax;
+		IVector3D pMin, pMax;
 };
 
 class GridMemento
@@ -90,6 +102,7 @@ class VoxelGrid
 			return val < 0 ? 0 : (val > GRID_LEN - 1 ? GRID_LEN - 1 : val);
 		}
 		const int* getGridPos() const { return gridPos; }
+		const BBox& getBound() const { return bound; }
 		float voxelEdge(int pos, int axis) const { return bound.pMin[axis] + (float)pos; }
 		bool rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) const;
 		void merge(const VoxelGrid &topLayer, VoxelGrid *targetGrid = 0);

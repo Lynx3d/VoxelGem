@@ -174,6 +174,22 @@ void VoxelAggregate::getNeighbours(const int gridPos[3], const VoxelGrid* neighb
 	}
 }
 
+bool VoxelAggregate::getBound(BBox &bound) const
+{
+	bool haveBound = false;
+	for (auto &grid: blockMap)
+	{
+		if (!haveBound)
+		{
+			bound = grid.second->getBound();
+			haveBound = true;
+			continue;
+		}
+		bound.join(grid.second->getBound());
+	}
+	return haveBound;
+}
+
 // important! the dirty volume must not span blocks!
 // while we could adjust the calculation, it would defeat the purpose of of saving adjacent block re-tesselations
 void VoxelAggregate::markDirtyBlocks(const DirtyVolume &vol, std::unordered_set<uint64_t> &blocks)

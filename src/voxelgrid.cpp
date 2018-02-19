@@ -32,7 +32,7 @@ const int neighbor_offset[] = {
 };
 
 VoxelGrid::VoxelGrid(const int pos[3]):
-	bound(QVector3D(pos[0], pos[1], pos[2]), QVector3D(pos[0] + GRID_LEN, pos[1] + GRID_LEN, pos[2] + GRID_LEN)),
+	bound(IVector3D(pos), IVector3D(pos[0] + GRID_LEN, pos[1] + GRID_LEN, pos[2] + GRID_LEN)),
 	voxels(GRID_LEN * GRID_LEN * GRID_LEN)
 {
 	gridPos[0] = pos[0];

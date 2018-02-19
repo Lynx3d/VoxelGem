@@ -56,6 +56,7 @@ class VoxelAggregate
 		const VoxelGrid* getBlock(uint64_t blockId) const;
 		static void markDirtyBlocks(const DirtyVolume &vol, std::unordered_set<uint64_t> &blocks);
 		void getNeighbours(const int gridPos[3], const VoxelGrid* neighbours[27]);
+		bool getBound(BBox &bound) const;
 	protected:
 		blockMap_t blockMap;
 };

@@ -119,5 +119,17 @@ struct ray_t
 	float t_max;
 };
 
+class IVector3D
+{
+	public:
+		IVector3D() {}
+		IVector3D(const IVector3D &v): x(v.x), y(v.y), z(v.z) {}
+		explicit IVector3D(const int v[3]): x(v[0]), y(v[1]), z(v[2]) {}
+		IVector3D(int vx, int vy, int vz): x(vx), y(vy), z(vz) {}
+		int operator[](int i) const { return (&x)[i]; }
+		int& operator[](int i) { return (&x)[i]; }
+		int x, y, z;
+};
+
 #endif // VG_VOXELGEM_H
 
