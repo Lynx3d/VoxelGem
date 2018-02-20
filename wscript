@@ -25,6 +25,7 @@ def build(bld):
 				'src/mainwindow.cpp',
 				'src/palette.cpp',
 				'src/renderobject.cpp',
+				'src/shading.cpp',
 				'src/util/shaderinfo.cpp',
 				'src/voxelaggregate.cpp',
 				'src/voxelgrid.cpp',
