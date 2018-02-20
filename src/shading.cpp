@@ -126,7 +126,7 @@ void genNormalMap(int size, int edgeMask, uint8_t *data)
 		pixel[2] = 127 + n.z() * 127;
 		// upper left Quadrant
 		bevelX = edgeMask & 0x4;
-		bevelY = edgeMask & 0x1;
+		bevelY = edgeMask & 0x8;
 		n = calculateNormal(xf, yf, bevelX, bevelY, er, cr);
 		pixel = data + 3 * (x + (size - y - 1) * size);
 		pixel[0] = 127 + n.x() * 127;
@@ -138,14 +138,18 @@ void genNormalMap(int size, int edgeMask, uint8_t *data)
 void genNormalTex(QOpenGLFunctions_3_3_Core &glf)
 {
 	uint8_t *data = new uint8_t[3 * MAP_RES * MAP_RES];
-	genNormalMap(MAP_RES, 0xf, data);
 	glf.glGenTextures(1, &g_normal_tex);
 	glf.glActiveTexture(GL_TEXTURE0);
 	glf.glBindTexture(GL_TEXTURE_2D, g_normal_tex);
-	glf.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glf.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glf.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glf.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glf.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, MAP_RES, MAP_RES, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glf.glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGB8, MAP_RES, MAP_RES, 16, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glf.glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glf.glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glf.glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glf.glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	for (int i = 0; i < 16; ++i)
+	{
+		genNormalMap(MAP_RES, ~i, data);
+		glf.glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, MAP_RES, MAP_RES, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
+	}
 	delete[] data;
 }
