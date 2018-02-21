@@ -33,16 +33,18 @@ const vec4 light_col = vec4(0.7, 0.7, 0.7, 1.0);
 void main()
 {
 	// apply normal mapping:
-	vec3 t_norm = normalize(texture(normal_tex, frag_uv).rgb - vec3(127.0/255.0));
+	vec4 tex_col = texture(normal_tex, frag_uv);
+	vec3 t_norm = normalize(tex_col.rgb - vec3(127.0/255.0));
 	vec3 bi_norm = cross(frag_normal, frag_tangent);
 	vec3 normal = t_norm.x * frag_tangent + t_norm.y * bi_norm + t_norm.z * frag_normal;
 
 	Material m_prop = mat_prop[frag_mat_index];
 	// we calculate in vew space; TODO: we should transform lights outside the fragment shader...
 	vec3 ldir = mat3(view_mat) * light_dir;
-	// hardcoded 0.3 ambient for now...
-	vec4 diffuse_col = frag_color * (0.3 * frag_occlusion + max(0, dot(ldir, normalize(normal)))) * light_col;
-	final_color += mix(diffuse_col, t_norm.z * frag_color, m_prop.emit);
+	// hardcoded 0.3 "grey" ambient for now...
+	float ambient = 0.3 * frag_occlusion;
+	vec4 diffuse_col = frag_color * max(0, dot(ldir, normalize(normal))) * light_col;
+	final_color = frag_color * ambient + mix(diffuse_col, frag_color * (tex_col.a + 0.1), m_prop.emit);
 	// specular
 	vec3 viewdir = normalize(-frag_pos_view);
 	/*vec3 reflected = reflect(-ldir, normal);

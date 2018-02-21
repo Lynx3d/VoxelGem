@@ -204,7 +204,7 @@ inline int VoxelGrid::writeFaces(const VoxelEntry &entry, uint8_t matIndex, int 
 			vertex.col[3] = entry.col[3];
 			vertex.index = 4*face + i;
 			vertex.matIndex = matIndex;
-			vertex.texIndex = getNormalMapIndex(face, mask);
+			vertex.texIndex = matIndex == 8 ? 0 : getNormalMapIndex(face, mask);
 			vertex.occlusion = occlusion[i];
 		}
 		nTriangles += 2;

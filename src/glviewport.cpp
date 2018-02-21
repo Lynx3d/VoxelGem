@@ -97,7 +97,7 @@ void ViewportSettings::panBy(float dX, float dY)
 void ViewportSettings::updateViewport()
 {
 	proj.setToIdentity();
-	proj.perspective(fov, (float)parent->width()/(float)parent->height(), 1, 100);
+	proj.perspective(fov, (float)parent->width()/(float)parent->height(), 0.5, 1000);
 }
 
 void ViewportSettings::updateViewMatrix()
@@ -133,7 +133,7 @@ void GlViewportWidget::generateUBOs()
 		{ 0.3, 30, 0.5, 0.0 }, // solid, iridescent (not implemented yet)
 		{ 0.3, 30, 0.5, 0.0 }, // solid, wave ???
 		{ 0.3, 20, 0.5, 0.0 }, // solid, waxy ???
-		{ 0.3, 10, 0.5, 0.9 }, // glowing solid
+		{ 0.3, 10, 0.5, 0.98 }, // glowing solid
 		{ 0.3, 75, 0.7, 0.0 }, // glass
 		{ 0.3, 75, 0.7, 0.0 }, // tiled glass (redundant?)
 		{ 0.3, 75, 0.7, 0.9 }, // glowing glass, unsure about specular
