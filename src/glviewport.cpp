@@ -7,12 +7,11 @@
  */
 
 #include "glviewport.h"
-//#include "voxelgrid.h"
+#include "shading.h"
 #include "voxelaggregate.h"
 #include "voxelscene.h"
 #include "edittool.h"
 #include "util/shaderinfo.h"
-#include <cmath>
 #include <iostream>
 #include <QSurfaceFormat>
 #include <QOpenGLShaderProgram>
@@ -29,11 +28,11 @@ const char* v_shader =
 "out vec4 frag_color;\n"
 "uniform mat4 mvp_mat;\n"
 "layout (std140) uniform sRGB_LUT {\n"
-"	float val[256];\n"
+"	vec4 val[256];\n"
 "};\n"
 "void main() {\n"
 "	gl_Position = mvp_mat * vec4(v_position, 1);\n"
-"	frag_color = vec4(val[v_color.r], val[v_color.g], val[v_color.b], float(v_color.a)/255.0);\n"
+"	frag_color = vec4(val[v_color.r].a, val[v_color.g].a, val[v_color.b].a, float(v_color.a)/255.0);\n"
 //"	frag_color = v_color;\n"
 "}\n";
 
@@ -120,14 +119,7 @@ EditTool *testTool;
 
 void GlViewportWidget::generateUBOs()
 {
-	// sRGB lookup table
-	// init sRGB transfer function LUT (not exactly a gamma curve, but close)
-	for (int i=0; i < 11; ++i) sRGB_LUT[i*4] = float(i)/(255.f * 12.92f);
-	for (int i=11; i < 256; ++i) sRGB_LUT[i*4] = std::pow((float(i) + 0.055f)/(255.f * 1.055f), 2.4);
-
-	glGenBuffers(1, &m_ubo_LUT);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_ubo_LUT);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(sRGB_LUT), sRGB_LUT, GL_STATIC_DRAW);
+	m_ubo_LUT = genVertexUBO(*this);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ubo_LUT);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
@@ -135,16 +127,16 @@ void GlViewportWidget::generateUBOs()
 	static const float materialProps[10][4] =
 	{
 		/* spec_amount; spec_sharpness; spec_tinting; emit; */
-		{ 0.3, 30, 0, 0 }, // solid, rough
-		{ 0.3, 30, 1, 0 }, // solid, metal
-		{ 0.3, 30, 0, 0 }, // solid, water ???
-		{ 0.3, 30, 0, 0 }, // solid, iridescent (not implemented yet)
-		{ 0.3, 30, 0, 0 }, // solid, wave ???
-		{ 0.3, 30, 0, 0 }, // solid, waxy ???
-		{ 0.3, 30, 0, 1 }, // glowing solid
-		{ 0.3, 30, 0, 0 }, // glass
-		{ 0.3, 30, 0, 0 }, // tiled glass (redundant?)
-		{ 0.3, 30, 0, 1 }, // glowing glass
+		{ 0.2, 10, 0.7, 0.0 }, // solid, rough
+		{ 1.5, 50, 1.0, 0.0 }, // solid, metal
+		{ 0.3, 100, 0.5, 0.0 }, // solid, water, sharper spec than metal, same as glass
+		{ 0.3, 30, 0.5, 0.0 }, // solid, iridescent (not implemented yet)
+		{ 0.3, 30, 0.5, 0.0 }, // solid, wave ???
+		{ 0.3, 20, 0.5, 0.0 }, // solid, waxy ???
+		{ 0.3, 10, 0.5, 0.9 }, // glowing solid
+		{ 0.3, 75, 0.7, 0.0 }, // glass
+		{ 0.3, 75, 0.7, 0.0 }, // tiled glass (redundant?)
+		{ 0.3, 75, 0.7, 0.9 }, // glowing glass, unsure about specular
 	};
 	glGenBuffers(1, &m_ubo_material);
 	glBindBuffer(GL_UNIFORM_BUFFER, m_ubo_material);
@@ -172,6 +164,7 @@ void GlViewportWidget::initializeGL()
 			<< std::endl;
 
 	generateUBOs();
+	m_normal_tex = genNormalTex(*this);
 	// load shaders
 	m_program = new QOpenGLShaderProgram(/*TODO: "self" as parent when stored in class*/);
 	m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, v_shader);
@@ -245,6 +238,8 @@ void GlViewportWidget::paintGL()
 	m_voxel_program->setUniformValue("mvp_mat", final);
 	m_voxel_program->setUniformValue("view_mat", vpSettings->getViewMatrix());
 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_normal_tex);
 	//scene->renderLayer->render(*this);
 	scene->render(*this);
 	m_program->release();

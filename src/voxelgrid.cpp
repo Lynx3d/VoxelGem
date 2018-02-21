@@ -162,6 +162,23 @@ static void getOcclusionValues(int face, int mask, uint8_t occ[4])
 		}
 	}
 }
+static inline int getNormalMapIndex(int face, int mask)
+{
+	static const int face_edge_neighbours[6][4] =
+	{
+		{ VN_nyn, VN_nnZ, VN_nYn, VN_nnz },
+		{ VN_nYn, VN_nnZ, VN_nyn, VN_nnz },
+		{ VN_nnz, VN_Xnn, VN_nnZ, VN_xnn },
+		{ VN_nnZ, VN_Xnn, VN_nnz, VN_xnn },
+		{ VN_xnn, VN_nYn, VN_Xnn, VN_nyn },
+		{ VN_Xnn, VN_nYn, VN_xnn, VN_nyn }
+	};
+	int index = 0;
+	for (int edge = 0; edge < 4; ++edge)
+		if (mask & face_edge_neighbours[face][edge])
+			index |= 1 << edge;
+	return index;
+}
 
 inline int VoxelGrid::writeFaces(const VoxelEntry &entry, uint8_t matIndex, int mask, int pos[3], GlVoxelVertex_t *vertices) const
 {
@@ -185,10 +202,9 @@ inline int VoxelGrid::writeFaces(const VoxelEntry &entry, uint8_t matIndex, int 
 			vertex.col[1] = entry.col[1];
 			vertex.col[2] = entry.col[2];
 			vertex.col[3] = entry.col[3];
-			vertex.normal[0] = FACE_NORMALS[face][0];
-			vertex.normal[1] = FACE_NORMALS[face][1];
-			vertex.normal[2] = FACE_NORMALS[face][2];
+			vertex.index = 4*face + i;
 			vertex.matIndex = matIndex;
+			vertex.texIndex = getNormalMapIndex(face, mask);
 			vertex.occlusion = occlusion[i];
 		}
 		nTriangles += 2;
@@ -324,14 +340,17 @@ void RenderGrid::setup(QOpenGLFunctions_3_3_Core &glf)
 	m_voxel_program->enableAttributeArray("v_color");
 	glf.glVertexAttribIPointer(1, 4, GL_UNSIGNED_BYTE, sizeof(GlVoxelVertex_t),
 								(const GLvoid*)offsetof(GlVoxelVertex_t, col));
-	m_voxel_program->enableAttributeArray("v_normal");
-	glf.glVertexAttribPointer(2, 3, GL_FLOAT, false, sizeof(GlVoxelVertex_t),
-								(const GLvoid*)offsetof(GlVoxelVertex_t, normal));
+	m_voxel_program->enableAttributeArray("v_index");
+	glf.glVertexAttribIPointer(2, 1, GL_UNSIGNED_BYTE, sizeof(GlVoxelVertex_t),
+								(const GLvoid*)offsetof(GlVoxelVertex_t, index));
 	m_voxel_program->enableAttributeArray("v_mat_index");
 	glf.glVertexAttribIPointer(3, 1, GL_UNSIGNED_BYTE, sizeof(GlVoxelVertex_t),
 								(const GLvoid*)offsetof(GlVoxelVertex_t, matIndex));
+	m_voxel_program->enableAttributeArray("v_tex_index");
+	glf.glVertexAttribIPointer(4, 1, GL_UNSIGNED_BYTE, sizeof(GlVoxelVertex_t),
+								(const GLvoid*)offsetof(GlVoxelVertex_t, texIndex));
 	m_voxel_program->enableAttributeArray("v_occlusion");
-	glf.glVertexAttribPointer(4, 1, GL_UNSIGNED_BYTE, false, sizeof(GlVoxelVertex_t),
+	glf.glVertexAttribPointer(5, 1, GL_UNSIGNED_BYTE, false, sizeof(GlVoxelVertex_t),
 								(const GLvoid*)offsetof(GlVoxelVertex_t, occlusion));
 }
 

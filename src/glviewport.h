@@ -77,6 +77,7 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 		VoxelScene *scene;
 		GLuint m_ubo_LUT;
 		GLuint m_ubo_material;
+		GLuint m_normal_tex;
 		ViewportSettings *vpSettings;
 		DragType dragStatus;
 		QPoint dragStart;

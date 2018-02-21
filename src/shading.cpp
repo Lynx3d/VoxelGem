@@ -6,11 +6,9 @@
  *  SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "voxelgem.h"
+#include "shading.h"
 
-#include <QOpenGLFunctions_3_3_Core>
-
-GLuint g_normal_tex;
+#include <cstring>
 
 #define MAP_RES 64
 #define UV_LO (0.5f / MAP_RES)
@@ -19,7 +17,7 @@ GLuint g_normal_tex;
 // generate vetex attributes required for normal mapping;
 // UBO layout aligns to vec4, so there are some padding values
 // and since normal/tangent are per face, it's a bit redundant.
-extern const float VERTEX_ATTRIBS[3*24][4] = {
+const float VERTEX_ATTRIBS[3*24][4] = {
 	// normal		tangent			uv
 	// Face 0
 	{ -1, 0, 0, 0 }, { 0, 0, 1, 0 }, { UV_LO, UV_LO, 0, 0 },
@@ -53,6 +51,22 @@ extern const float VERTEX_ATTRIBS[3*24][4] = {
 	{ 0, 0,  1, 0 }, { 0, 1, 0, 0 }, { UV_LO, UV_HI, 0, 0 },
 };
 
+/* Generate a uniform buffer object that contains an array of 256 vec4 with
+   the vertex attributes above, plus a sRGB lookup table in vec.a */
+GLuint genVertexUBO(QOpenGLFunctions_3_3_Core &glf)
+{
+	float buff[256][4] {};
+	std::memcpy(buff, VERTEX_ATTRIBS, sizeof(VERTEX_ATTRIBS));
+	// init sRGB transfer function LUT (not exactly a gamma curve, but close)
+	for (int i=0; i < 11; ++i) buff[i][3] = float(i)/(255.f * 12.92f);
+	for (int i=11; i < 256; ++i) buff[i][3] = std::pow((float(i) + 0.055f)/(255.f * 1.055f), 2.4);
+
+	GLuint ubo;
+	glf.glGenBuffers(1, &ubo);
+	glf.glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+	glf.glBufferData(GL_UNIFORM_BUFFER, sizeof(buff), buff, GL_STATIC_DRAW);
+	return ubo;
+}
 // handles only one quadrant, mirror accordingly for the other 3
 
 QVector3D calculateNormal(float x, float y, bool roundX, bool roundY, float edgeRadius, float cornerRadius)
@@ -135,12 +149,13 @@ void genNormalMap(int size, int edgeMask, uint8_t *data)
 	}
 }
 
-void genNormalTex(QOpenGLFunctions_3_3_Core &glf)
+GLuint genNormalTex(QOpenGLFunctions_3_3_Core &glf)
 {
+	GLuint normal_tex;
 	uint8_t *data = new uint8_t[3 * MAP_RES * MAP_RES];
-	glf.glGenTextures(1, &g_normal_tex);
+	glf.glGenTextures(1, &normal_tex);
 	glf.glActiveTexture(GL_TEXTURE0);
-	glf.glBindTexture(GL_TEXTURE_2D, g_normal_tex);
+	glf.glBindTexture(GL_TEXTURE_2D, normal_tex);
 	glf.glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGB8, MAP_RES, MAP_RES, 16, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glf.glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glf.glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -152,4 +167,5 @@ void genNormalTex(QOpenGLFunctions_3_3_Core &glf)
 		glf.glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, MAP_RES, MAP_RES, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
 	}
 	delete[] data;
+	return normal_tex;
 }
