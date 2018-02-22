@@ -46,6 +46,7 @@ class ViewportSettings
 		ray_t unproject(const QVector3D &vec) const;
 		void rotateBy(float dHead, float dPitch);
 		void panBy(float dX, float dY);
+		void zoomBy(float dZ);
 		void updateViewport();
 	protected:
 		void updateViewMatrix();
@@ -67,12 +68,13 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 		GLRenderable* getGrid();
 	protected:
 		void generateUBOs();
-		void initializeGL();
-		void paintGL();
-		void resizeGL(int w, int h);
-		void mousePressEvent(QMouseEvent *event);
-		void mouseReleaseEvent(QMouseEvent *event);
-		void mouseMoveEvent(QMouseEvent *event);
+		void initializeGL() override;
+		void paintGL() override;
+		void resizeGL(int w, int h) override;
+		void mousePressEvent(QMouseEvent *event) override;
+		void mouseReleaseEvent(QMouseEvent *event) override;
+		void mouseMoveEvent(QMouseEvent *event) override;
+		void wheelEvent(QWheelEvent *event) override;
 
 		VoxelScene *scene;
 		GLuint m_ubo_LUT;

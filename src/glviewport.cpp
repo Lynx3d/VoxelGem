@@ -89,8 +89,20 @@ void ViewportSettings::rotateBy(float dHead, float dPitch)
 
 void ViewportSettings::panBy(float dX, float dY)
 {
+	float zoom = camDistance / 20.f;
 	QVector4D offset = dX * view.row(0) + dY * view.row(1);
-	camPivot += QVector3D(offset);
+	camPivot += zoom * QVector3D(offset);
+	updateViewMatrix();
+}
+
+void ViewportSettings::zoomBy(float dZ)
+{
+	float steps = dZ / 180.f;
+	camDistance -= steps;
+	if (camDistance < 1)
+		camDistance = 1;
+	else if (camDistance > 20)
+		camDistance = 20;
 	updateViewMatrix();
 }
 
@@ -328,4 +340,11 @@ void GlViewportWidget::mouseMoveEvent(QMouseEvent *event)
 		}
 	}
 	dragStart = event->pos();
+}
+
+void GlViewportWidget::wheelEvent(QWheelEvent *event)
+{
+	QPoint delta = event->angleDelta();
+	vpSettings->zoomBy(delta.y());
+	update();
 }
