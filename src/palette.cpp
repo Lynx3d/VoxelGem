@@ -201,7 +201,7 @@ void ColorSwatch::on_colorSelectionChanged(QColor col)
 
 void ColorSwatch::mouseReleaseEvent(QMouseEvent *event)
 {
-	 QColor new_color = QColorDialog::getColor(color);
+	 QColor new_color = QColorDialog::getColor(color, 0, QString(), QColorDialog::ShowAlphaChannel);
 	if (new_color.isValid())
 	{
 		color = new_color;
