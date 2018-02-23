@@ -11,6 +11,7 @@
 #include <QPainter>
 #include <QHeaderView>
 #include <QAbstractItemDelegate>
+#include <QMouseEvent>
 #include <QColorDialog>
 
 ColorSet* getTestPalette()
@@ -58,6 +59,14 @@ QVariant ColorPaletteModel::data(const QModelIndex& index, int role) const
 	return QVariant();
 }
 
+QModelIndex ColorPaletteModel::index(int row, int column, const QModelIndex& parent) const
+{
+	unsigned int setIndex = column + row * columnCount();
+	if (activeColorSet && setIndex < activeColorSet->numEntries())
+		return QAbstractTableModel::index(row, column, parent);
+	return QModelIndex();
+}
+
 int ColorPaletteModel::rowCount(const QModelIndex& /* parent */) const
 {
 	if (!activeColorSet)
@@ -87,6 +96,14 @@ void ColorPaletteModel::setColorSet(ColorSet* colorSet)
 	activeColorSet = colorSet;
     beginResetModel();
     endResetModel();
+}
+
+const ColorSetEntry* ColorPaletteModel::colorSetEntryFromIndex(const QModelIndex &index) const
+{
+	if (!activeColorSet)
+		return 0;
+	unsigned int setIndex = index.column() + index.row() * columnCount();
+	return activeColorSet->get(setIndex);
 }
 
 /*============================
@@ -183,6 +200,17 @@ void ColorPaletteView::setPaletteModel(ColorPaletteModel *model)
 	connect(activeModel, SIGNAL(rowsRemoved(QModelIndex,int,int)), this, SLOT(paletteModelChanged()));
 	connect(activeModel, SIGNAL(modelReset()), this, SLOT(paletteModelChanged()));
 
+}
+
+void ColorPaletteView::mouseReleaseEvent(QMouseEvent *event)
+{
+	if (event->button() == Qt::LeftButton)
+	{
+		QModelIndexList indices = selectedIndexes();
+		if (indices.empty() || !indices.first().isValid())
+			return;
+		emit(entrySelected(*activeModel->colorSetEntryFromIndex(indices.first())));
+	}
 }
 
 /*============================

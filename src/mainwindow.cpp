@@ -34,6 +34,7 @@ VGMainWindow::VGMainWindow():
 	mainUi->gridLayout_3->addWidget(paletteView, 5, 0, 1, 1);
 	connect(mainUi->colorswatch, SIGNAL(colorSelectionChanged(QColor)), this, SLOT(on_colorSelectionChanged(QColor)));
 	connect(this, SIGNAL(colorSelectionChanged(QColor)), mainUi->colorswatch, SLOT(on_colorSelectionChanged(QColor)));
+	connect(paletteView, SIGNAL(entrySelected(const ColorSetEntry &)), this, SLOT(on_colorSetEntrySelected(const ColorSetEntry &)));
 }
 
 VGMainWindow::~VGMainWindow()
@@ -100,6 +101,13 @@ void VGMainWindow::on_specular_currentIndexChanged(int index)
 
 void VGMainWindow::on_colorSelectionChanged(QColor col)
 {
+	scene->setTemplateColor(col.red(), col.green(), col.blue(), col.alpha());
+	emit(colorSelectionChanged(col));
+}
+
+void VGMainWindow::on_colorSetEntrySelected(const ColorSetEntry &entry)
+{
+	QColor col = entry.color;
 	scene->setTemplateColor(col.red(), col.green(), col.blue(), col.alpha());
 	emit(colorSelectionChanged(col));
 }

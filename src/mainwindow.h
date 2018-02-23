@@ -18,6 +18,7 @@ class VoxelScene;
 class GlViewportWidget;
 class ColorPaletteView;
 class ColorSet;
+class ColorSetEntry;
 
 class VGMainWindow : public QMainWindow
 {
@@ -35,6 +36,7 @@ class VGMainWindow : public QMainWindow
 		void on_material_currentIndexChanged(int index);
 		void on_specular_currentIndexChanged(int index);
 		void on_colorSelectionChanged(QColor col);
+		void on_colorSetEntrySelected(const ColorSetEntry &entry);
 	Q_SIGNALS:
 		void colorSelectionChanged(QColor col);
 	// TODO: tool list

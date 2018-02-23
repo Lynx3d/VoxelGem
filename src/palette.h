@@ -52,11 +52,13 @@ class ColorPaletteModel : public QAbstractTableModel
 		ColorPaletteModel(QObject* parent = 0);
 
 	    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+		QModelIndex index(int row, int column, const QModelIndex& parent) const override;
 		int rowCount(const QModelIndex& parent = QModelIndex()) const override;
 		int columnCount(const QModelIndex& parent = QModelIndex()) const override;
 		Qt::ItemFlags flags(const QModelIndex& index) const override;
 //		QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const override;
 		void setColorSet(ColorSet* colorSet);
+		const ColorSetEntry* colorSetEntryFromIndex(const QModelIndex &index) const;
 
 	protected:
 		ColorSet *activeColorSet;
@@ -82,11 +84,13 @@ class ColorPaletteView: public QTableView
 		void updateView();
 		void setPaletteModel(ColorPaletteModel *model);
 		ColorPaletteModel* getPaletteModel() { return activeModel; }
-
+	Q_SIGNALS:
+		void entrySelected(const ColorSetEntry &entry);
 	public Q_SLOTS:
 		void paletteModelChanged();
 
 	protected:
+		void mouseReleaseEvent(QMouseEvent *event) override;
 		ColorPaletteModel *activeModel;
 };
 
