@@ -27,6 +27,7 @@ enum DragType
 	DRAG_TOOL = 3
 };
 
+class EditTool;
 class GlViewportWidget;
 class VoxelScene;
 class SceneRayHit;
@@ -63,9 +64,11 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 {
 	Q_OBJECT
 	public:
-		GlViewportWidget(VoxelScene *pscene): scene(pscene), dragStatus(DRAG_NONE) {};
+		GlViewportWidget(VoxelScene *pscene): scene(pscene), dragStatus(DRAG_NONE), currentTool(0) {};
 		static float sRGB_LUT[1024];
 		GLRenderable* getGrid();
+	private Q_SLOTS:
+		void on_activeToolChanged(EditTool *tool);
 	protected:
 		void generateUBOs();
 		void initializeGL() override;
@@ -83,6 +86,7 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 		ViewportSettings *vpSettings;
 		DragType dragStatus;
 		QPoint dragStart;
+		EditTool *currentTool;
 		QOpenGLDebugLogger *glDebug;
 };
 

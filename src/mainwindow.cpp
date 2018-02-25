@@ -8,11 +8,14 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "edittool.h"
 #include "glviewport.h"
 #include "palette.h"
 #include "voxelscene.h"
 
 #include <QFileDialog>
+#include <QActionGroup>
+#include <QIcon>
 
 VGMainWindow::VGMainWindow():
 	mainUi(new Ui::MainWindow),
@@ -26,6 +29,10 @@ VGMainWindow::VGMainWindow():
 	viewport->setTextureFormat(GL_SRGB8_ALPHA8); /* Qt 5.10+ */
 	#endif
 	mainUi->glparent->layout()->addWidget(viewport);
+	// setup toolbar
+	toolGroup = new QActionGroup(this);
+	connect(toolGroup, SIGNAL(triggered(QAction *)), this, SLOT(on_toolActionTriggered(QAction *)));
+	connect(this, SIGNAL(activeToolChanged(EditTool *)), viewport, SLOT(on_activeToolChanged(EditTool *)));
 	// color palette
 	ColorPaletteModel *paletteModel = new ColorPaletteModel;
 	colorSet = getTestPalette();
@@ -35,6 +42,9 @@ VGMainWindow::VGMainWindow():
 	connect(mainUi->colorswatch, SIGNAL(colorSelectionChanged(QColor)), this, SLOT(on_colorSelectionChanged(QColor)));
 	connect(this, SIGNAL(colorSelectionChanged(QColor)), mainUi->colorswatch, SLOT(on_colorSelectionChanged(QColor)));
 	connect(paletteView, SIGNAL(entrySelected(const ColorSetEntry &)), this, SLOT(on_colorSetEntrySelected(const ColorSetEntry &)));
+	// TODO: load tools in a better place...
+	ToolInstance *testTool = PaintTool::getInstance();
+	addTool(testTool);
 }
 
 VGMainWindow::~VGMainWindow()
@@ -49,6 +59,22 @@ VGMainWindow::~VGMainWindow()
 	// scene and palette are currently tied to mainwindow instance
 	delete scene;
 	delete colorSet;
+}
+
+void VGMainWindow::addTool(ToolInstance *tool)
+{
+	QAction *action = new QAction(tool->icon, tool->toolTip, toolGroup);
+	action->setCheckable(true);
+	action->setStatusTip(tool->statusTip);
+	action->setAutoRepeat(false);
+	mainUi->toolbar_edit->addAction(action);
+	if (!toolGroup->checkedAction())
+	{
+		action->setChecked(true);
+		// this apparently does not trigger QActionGroup::triggered()
+		emit(activeToolChanged(tool->tool));
+	}
+	toolMap[action] = tool->tool;
 }
 
 void VGMainWindow::on_action_axis_grids_triggered(bool checked)
@@ -110,4 +136,14 @@ void VGMainWindow::on_colorSetEntrySelected(const ColorSetEntry &entry)
 	QColor col = entry.color;
 	scene->setTemplateColor(col.red(), col.green(), col.blue(), col.alpha());
 	emit(colorSelectionChanged(col));
+}
+
+void VGMainWindow::on_toolActionTriggered(QAction *action)
+{
+	// NOTE: clicking on an action will trigger even if it is already checked
+	EditTool *tool = 0;
+	auto entry = toolMap.find(action);
+	if (entry != toolMap.end())
+		tool = entry->second;
+	emit(activeToolChanged(tool));
 }

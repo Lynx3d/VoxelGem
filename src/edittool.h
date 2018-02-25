@@ -11,6 +11,9 @@
 
 #include "voxelgem.h"
 
+#include <QString>
+#include <QIcon>
+
 class QMouseEvent;
 class SceneRayHit;
 class VoxelScene;
@@ -37,12 +40,22 @@ class EditTool
 		virtual void mouseUp(const ToolEvent &event, VoxelScene &scene);
 };
 
+class ToolInstance
+{
+	public:
+		EditTool *tool;
+		QIcon icon;
+		QString toolTip;
+		QString statusTip;
+};
+
 class PaintTool: public EditTool
 {
 	public:
 		void mouseMoved(const ToolEvent &event, VoxelScene &scene) override;
 		void mouseDown(const ToolEvent &event, VoxelScene &scene) override;
 		void mouseUp(const ToolEvent &event, VoxelScene &scene) override;
+		static ToolInstance* getInstance();
 	private:
 		bool painting = false;
 		bool deleting;

@@ -151,9 +151,12 @@
    <addaction name="action_background"/>
    <addaction name="separator"/>
   </widget>
-  <widget class="QToolBar" name="toolbar_drawing">
+  <widget class="QToolBar" name="toolbar_edit">
    <property name="windowTitle">
-    <string>toolBar</string>
+    <string>Edit Tools</string>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
    </property>
    <attribute name="toolBarArea">
     <enum>LeftToolBarArea</enum>

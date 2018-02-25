@@ -9,6 +9,7 @@
 #ifndef VG_MAINWINDOW_H
 #define VG_MAINWINDOW_H
 
+#include <map>
 #include <QMainWindow>
 
 namespace Ui {
@@ -19,6 +20,10 @@ class GlViewportWidget;
 class ColorPaletteView;
 class ColorSet;
 class ColorSetEntry;
+class EditTool;
+class ToolInstance;
+class QAction;
+class QActionGroup;
 
 class VGMainWindow : public QMainWindow
 {
@@ -26,6 +31,7 @@ class VGMainWindow : public QMainWindow
 	public:
 		VGMainWindow();
 		virtual ~VGMainWindow();
+		void addTool(ToolInstance *tool);
 	protected:
 		void loadTools();
 	private Q_SLOTS:
@@ -37,11 +43,15 @@ class VGMainWindow : public QMainWindow
 		void on_specular_currentIndexChanged(int index);
 		void on_colorSelectionChanged(QColor col);
 		void on_colorSetEntrySelected(const ColorSetEntry &entry);
+		void on_toolActionTriggered(QAction *action);
 	Q_SIGNALS:
 		void colorSelectionChanged(QColor col);
+		void activeToolChanged(EditTool *tool);
 	// TODO: tool list
 	private:
 		Ui::MainWindow *mainUi;
+		QActionGroup *toolGroup;
+		std::map<QAction *, EditTool *> toolMap;
 		GlViewportWidget *viewport;
 		ColorPaletteView *paletteView;
 		ColorSet *colorSet;

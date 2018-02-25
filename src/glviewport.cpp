@@ -127,7 +127,6 @@ void ViewportSettings::updateViewMatrix()
 // TODO: create proper shader library
 QOpenGLShaderProgram *m_program, *m_voxel_program;
 GLRenderable *testObject;
-EditTool *testTool;
 
 void GlViewportWidget::generateUBOs()
 {
@@ -205,7 +204,6 @@ void GlViewportWidget::initializeGL()
 
 	//testobject
 	testObject = new LineGrid();
-	testTool = new PaintTool();
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -276,14 +274,17 @@ void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 	if (event->button() == Qt::LeftButton)
 	{
 		dragStatus = DRAG_TOOL;
-		ray_t ray = vpSettings->unproject(QVector3D(event->x(), height() - event->y(), 0.f));
-		ToolEvent toolEvent(event, ray);
-		testTool->mouseDown(toolEvent, *scene);
-
-		if (scene->needsUpdate())
+		if (currentTool)
 		{
-//			scene->update();
-			update();
+			ray_t ray = vpSettings->unproject(QVector3D(event->x(), height() - event->y(), 0.f));
+			ToolEvent toolEvent(event, ray);
+			currentTool->mouseDown(toolEvent, *scene);
+
+			if (scene->needsUpdate())
+			{
+	//			scene->update();
+				update();
+			}
 		}
 	}
 	if (event->button() == Qt::RightButton)
@@ -301,12 +302,12 @@ void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 
 void GlViewportWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-	if (event->button() == Qt::LeftButton)
+	if (event->button() == Qt::LeftButton && currentTool)
 	{
 		// TODO: cache ray; currently don't need ray hit yet
 		ray_t ray = vpSettings->unproject(QVector3D(event->x(), height() - event->y(), 0.f));
 		ToolEvent toolEvent(event, ray);
-		testTool->mouseUp(toolEvent, *scene);
+		currentTool->mouseUp(toolEvent, *scene);
 	}
 	dragStatus = DRAG_NONE;
 }
@@ -328,11 +329,11 @@ void GlViewportWidget::mouseMoveEvent(QMouseEvent *event)
 		vpSettings->panBy(-0.05f * delta.x(), 0.05f * delta.y());
 		update();
 	}
-	else if (dragStatus == DRAG_TOOL)
+	else if (dragStatus == DRAG_TOOL && currentTool)
 	{
 		ray_t ray = vpSettings->unproject(QVector3D(event->x(), height() - event->y(), 0.f));
 		ToolEvent toolEvent(event, ray);
-		testTool->mouseMoved(toolEvent, *scene);
+		currentTool->mouseMoved(toolEvent, *scene);
 
 		if (scene->needsUpdate())
 		{
@@ -347,4 +348,14 @@ void GlViewportWidget::wheelEvent(QWheelEvent *event)
 	QPoint delta = event->angleDelta();
 	vpSettings->zoomBy(delta.y());
 	update();
+}
+
+
+void GlViewportWidget::on_activeToolChanged(EditTool *tool)
+{
+	if (tool != currentTool)
+	{
+		std::cout << "current tool changed\n";
+		currentTool = tool;
+	}
 }

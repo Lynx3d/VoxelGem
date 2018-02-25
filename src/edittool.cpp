@@ -115,3 +115,13 @@ void PaintTool::mouseMoved(const ToolEvent &event, VoxelScene &scene)
 		haveLastPos = true;
 	}
 }
+
+ToolInstance* PaintTool::getInstance()
+{
+	ToolInstance* instance = new ToolInstance;
+	instance->tool = new PaintTool();
+	instance->icon.addFile(QStringLiteral(":/images/gfx/icons/pencil.svg"));
+	instance->toolTip = "Draw Voxels";
+	instance->statusTip = "Press Shift to remove voxels";
+	return instance;
+}
