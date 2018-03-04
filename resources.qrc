@@ -9,6 +9,8 @@
     <file>gfx/icons/grid.svg</file>
     <file>gfx/icons/palette.svg</file>
 	<file>gfx/icons/pencil.svg</file>
+	<file>gfx/icons/visible.svg</file>
+	<file>gfx/icons/visible_off.svg</file>
   </qresource>
   <qresource prefix="shader">
     <file alias="voxel_fragment.glsl">src/glsl/voxel_fragment.glsl</file>
