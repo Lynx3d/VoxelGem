@@ -91,6 +91,16 @@ bool LayerManager::setLayerVisibility(int layerN, bool visible)
 	if (layerN < 0 || layerN >= (int)layers.size())
 		return false;
 	layers[layerN]->visible = visible;
+	// TODO: emit(layerSettingsChanged(layerN)); ?
+	return true;
+}
+
+bool LayerManager::renameLayer(int layerN, const std::string &name)
+{
+	if (layerN < 0 || layerN >= (int)layers.size())
+		return false;
+	layers[layerN]->name = name;
+	emit(layerSettingsChanged(layerN));
 	return true;
 }
 
@@ -132,6 +142,7 @@ LayerEditor::LayerEditor(QWidget *parent, LayerManager *manager):
 	connect(manager, &LayerManager::layerCreated, this, &LayerEditor::layerCreated);
 	connect(manager, &LayerManager::layerDeleted, this, &LayerEditor::layerDeleted);
 	connect(manager, &LayerManager::activeLayerChanged, this, &LayerEditor::activeLayerChanged);
+	connect(manager, &LayerManager::layerSettingsChanged, this, &LayerEditor::layerSettingsChanged);
 	// TODO: handle layerSettingsChanged() signal to catch outside changes
 	layerStackLayout = new QBoxLayout(QBoxLayout::BottomToTop, ui->layer_stack);
 	eyeIcon = new QIcon(":/images/gfx/icons/visible_off.svg");//(ui->action_add_layer->icon());
@@ -148,26 +159,12 @@ LayerEditor::LayerEditor(QWidget *parent, LayerManager *manager):
 	}
 	layerWidgets[hub->activeLayer()]->setActiveStatus(true);
 	loadLayerDetails(hub->activeLayer());
-	/* // 1
-	LayerWidget *testWidget = new LayerWidget(ui->layer_stack, this, icon);
-	layerStackLayout->insertWidget(-1, testWidget);
-	testWidget->setLayerName("testlayer");
-	testWidget->setLayerNum(0);
-	layerWidgets.push_back(testWidget);
-	// 2
-	testWidget = new LayerWidget(ui->layer_stack, this, icon);
-	layerStackLayout->insertWidget(-1, testWidget);
-	testWidget->setLayerName("testlayer 2");
-	testWidget->setLayerNum(1);
-	layerWidgets.push_back(testWidget);
-	// 3
-	testWidget = new LayerWidget(ui->layer_stack, this, icon);
-	layerStackLayout->insertWidget(-1, testWidget);
-	testWidget->setLayerName("testlayer 3");
-	testWidget->setLayerNum(2);
-	layerWidgets.push_back(testWidget); */
 	// must be last, and stay last on widget additions
 	layerStackLayout->addStretch();
+	// edit widget for renames
+	nameEdit = new QLineEdit(ui->layer_stack);
+	nameEdit->hide();
+	connect(nameEdit, &QLineEdit::editingFinished, this, &LayerEditor::on_nameEdit_editingFinished);
 }
 
 LayerEditor::~LayerEditor()
@@ -175,25 +172,19 @@ LayerEditor::~LayerEditor()
 	delete ui;
 }
 
-/* void LayerEditor::boundValueChanged(int val)
-{
-	std::cout << "new value: " << val << std::endl;
-} */
-
 void LayerEditor::adjustLowerBound(int val, int index)
 {
 	assert(index >= 0 && index < 3);
-	std::cout << "set the lower bound[" << index << "] to " << val << std::endl;
 	const VoxelLayer *layer = hub->getLayer(hub->activeLayer());
 	IBBox newBound(layer->bound);
 	newBound.pMin[index] = val;
 
-	if (index == 0)
+	/* if (index == 0)
 		ui->sb_max_x->setMinimum(val + 1);
 	else if (index == 1)
 		ui->sb_max_y->setMinimum(val + 1);
 	else
-		ui->sb_max_z->setMinimum(val + 1);
+		ui->sb_max_z->setMinimum(val + 1); */
 
 	hub->setLayerBound(hub->activeLayer(), newBound);
 }
@@ -205,14 +196,25 @@ void LayerEditor::adjustUpperBound(int val, int index)
 	IBBox newBound(layer->bound);
 	newBound.pMax[index] = val;
 
-	if (index == 0)
+	/* if (index == 0)
 		ui->sb_min_x->setMaximum(val - 1);
 	else if (index == 1)
 		ui->sb_min_y->setMaximum(val - 1);
 	else
-		ui->sb_min_z->setMaximum(val - 1);
+		ui->sb_min_z->setMaximum(val - 1); */
 
 	hub->setLayerBound(hub->activeLayer(), newBound);
+}
+
+void LayerEditor::editLayerName(int layerN)
+{
+	QRect geometry = layerWidgets[layerN]->geometry();
+	nameEdit->move(geometry.topLeft() + QPoint(30, 2));
+	nameEdit->setFixedWidth(geometry.width() - 30);
+	nameEdit->setText(QString::fromStdString(hub->getLayer(layerN)->name));
+	nameEdit->raise();
+	nameEdit->show();
+	nameEdit->setFocus();
 }
 
 void LayerEditor::loadLayerDetails(int layerN)
@@ -283,6 +285,14 @@ void LayerEditor::layerDeleted(int layerN)
 		layerWidgets[i]->setLayerNum(i);
 }
 
+void LayerEditor::layerSettingsChanged(int layerN)
+{
+	const VoxelLayer *layer = hub->getLayer(layerN);
+	layerWidgets[layerN]->setLayerName(QString::fromStdString(layer->name));
+	if (layerN == hub->activeLayer())
+		loadLayerDetails(layerN);
+}
+
 void LayerEditor::activeLayerChanged(int layerN, int prev)
 {
 	layerWidgets[prev]->setActiveStatus(false);
@@ -290,9 +300,15 @@ void LayerEditor::activeLayerChanged(int layerN, int prev)
 	loadLayerDetails(layerN);
 }
 
+void LayerEditor::on_nameEdit_editingFinished()
+{
+	QString newName = nameEdit->text();
+	hub->renameLayer(hub->activeLayer(), newName.toStdString());
+	nameEdit->hide();
+}
+
 void LayerEditor::on_action_add_layer_triggered()
 {
-	std::cout << "on_action_add_layer_triggered()\n";
 	hub->createLayer();
 }
 
@@ -343,6 +359,7 @@ void LayerWidget::setVisibilityStatus(bool visible)
 void LayerWidget::setLayerName(const QString &name)
 {
 	layerName->setText(name);
+	layerName->adjustSize();
 }
 
 void LayerWidget::mousePressEvent(QMouseEvent *event)
@@ -352,6 +369,11 @@ void LayerWidget::mousePressEvent(QMouseEvent *event)
 	else if (!layerActive)
 		layerEditor->activateLayer(layerNum);
 	event->accept();
+}
+
+void LayerWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+	layerEditor->editLayerName(layerNum);
 }
 
 void LayerWidget::paintEvent(QPaintEvent *event)

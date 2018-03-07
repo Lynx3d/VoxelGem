@@ -11,7 +11,7 @@
 
 #include <QObject>
 #include <QWidget>
-#include <QAbstractItemModel>
+#include <QLineEdit>
 #include <vector>
 
 namespace Ui {
@@ -39,7 +39,7 @@ class LayerManager: public QObject
 		bool setLayerBound(int layerN, const IBBox &bound);
 		bool setLayerBoundUse(int layerN, bool enabled);
 		bool setLayerVisibility(int layerN, bool visible);
-		void renameLayer(int layerN, std::string name);
+		bool renameLayer(int layerN, const std::string &name);
 		int activeLayer() const { return m_activeLayer; }
 		int layerCount() const { return layers.size(); }
 		const VoxelLayer* getLayer(int layerN) const;
@@ -62,11 +62,13 @@ class LayerEditor: public QObject
 		virtual ~LayerEditor();
 		void activateLayer(int layerNum);
 		void setVisibility(int layerNum, bool visible);
+		void editLayerName(int layerN);
 	public Q_SLOTS:
-		//void boundValueChanged(int val); // TODO remove, use lambdas to map index
 		void layerCreated(int layerN);
 		void layerDeleted(int layerN);
+		void layerSettingsChanged(int layerN);
 		void activeLayerChanged(int layerN, int prev);
+		void on_nameEdit_editingFinished();
 		void on_layer_bound_toggled(bool enabled);
 		void on_action_add_layer_triggered();
 		void on_action_delete_layer_triggered();
@@ -76,6 +78,7 @@ class LayerEditor: public QObject
 		void loadLayerDetails(int layerN);
 		Ui::Layers *ui;
 		QBoxLayout *layerStackLayout;
+		QLineEdit *nameEdit;
 		std::vector<LayerWidget*> layerWidgets;
 		LayerManager *hub;
 		QIcon *eyeIcon;
@@ -93,6 +96,7 @@ class LayerWidget: public QWidget
 		void setLayerNum(int num) { layerNum = num; }
 	protected:
 		void mousePressEvent(QMouseEvent *event) override;
+		void mouseDoubleClickEvent(QMouseEvent *event) override;
 		void paintEvent(QPaintEvent *event) override;
 
 		static QRect visibilityRect;

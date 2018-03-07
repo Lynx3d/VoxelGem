@@ -62,6 +62,17 @@ class UndoItem
 		AggregateMemento *memento {0};
 };
 
+class VoxelLayer
+{
+	public:
+		VoxelLayer(): aggregate(0), visible(true), useBound(false), bound(IVector3D(0,0,0), IVector3D(16,16,16)) {}
+		VoxelAggregate *aggregate;
+		bool visible;
+		bool useBound;
+		IBBox bound;
+		std::string name;
+};
+
 typedef std::unordered_map<uint64_t, DirtyVolume> dirtyMap_t;
 
 /*! This class holds all the "scene" data for a file edit session.

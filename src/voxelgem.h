@@ -131,5 +131,36 @@ class IVector3D
 		int x, y, z;
 };
 
+// TODO: think about rayIntersect() when replacing BBox with IBBox!
+// TODO: think about 'valid' member and replace DirtyVolume, or derive DirtyVolume from IBBox
+
+class IBBox
+{
+	public:
+		IBBox(const IVector3D &min, const IVector3D &max): pMin(min), pMax(max) {}
+		IBBox(const IBBox &other): pMin(other.pMin), pMax(other.pMax) {}
+		bool includes(const IVector3D &p) const
+		{
+			return ((p.x >= pMin.x) && (p.x <= pMax.x) &&
+					(p.y >= pMin.y) && (p.y <= pMax.y) &&
+					(p.z >= pMin.z) && (p.z <= pMax.z));
+		}
+		bool includes(const IBBox &b) const
+		{
+			return ((b.pMin.x >= pMin.x) && (b.pMax.x <= pMax.x) &&
+					(b.pMin.y >= pMin.y) && (b.pMax.y <= pMax.y) &&
+					(b.pMin.z >= pMin.z) && (b.pMax.z <= pMax.z));
+		}
+		void join(const IBBox &b)
+		{
+			for (int i = 0; i < 3; ++i)
+			{
+				pMin[i] = std::min(pMin[i], b.pMin[i]);
+				pMax[i] = std::max(pMax[i], b.pMax[i]);
+			}
+		}
+		IVector3D pMin, pMax;
+};
+
 #endif // VG_VOXELGEM_H
 

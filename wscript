@@ -31,13 +31,15 @@ def build(bld):
 				'src/voxelgrid.cpp',
 				'src/voxelscene.cpp',
 				'src/file_io/qubicle.cpp',
+				'src/gui/layereditor.cpp',
+				'src/gui/layereditor.ui',
 				'resources.qrc',
 				'mainwindow.ui']
 	bld(
 		features = 'qt5 cxx cxxprogram',
 		use      = 'QT5CORE QT5GUI QT5SVG QT5WIDGETS QT5OPENGL',
 		source   = sources, #'main.cpp glviewport.cpp renderobject.cpp voxelgrid.cpp resources.qrc mainwindow.ui',
-		moc      = ['src/glviewport.h', 'src/mainwindow.h', 'src/palette.h'],
+		moc      = ['src/glviewport.h', 'src/mainwindow.h', 'src/palette.h', 'src/gui/layereditor.h'],
 		target   = 'voxelGem',
 		includes = ['.', './src'],
 		#lang     = bld.path.ant_glob('linguist/*.ts'),
