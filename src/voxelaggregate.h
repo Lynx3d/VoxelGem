@@ -20,6 +20,8 @@ typedef std::unordered_map<uint64_t, std::shared_ptr<VoxelGrid>> blockMap_t;
 typedef std::unique_ptr<GridMemento> gridMementoPtr_t;
 typedef std::unordered_map<uint64_t, gridMementoPtr_t> mementoMap_t;
 
+typedef std::unordered_set<uint64_t> blockSet_t;
+
 class AggregateMemento
 {
 	friend class VoxelAggregate;
@@ -59,6 +61,20 @@ class VoxelAggregate
 		bool getBound(BBox &bound) const;
 	protected:
 		blockMap_t blockMap;
+};
+
+class RenderAggregate
+{
+	public:
+		RenderAggregate(VoxelAggregate *va = 0): aggregate(va) {};
+		void clear(QOpenGLFunctions_3_3_Core &glf);
+		void update(QOpenGLFunctions_3_3_Core &glf, const blockSet_t &dirtyBlocks);
+		void render(QOpenGLFunctions_3_3_Core &glf);
+		void renderTransparent(QOpenGLFunctions_3_3_Core &glf);
+		void setAggregate(VoxelAggregate *va) { aggregate = va; }
+	protected:
+		std::unordered_map<uint64_t, RenderGrid*> renderBlocks;
+		VoxelAggregate *aggregate;
 };
 
 #endif // VG_VOXELAGGREGATE_H

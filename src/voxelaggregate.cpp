@@ -220,3 +220,64 @@ const VoxelGrid* VoxelAggregate::getBlock(uint64_t blockId) const
 		return block->second.get();
 	return 0;
 }
+
+/*=================
+  RenderAggregate
+=================*/
+
+void RenderAggregate::clear(QOpenGLFunctions_3_3_Core &glf)
+{
+	for (auto &rgrid: renderBlocks)
+	{
+		rgrid.second->cleanupGL(glf);
+		delete rgrid.second;
+	}
+	renderBlocks.clear();
+}
+
+void RenderAggregate::update(QOpenGLFunctions_3_3_Core &glf, const blockSet_t &dirtyBlocks)
+{
+	for (auto &blockId: dirtyBlocks)
+	{
+		const VoxelGrid* blockGrid = aggregate->getBlock(blockId);
+		// TODO: Typedef ^^
+		std::unordered_map<uint64_t, RenderGrid*>::iterator rgrid = renderBlocks.find(blockId);
+		if (blockGrid)
+		{
+			const VoxelGrid* neighbours[27];
+			if (rgrid == renderBlocks.end())
+			{
+				std::cout << "    allocating new RenderGrid" << std::endl;
+				rgrid = renderBlocks.emplace(blockId, new RenderGrid).first;
+			}
+			aggregate->getNeighbours(blockGrid->getGridPos(), neighbours);
+			rgrid->second->update(glf, neighbours);
+		}
+		else
+		{
+			// does not exist (anymore)
+			if (rgrid != renderBlocks.end())
+			{
+				rgrid->second->cleanupGL(glf);
+				delete rgrid->second;
+				renderBlocks.erase(rgrid);
+			}
+		}
+	}
+}
+
+void RenderAggregate::render(QOpenGLFunctions_3_3_Core &glf)
+{
+	for (auto &block: renderBlocks)
+	{
+		block.second->render(glf);
+	}
+}
+
+void RenderAggregate::renderTransparent(QOpenGLFunctions_3_3_Core &glf)
+{
+	for (auto &block: renderBlocks)
+	{
+		block.second->renderTransparent(glf);
+	}
+}
