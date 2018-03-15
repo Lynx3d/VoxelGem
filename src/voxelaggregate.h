@@ -50,8 +50,11 @@ class VoxelAggregate
 		bool rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) const;
 		void clear();
 		void clearBlocks(const std::unordered_set<uint64_t> &blocks);
+		void clearBlocks(const std::unordered_map<uint64_t, DirtyVolume> &blocks);
 		void merge(const VoxelAggregate &topLayer, const std::unordered_set<uint64_t> &blocks);
+		void merge(const VoxelAggregate &topLayer, const std::unordered_map<uint64_t, DirtyVolume> &blocks);
 		void applyChanges(const VoxelAggregate &toolLayer, AggregateMemento *memento);
+
 		// the memento shall be altered to allow reversing the restore (i.e. "redo" operation)
 		void restoreState(AggregateMemento *memento, std::unordered_set<uint64_t> &changed);
 		int blockCount() { return blockMap.size(); }
