@@ -91,6 +91,13 @@ void VoxelAggregate::clearBlocks(const std::unordered_map<uint64_t, DirtyVolume>
 	}
 }
 
+void VoxelAggregate::clone(const VoxelAggregate &source)
+{
+	clear();
+	for (auto &block: source.blockMap)
+		blockMap.emplace(block.first, block.second);
+}
+
 void VoxelAggregate::merge(const VoxelAggregate &topLayer, const std::unordered_set<uint64_t> &blocks)
 {
 	for (auto &block_id: blocks)

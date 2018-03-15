@@ -18,7 +18,9 @@
 class VoxelEntry;
 class VoxelAggregate;
 class AggregateMemento;
+class RenderAggregate;
 class RenderGrid;
+class SceneProxy;
 class GlViewportWidget;
 class QOpenGLFunctions_3_3_Core;
 
@@ -62,6 +64,8 @@ class UndoItem
 		AggregateMemento *memento {0};
 };
 
+typedef std::unordered_map<uint64_t, DirtyVolume> dirtyMap_t;
+
 class VoxelLayer
 {
 	public:
@@ -71,9 +75,33 @@ class VoxelLayer
 		bool useBound;
 		IBBox bound;
 		std::string name;
+		// rendering
+		RenderAggregate *renderAg;
+		dirtyMap_t dirtyVolumes;
 };
 
-typedef std::unordered_map<uint64_t, DirtyVolume> dirtyMap_t;
+class SceneMemento
+{
+	public:
+		enum Action
+		{
+			EDIT_VOXELS,
+			ADD_LAYER,
+			DELETE_LAYER,
+			EDIT_LAYER,
+			INVALID_ACTION
+		};
+		SceneMemento(): action(INVALID_ACTION), memento(0) {}
+		SceneMemento(AggregateMemento *mem, unsigned int layer):
+			action(EDIT_VOXELS), targetLayerIndex(layer), memento(mem) {}
+	//protected:
+		Action action;
+		bool redoAction = false; // redundant?
+		std::vector<VoxelLayer*> sourceLayers; // for merge operations
+		unsigned int targetLayerIndex;
+		VoxelLayer *targetLayer; // redundant?
+		AggregateMemento *memento;
+};
 
 /*! This class holds all the "scene" data for a file edit session.
 	Includes viewport and various UI information required for
@@ -83,6 +111,7 @@ typedef std::unordered_map<uint64_t, DirtyVolume> dirtyMap_t;
 class VoxelScene
 {
 	friend class GlViewportWidget;
+	friend class SceneProxy;
 	public:
 		VoxelScene();
 		~VoxelScene();
@@ -95,7 +124,7 @@ class VoxelScene
 		const VoxelEntry* getVoxelTemplate() const { return &voxelTemplate; }
 		/* probably an iterator/accessor class would be better */
 		const VoxelAggregate* getAggregate(int layer);
-		bool needsUpdate() const { return !changedBlocks.empty(); }
+		bool needsUpdate() const { return dirty; }
 		void setTemplateColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 		{
 			voxelTemplate.col[0] = r;
@@ -112,18 +141,20 @@ class VoxelScene
 		void redo();
 		bool rayIntersect(const ray_t &ray, SceneRayHit &hit, int flags = SceneRayHit::HIT_MASK) const;
 	protected:
+		void applyToolChanges(AggregateMemento *memento);
 		void restoreState(UndoItem &state);
+		void restoreAggregate(VoxelLayer *layer, AggregateMemento *memento);
+		void setActiveLayer(int layerN);
 		GlViewportWidget *viewport;
-		VoxelAggregate *renderLayer;
-		VoxelAggregate *editingLayer;
+		VoxelLayer *renderLayer;
+		VoxelLayer *editingLayer;
 		VoxelAggregate *toolLayer;
+		std::vector<VoxelLayer*> layers;
 		VoxelEntry voxelTemplate;
-		std::unordered_map<uint64_t, RenderGrid*> renderBlocks;
-		std::unordered_set<uint64_t> changedBlocks;
-		std::unordered_set<uint64_t> dirtyBlocks;
-		dirtyMap_t dirtyVolumes;
 		std::list<UndoItem> undoList;
 		std::list<UndoItem>::iterator undoState;
+		unsigned int activeLayerN;
+		bool dirty;
 };
 
 #endif // VG_VOXELSCENE_H

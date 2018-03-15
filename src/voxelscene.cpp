@@ -19,10 +19,21 @@ UndoItem::~UndoItem()
 	delete memento;
 }
 
-VoxelScene::VoxelScene(): viewport(0), voxelTemplate(128, 128, 255, 255)
+VoxelScene::VoxelScene(): viewport(0), voxelTemplate(128, 128, 255, 255), activeLayerN(0), dirty(true)
 {
-	renderLayer = new VoxelAggregate();
-	editingLayer = new VoxelAggregate();
+	// test
+	editingLayer = new VoxelLayer;
+	editingLayer->aggregate = new VoxelAggregate();
+	//editingLayer->renderAg = new RenderAggregate(editingLayer->aggregate);
+	editingLayer->name = "Default Layer";
+	layers.push_back(editingLayer);
+	renderLayer = new VoxelLayer;
+	renderLayer->aggregate = new VoxelAggregate();
+	editingLayer->renderAg = new RenderAggregate(renderLayer->aggregate);
+	renderLayer->renderAg = editingLayer->renderAg; // note: only for independent layer mode
+	//
+	//renderLayer = new VoxelAggregate();
+	//editingLayer = new VoxelAggregate();
 	toolLayer = new VoxelAggregate();
 	undoState = undoList.end();
 }
@@ -38,18 +49,33 @@ VoxelScene::~VoxelScene()
 	So far we only have one editing layer plus a tool layer, merged to a rendering layer.
 */
 
+void VoxelScene::setActiveLayer(int layerN)
+{
+	// TODO: make sure pending tool changes are handled properly
+	// TODO: handler layer compositing mode
+	// Reset current active editing layer to its own aggregate, and the new active to renderLayer
+	editingLayer->renderAg->setAggregate(editingLayer->aggregate);
+	editingLayer = layers[layerN];
+	editingLayer->renderAg->setAggregate(renderLayer->aggregate);
+	// render layer aggregate needs to be set to editing layer (shallow copy)
+	renderLayer->aggregate->clone(*editingLayer->aggregate);
+	activeLayerN = layerN;
+}
+
 void VoxelScene::setVoxel(const int pos[3], const VoxelEntry &voxel)
 {
 	uint64_t blockId = toolLayer->setVoxel(pos[0], pos[1], pos[2], voxel);
-	changedBlocks.insert(blockId);
-	dirtyVolumes[blockId].addPosition(pos);
+	//changedBlocks.insert(blockId);
+	editingLayer->dirtyVolumes[blockId].addPosition(pos);
+	dirty = true;
 }
 
 void VoxelScene::eraseVoxel(const int pos[3])
 {
 	uint64_t blockId = toolLayer->setVoxel(pos[0], pos[1], pos[2], VoxelEntry(0, Voxel::VF_ERASED));
-	changedBlocks.insert(blockId);
-	dirtyVolumes[blockId].addPosition(pos);
+	//changedBlocks.insert(blockId);
+	editingLayer->dirtyVolumes[blockId].addPosition(pos);
+	dirty = true;
 }
 
 // TODO!
@@ -63,7 +89,7 @@ const VoxelAggregate* VoxelScene::getAggregate(int layer)
 	if (layer == 0)
 		return toolLayer;
 	if (layer == 1)
-		return editingLayer;
+		return editingLayer->aggregate;
 	return 0;
 }
 
@@ -74,7 +100,7 @@ void VoxelScene::completeToolAction()
 	// allocate undo memento:
 	AggregateMemento *memento = new AggregateMemento;
 	// TODO: for each visible scene layer instead of single editing layer
-	editingLayer->applyChanges(*toolLayer, memento);
+	editingLayer->aggregate->applyChanges(*toolLayer, memento);
 	if (undoState != undoList.end())
 	{
 		std::cout << "deleting outdated redo history\n";
@@ -85,69 +111,55 @@ void VoxelScene::completeToolAction()
 	toolLayer->clear();
 }
 
+void VoxelScene::applyToolChanges(AggregateMemento *memento)
+{
+	// rendering should not be affected by this as it effectively only transfers data
+	// VoxelScene::update() will happen in editing updates, one more after this call, most likely
+	editingLayer->aggregate->applyChanges(*toolLayer, memento);
+	toolLayer->clear();
+}
+
 void VoxelScene::update()
 {
-	renderLayer->clearBlocks(changedBlocks);
+	renderLayer->aggregate->clearBlocks(editingLayer->dirtyVolumes/* changedBlocks */);
 	// TODO: for each visible scene layer instead of single editing layer
-	renderLayer->merge(*editingLayer, changedBlocks);
-	renderLayer->merge(*toolLayer, changedBlocks);
-	std::cout << "VoxelScene::update() editing layer block count:" << editingLayer->blockCount() << std::endl;
-	changedBlocks.clear();
+	renderLayer->aggregate->merge(*editingLayer->aggregate, editingLayer->dirtyVolumes/* changedBlocks */);
+	renderLayer->aggregate->merge(*toolLayer, editingLayer->dirtyVolumes/* changedBlocks */);
+	std::cout << "VoxelScene::update() editing layer block count:" << editingLayer->aggregate->blockCount() << std::endl;
+	//changedBlocks.clear();
 }
 
 void VoxelScene::render(QOpenGLFunctions_3_3_Core &glf)
 {
-	// convert dirty volumes to dirty blocks
-	for (auto &volume: dirtyVolumes)
+	// TODO: split updating from rendering
+	for (auto &layer: layers)
 	{
-		VoxelAggregate::markDirtyBlocks(volume.second, dirtyBlocks);
-	}
-	dirtyVolumes.clear();
-	//std::cout << "VoxelScene::render()" << std::endl;
-	for (auto &blockId: dirtyBlocks)
-	{
-//		std::cout << "dirty block: " << blockId << std::endl;
-		const VoxelGrid* blockGrid = renderLayer->getBlock(blockId);
-		// TODO: Typedef ^^
-		std::unordered_map<uint64_t, RenderGrid*>::iterator rgrid = renderBlocks.find(blockId);
-		if (blockGrid)
+		if (layer->visible)
 		{
-			const VoxelGrid* neighbours[27];
-			if (rgrid == renderBlocks.end())
+			if (!layer->dirtyVolumes.empty())
 			{
-				std::cout << "    allocating new RenderGrid" << std::endl;
-				rgrid = renderBlocks.emplace(blockId, new RenderGrid).first;
+				blockSet_t dirtyBlocks;
+				// convert dirty volumes to dirty blocks
+				for (auto &volume: layer->dirtyVolumes)
+				{
+					VoxelAggregate::markDirtyBlocks(volume.second, dirtyBlocks);
+				}
+				layer->renderAg->update(glf, dirtyBlocks);
+				layer->dirtyVolumes.clear();
 			}
-			renderLayer->getNeighbours(blockGrid->getGridPos(), neighbours);
-			rgrid->second->update(glf, neighbours);
-		}
-		else
-		{
-//			std::cout << "    block is empty." << std::endl;
-			// does not exist (anymore)
-			if (rgrid != renderBlocks.end())
-			{
-				rgrid->second->cleanupGL(glf);
-				delete rgrid->second;
-				renderBlocks.erase(rgrid);
-			}
+			layer->renderAg->render(glf);
 		}
 	}
-	for (auto &block: renderBlocks)
-	{
-		//std::cout << "redering block: " << block.first << std::endl;
-		block.second->render(glf);
-	}
+	dirty = false;
 	// TODO: probably should not be rendered here but after all opaque things
 	glf.glEnable(GL_BLEND);
     glf.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	for (auto &block: renderBlocks)
-	{
-		//std::cout << "redering block: " << block.first << std::endl;
-		block.second->renderTransparent(glf);
-	}
+	for (auto &layer: layers)
+		if (layer->visible)
+			layer->renderAg->renderTransparent(glf);
+
 	glf.glDisable(GL_BLEND);
-	dirtyBlocks.clear();
+	//dirtyBlocks.clear();
 }
 
 bool VoxelScene::rayIntersect(const ray_t &ray, SceneRayHit &hit, int flags) const
@@ -156,7 +168,7 @@ bool VoxelScene::rayIntersect(const ray_t &ray, SceneRayHit &hit, int flags) con
 	intersect_t hitInfo;
 	if (flags & SceneRayHit::HIT_VOXEL)
 	{
-		didHit = editingLayer->rayIntersect(ray, hit.voxelPos, hitInfo);
+		didHit = editingLayer->aggregate->rayIntersect(ray, hit.voxelPos, hitInfo);
 		if (didHit)
 			hit.flags |= SceneRayHit::HIT_VOXEL;
 	}
@@ -199,9 +211,9 @@ void VoxelScene::redo()
 
 void VoxelScene::restoreState(UndoItem &state)
 {
-	// TODO: determine layer of memento
+	/* // TODO: determine layer of memento
 	// TODO: get the dirty blocks caused by changedBlocks
-	editingLayer->restoreState(state.getMemento(), changedBlocks);
+	editingLayer->aggregate->restoreState(state.getMemento(), changedBlocks);
 	// convert changed blocks to dirty volumes, can't recover one (yet?) unfortunately
 	for (auto &block: changedBlocks)
 	{
@@ -211,5 +223,24 @@ void VoxelScene::restoreState(UndoItem &state)
 			vol.high[i] = vol.low[i] + GRID_LEN - 1;
 		vol.valid = true;
 		dirtyVolumes[block] = vol;
+	} */
+	// temp fix! remove function...
+	restoreAggregate(editingLayer, state.getMemento());
+}
+
+void VoxelScene::restoreAggregate(VoxelLayer *layer, AggregateMemento *memento)
+{
+	blockSet_t changed;
+	layer->aggregate->restoreState(memento, changed);
+	// convert changed blocks to dirty volumes, can't recover one (yet?) unfortunately
+	for (auto &block: changed)
+	{
+		DirtyVolume vol;
+		VoxelAggregate::blockPos(block, vol.low);
+		for (int i = 0; i < 3; ++i)
+			vol.high[i] = vol.low[i] + GRID_LEN - 1;
+		vol.valid = true;
+		layer->dirtyVolumes[block] = vol;
 	}
+	dirty = true;
 }

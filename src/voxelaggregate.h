@@ -51,6 +51,7 @@ class VoxelAggregate
 		void clear();
 		void clearBlocks(const std::unordered_set<uint64_t> &blocks);
 		void clearBlocks(const std::unordered_map<uint64_t, DirtyVolume> &blocks);
+		void clone(const VoxelAggregate &source);
 		void merge(const VoxelAggregate &topLayer, const std::unordered_set<uint64_t> &blocks);
 		void merge(const VoxelAggregate &topLayer, const std::unordered_map<uint64_t, DirtyVolume> &blocks);
 		void applyChanges(const VoxelAggregate &toolLayer, AggregateMemento *memento);
