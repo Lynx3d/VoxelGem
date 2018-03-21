@@ -76,7 +76,8 @@ class VoxelLayer
 		IBBox bound;
 		std::string name;
 		// rendering
-		RenderAggregate *renderAg;
+		RenderAggregate *renderAg = 0;
+		bool renderInitialized = false;
 		dirtyMap_t dirtyVolumes;
 };
 
@@ -142,6 +143,8 @@ class VoxelScene
 		bool rayIntersect(const ray_t &ray, SceneRayHit &hit, int flags = SceneRayHit::HIT_MASK) const;
 	protected:
 		void applyToolChanges(AggregateMemento *memento);
+		void insertLayer(VoxelLayer *layer, int layerN);
+		VoxelLayer* removeLayer(int layerN);
 		void restoreState(UndoItem &state);
 		void restoreAggregate(VoxelLayer *layer, AggregateMemento *memento);
 		void setActiveLayer(int layerN);
@@ -150,10 +153,11 @@ class VoxelScene
 		VoxelLayer *editingLayer;
 		VoxelAggregate *toolLayer;
 		std::vector<VoxelLayer*> layers;
+		std::vector<RenderAggregate*> removedRAg;
 		VoxelEntry voxelTemplate;
 		std::list<UndoItem> undoList;
 		std::list<UndoItem>::iterator undoState;
-		unsigned int activeLayerN;
+		int activeLayerN;
 		bool dirty;
 };
 

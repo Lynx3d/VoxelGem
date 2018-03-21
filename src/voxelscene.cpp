@@ -11,6 +11,7 @@
 #include "glviewport.h"
 
 #include <iostream>
+#include <cassert>
 
 UndoItem::~UndoItem()
 {
@@ -30,7 +31,7 @@ VoxelScene::VoxelScene(): viewport(0), voxelTemplate(128, 128, 255, 255), active
 	renderLayer = new VoxelLayer;
 	renderLayer->aggregate = new VoxelAggregate();
 	editingLayer->renderAg = new RenderAggregate(renderLayer->aggregate);
-	renderLayer->renderAg = editingLayer->renderAg; // note: only for independent layer mode
+	//renderLayer->renderAg = editingLayer->renderAg; // note: only for independent layer mode
 	//
 	//renderLayer = new VoxelAggregate();
 	//editingLayer = new VoxelAggregate();
@@ -119,6 +120,43 @@ void VoxelScene::applyToolChanges(AggregateMemento *memento)
 	toolLayer->clear();
 }
 
+void VoxelScene::insertLayer(VoxelLayer *layer, int layerN)
+{
+	layers.insert(layers.begin() + layerN, layer);
+	if (layerN <= activeLayerN)
+		++activeLayerN;
+	if (!layer->aggregate)
+		std::cout << "Error: inserting layer without VoxelAggregate!\n";
+	if (layer->renderAg)
+		std::cout << "Error: inserting layer with renderAg\n";
+	layer->renderAg = new RenderAggregate(layer->aggregate);
+	layer->renderInitialized = false;
+	assert(editingLayer == layers[activeLayerN]);
+}
+
+VoxelLayer* VoxelScene::removeLayer(int layerN)
+{
+	VoxelLayer *layer = layers[layerN];
+	layers.erase(layers.begin() + layerN);
+	if (layerN <= activeLayerN)
+	{
+		if (layerN == activeLayerN)
+		{
+			if (layerN == int(layers.size()))
+				--activeLayerN;
+			setActiveLayer(activeLayerN);
+		}
+		else
+			--activeLayerN;
+	}
+	removedRAg.push_back(layer->renderAg);
+	layer->renderAg = 0;
+	layer->renderInitialized = false;
+	assert(activeLayerN < (int)layers.size());
+	assert(editingLayer == layers[activeLayerN]);
+	return layer;
+}
+
 void VoxelScene::update()
 {
 	renderLayer->aggregate->clearBlocks(editingLayer->dirtyVolumes/* changedBlocks */);
@@ -132,10 +170,22 @@ void VoxelScene::update()
 void VoxelScene::render(QOpenGLFunctions_3_3_Core &glf)
 {
 	// TODO: split updating from rendering
+	for (auto &renderAg: removedRAg)
+	{
+		renderAg->clear(glf);
+		delete renderAg;
+	}
+	removedRAg.clear();
 	for (auto &layer: layers)
 	{
 		if (layer->visible)
 		{
+			if (!layer->renderInitialized)
+			{
+				layer->renderAg->rebuild(glf);
+				layer->renderInitialized = true;
+			}
+
 			if (!layer->dirtyVolumes.empty())
 			{
 				blockSet_t dirtyBlocks;

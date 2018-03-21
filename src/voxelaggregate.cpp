@@ -305,6 +305,19 @@ void RenderAggregate::update(QOpenGLFunctions_3_3_Core &glf, const blockSet_t &d
 	}
 }
 
+void RenderAggregate::rebuild(QOpenGLFunctions_3_3_Core &glf)
+{
+	clear(glf);
+	const blockMap_t &blocks = aggregate->getBlockMap();
+	for (auto block: blocks)
+	{
+		const VoxelGrid* neighbours[27];
+		std::unordered_map<uint64_t, RenderGrid*>::iterator rgrid = renderBlocks.emplace(block.first, new RenderGrid).first;
+		aggregate->getNeighbours(block.second->getGridPos(), neighbours);
+		rgrid->second->update(glf, neighbours);
+	}
+}
+
 void RenderAggregate::render(QOpenGLFunctions_3_3_Core &glf)
 {
 	for (auto &block: renderBlocks)

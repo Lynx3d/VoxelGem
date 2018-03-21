@@ -60,6 +60,7 @@ class VoxelAggregate
 		void restoreState(AggregateMemento *memento, std::unordered_set<uint64_t> &changed);
 		int blockCount() { return blockMap.size(); }
 		const VoxelGrid* getBlock(uint64_t blockId) const;
+		const blockMap_t& getBlockMap() const { return blockMap; }
 		static void markDirtyBlocks(const DirtyVolume &vol, std::unordered_set<uint64_t> &blocks);
 		void getNeighbours(const int gridPos[3], const VoxelGrid* neighbours[27]);
 		bool getBound(BBox &bound) const;
@@ -73,6 +74,7 @@ class RenderAggregate
 		RenderAggregate(VoxelAggregate *va = 0): aggregate(va) {};
 		void clear(QOpenGLFunctions_3_3_Core &glf);
 		void update(QOpenGLFunctions_3_3_Core &glf, const blockSet_t &dirtyBlocks);
+		void rebuild(QOpenGLFunctions_3_3_Core &glf);
 		void render(QOpenGLFunctions_3_3_Core &glf);
 		void renderTransparent(QOpenGLFunctions_3_3_Core &glf);
 		void setAggregate(VoxelAggregate *va) { aggregate = va; }
