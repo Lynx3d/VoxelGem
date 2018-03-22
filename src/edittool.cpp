@@ -8,6 +8,7 @@
 
 #include "edittool.h"
 #include "voxelscene.h"
+#include "sceneproxy.h"
 
 #include <QMouseEvent>
 
@@ -40,6 +41,13 @@ void EditTool::mouseDown(const ToolEvent &event, VoxelScene &scene)
 
 void EditTool::mouseUp(const ToolEvent &event, VoxelScene &scene)
 {}
+
+void EditTool::completeAction()
+{
+	if (!sceneProxy)
+		return;
+	sceneProxy->completeToolAction();
+}
 
 /*========= PaintTool TODO: move to proper file ==========*/
 #include "voxelgrid.h" // for VoxelEntry...
@@ -76,7 +84,7 @@ void PaintTool::mouseDown(const ToolEvent &event, VoxelScene &scene)
 void PaintTool::mouseUp(const ToolEvent &event, VoxelScene &scene)
 {
 	haveLastPos = false;
-	scene.completeToolAction();
+	completeAction();
 }
 
 void PaintTool::mouseMoved(const ToolEvent &event, VoxelScene &scene)

@@ -18,6 +18,7 @@ namespace Ui {
 	class Layers;
 }
 class IBBox;
+class SceneProxy;
 class VoxelLayer;
 class VoxelScene;
 class QBoxLayout;
@@ -58,7 +59,7 @@ class LayerEditor: public QObject
 {
 	Q_OBJECT
 	public:
-		LayerEditor(QWidget *parent, LayerManager *manager);
+		LayerEditor(QWidget *parent, SceneProxy *manager);
 		virtual ~LayerEditor();
 		void activateLayer(int layerNum);
 		void setVisibility(int layerNum, bool visible);
@@ -80,7 +81,7 @@ class LayerEditor: public QObject
 		QBoxLayout *layerStackLayout;
 		QLineEdit *nameEdit;
 		std::vector<LayerWidget*> layerWidgets;
-		LayerManager *hub;
+		SceneProxy *hub;
 		QIcon *eyeIcon;
 };
 

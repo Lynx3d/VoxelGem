@@ -8,6 +8,7 @@
 
 #include "layereditor.h"
 #include "voxelscene.h"
+#include "sceneproxy.h"
 #include "gui/ui_layereditor.h"
 
 #include <QDataWidgetMapper>
@@ -113,7 +114,7 @@ const VoxelLayer* LayerManager::getLayer(int layerN) const
 
 /*=========================*/
 
-LayerEditor::LayerEditor(QWidget *parent, LayerManager *manager):
+LayerEditor::LayerEditor(QWidget *parent, SceneProxy *manager):
 	hub(manager)
 {
 	ui = new Ui::Layers;
@@ -139,10 +140,10 @@ LayerEditor::LayerEditor(QWidget *parent, LayerManager *manager):
 	connect(ui->group_bound, &QGroupBox::clicked, this, &LayerEditor::on_layer_bound_toggled);
 	connect(ui->action_add_layer, &QAction::triggered, this, &LayerEditor::on_action_add_layer_triggered);
 	connect(ui->action_delete_layer, &QAction::triggered, this, &LayerEditor::on_action_delete_layer_triggered);
-	connect(manager, &LayerManager::layerCreated, this, &LayerEditor::layerCreated);
-	connect(manager, &LayerManager::layerDeleted, this, &LayerEditor::layerDeleted);
-	connect(manager, &LayerManager::activeLayerChanged, this, &LayerEditor::activeLayerChanged);
-	connect(manager, &LayerManager::layerSettingsChanged, this, &LayerEditor::layerSettingsChanged);
+	connect(manager, &SceneProxy::layerCreated, this, &LayerEditor::layerCreated);
+	connect(manager, &SceneProxy::layerDeleted, this, &LayerEditor::layerDeleted);
+	connect(manager, &SceneProxy::activeLayerChanged, this, &LayerEditor::activeLayerChanged);
+	connect(manager, &SceneProxy::layerSettingsChanged, this, &LayerEditor::layerSettingsChanged);
 	// TODO: handle layerSettingsChanged() signal to catch outside changes
 	layerStackLayout = new QBoxLayout(QBoxLayout::BottomToTop, ui->layer_stack);
 	eyeIcon = new QIcon(":/images/gfx/icons/visible_off.svg");//(ui->action_add_layer->icon());
@@ -276,11 +277,13 @@ void LayerEditor::layerDeleted(int layerN)
 	widget->hide();
 	widget->deleteLater();
 	layerWidgets.erase(layerWidgets.begin() + layerN);
-	// if the layer count is now smaller than layerN,
-	// the active layer **should** have been changed before deletion
+	// if the layer was active, determine new active layer
 	if (wasActive)
-		layerWidgets[layerN]->setActiveStatus(true);
-	// shift down layers there were above the deleted one
+	{
+		int activeLayer = hub->activeLayer();
+		layerWidgets[activeLayer]->setActiveStatus(true);
+	}
+	// shift down layers that were above the deleted one
 	for (int i = layerN; i < (int)layerWidgets.size(); ++i)
 		layerWidgets[i]->setLayerNum(i);
 }

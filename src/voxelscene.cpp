@@ -20,6 +20,14 @@ UndoItem::~UndoItem()
 	delete memento;
 }
 
+VoxelLayer::~VoxelLayer()
+{
+	std::cout << "deleting layer...\n";
+	delete aggregate;
+	if (renderAg)
+		std::cout << "Warning: deleting VoxelLayer with RenderAggregate\n";
+}
+
 VoxelScene::VoxelScene(): viewport(0), voxelTemplate(128, 128, 255, 255), activeLayerN(0), dirty(true)
 {
 	// test

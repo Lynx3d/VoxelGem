@@ -17,6 +17,7 @@
 class QMouseEvent;
 class SceneRayHit;
 class VoxelScene;
+class SceneProxy;
 
 /*! Wraps and extends the QMouseEvent with viewport details */
 class ToolEvent
@@ -35,9 +36,14 @@ class ToolEvent
 class EditTool
 {
 	public:
+		void setSceneProxy(SceneProxy *proxy) { sceneProxy = proxy; }
 		virtual void mouseMoved(const ToolEvent &event, VoxelScene &scene);
 		virtual void mouseDown(const ToolEvent &event, VoxelScene &scene);
 		virtual void mouseUp(const ToolEvent &event, VoxelScene &scene);
+	protected:
+		/*! this applies the recorded voxel changes and creates an undo step */
+		void completeAction();
+		SceneProxy *sceneProxy = 0;
 };
 
 class ToolInstance

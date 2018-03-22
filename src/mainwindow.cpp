@@ -11,7 +11,9 @@
 #include "edittool.h"
 #include "glviewport.h"
 #include "palette.h"
+#include "gui/layereditor.h"
 #include "voxelscene.h"
+#include "sceneproxy.h"
 
 #include <QFileDialog>
 #include <QActionGroup>
@@ -42,6 +44,10 @@ VGMainWindow::VGMainWindow():
 	connect(mainUi->colorswatch, SIGNAL(colorSelectionChanged(QColor)), this, SLOT(on_colorSelectionChanged(QColor)));
 	connect(this, SIGNAL(colorSelectionChanged(QColor)), mainUi->colorswatch, SLOT(on_colorSelectionChanged(QColor)));
 	connect(paletteView, SIGNAL(entrySelected(const ColorSetEntry &)), this, SLOT(on_colorSetEntrySelected(const ColorSetEntry &)));
+	// layer editor
+	sceneProxy = new SceneProxy(scene, this);
+	LayerEditor *layer_ed = new LayerEditor(mainUi->layers, sceneProxy);
+	layer_ed->setParent(this);
 	// TODO: load tools in a better place...
 	ToolInstance *testTool = PaintTool::getInstance();
 	addTool(testTool);
@@ -74,6 +80,7 @@ void VGMainWindow::addTool(ToolInstance *tool)
 		// this apparently does not trigger QActionGroup::triggered()
 		emit(activeToolChanged(tool->tool));
 	}
+	tool->tool->setSceneProxy(sceneProxy);
 	toolMap[action] = tool->tool;
 }
 
@@ -83,7 +90,7 @@ void VGMainWindow::on_action_axis_grids_triggered(bool checked)
 
 void VGMainWindow::on_action_undo_triggered()
 {
-	scene->undo();
+	sceneProxy->undo();
 	if (scene->needsUpdate())
 	{
 		scene->update();
@@ -93,7 +100,7 @@ void VGMainWindow::on_action_undo_triggered()
 
 void VGMainWindow::on_action_redo_triggered()
 {
-	scene->redo();
+	sceneProxy->redo();
 	if (scene->needsUpdate())
 	{
 		scene->update();

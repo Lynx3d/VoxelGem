@@ -16,6 +16,7 @@ namespace Ui {
 	class MainWindow;
 }
 class VoxelScene;
+class SceneProxy;
 class GlViewportWidget;
 class ColorPaletteView;
 class ColorSet;
@@ -37,6 +38,7 @@ class VGMainWindow : public QMainWindow
 	private Q_SLOTS:
 		void on_action_axis_grids_triggered(bool checked);
 		void on_action_open_triggered();
+		void on_action_save_triggered();
 		void on_action_undo_triggered();
 		void on_action_redo_triggered();
 		void on_material_currentIndexChanged(int index);
@@ -56,6 +58,7 @@ class VGMainWindow : public QMainWindow
 		ColorPaletteView *paletteView;
 		ColorSet *colorSet;
 		VoxelScene *scene;
+		SceneProxy *sceneProxy;
 };
 
 #endif // VG_MAINWINDOW_H

@@ -70,6 +70,7 @@ class VoxelLayer
 {
 	public:
 		VoxelLayer(): aggregate(0), visible(true), useBound(false), bound(IVector3D(0,0,0), IVector3D(16,16,16)) {}
+		~VoxelLayer();
 		VoxelAggregate *aggregate;
 		bool visible;
 		bool useBound;
@@ -79,29 +80,6 @@ class VoxelLayer
 		RenderAggregate *renderAg = 0;
 		bool renderInitialized = false;
 		dirtyMap_t dirtyVolumes;
-};
-
-class SceneMemento
-{
-	public:
-		enum Action
-		{
-			EDIT_VOXELS,
-			ADD_LAYER,
-			DELETE_LAYER,
-			EDIT_LAYER,
-			INVALID_ACTION
-		};
-		SceneMemento(): action(INVALID_ACTION), memento(0) {}
-		SceneMemento(AggregateMemento *mem, unsigned int layer):
-			action(EDIT_VOXELS), targetLayerIndex(layer), memento(mem) {}
-	//protected:
-		Action action;
-		bool redoAction = false; // redundant?
-		std::vector<VoxelLayer*> sourceLayers; // for merge operations
-		unsigned int targetLayerIndex;
-		VoxelLayer *targetLayer; // redundant?
-		AggregateMemento *memento;
 };
 
 /*! This class holds all the "scene" data for a file edit session.
