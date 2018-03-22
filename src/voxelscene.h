@@ -53,17 +53,6 @@ class SceneRayHit
 		float rayT;
 };
 
-class UndoItem
-{
-	public:
-		UndoItem(AggregateMemento *mem): memento(mem) {}
-		UndoItem(UndoItem &&other): memento(other.memento) { other.memento = 0; }
-		~UndoItem();
-		AggregateMemento* getMemento() { return memento; }
-	protected:
-		AggregateMemento *memento {0};
-};
-
 typedef std::unordered_map<uint64_t, DirtyVolume> dirtyMap_t;
 
 class VoxelLayer
@@ -113,17 +102,13 @@ class VoxelScene
 		}
 		void setTemplateMaterial(Voxel::Material mat) { voxelTemplate.setMaterial(mat); }
 		void setTemplateSpecular(Voxel::Specular spec) { voxelTemplate.setSpecular(spec); }
-		void completeToolAction();
 		void update();
 		void render(QOpenGLFunctions_3_3_Core &glf);
-		void undo();
-		void redo();
 		bool rayIntersect(const ray_t &ray, SceneRayHit &hit, int flags = SceneRayHit::HIT_MASK) const;
 	protected:
 		void applyToolChanges(AggregateMemento *memento);
 		void insertLayer(VoxelLayer *layer, int layerN);
 		VoxelLayer* removeLayer(int layerN);
-		void restoreState(UndoItem &state);
 		void restoreAggregate(VoxelLayer *layer, AggregateMemento *memento);
 		void setActiveLayer(int layerN);
 		GlViewportWidget *viewport;
@@ -133,8 +118,6 @@ class VoxelScene
 		std::vector<VoxelLayer*> layers;
 		std::vector<RenderAggregate*> removedRAg;
 		VoxelEntry voxelTemplate;
-		std::list<UndoItem> undoList;
-		std::list<UndoItem>::iterator undoState;
 		int activeLayerN;
 		bool dirty;
 };

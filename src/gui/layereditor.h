@@ -27,34 +27,6 @@ class QLabel;
 class QPaintEvent;
 class LayerWidget;
 
-// TODO: prototype of a scene interface, not an actual layer editor component
-// probably turn into a 'scene hub' that does extra validation and handles Qt signals
-class LayerManager: public QObject
-{
-	Q_OBJECT
-	public:
-		LayerManager();
-		bool deleteLayer(int layerN);
-		bool createLayer(int layerN = -1);
-		bool setActiveLayer(int layerN);
-		bool setLayerBound(int layerN, const IBBox &bound);
-		bool setLayerBoundUse(int layerN, bool enabled);
-		bool setLayerVisibility(int layerN, bool visible);
-		bool renameLayer(int layerN, const std::string &name);
-		int activeLayer() const { return m_activeLayer; }
-		int layerCount() const { return layers.size(); }
-		const VoxelLayer* getLayer(int layerN) const;
-	Q_SIGNALS:
-		void layerDeleted(int layerN);
-		void layerCreated(int layerN);
-		void layerSettingsChanged(int layerN);
-		void activeLayerChanged(int layerN, int prev);
-	protected:
-
-		std::vector<VoxelLayer*> layers;
-		int m_activeLayer = 0; // TODO remove
-};
-
 class LayerEditor: public QObject
 {
 	Q_OBJECT

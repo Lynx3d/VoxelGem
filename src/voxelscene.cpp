@@ -13,13 +13,6 @@
 #include <iostream>
 #include <cassert>
 
-UndoItem::~UndoItem()
-{
-	if (memento)
-		std::cout << "deleting memento!" << std::endl;
-	delete memento;
-}
-
 VoxelLayer::~VoxelLayer()
 {
 	std::cout << "deleting layer...\n";
@@ -44,7 +37,6 @@ VoxelScene::VoxelScene(): viewport(0), voxelTemplate(128, 128, 255, 255), active
 	//renderLayer = new VoxelAggregate();
 	//editingLayer = new VoxelAggregate();
 	toolLayer = new VoxelAggregate();
-	undoState = undoList.end();
 }
 
 VoxelScene::~VoxelScene()
@@ -100,24 +92,6 @@ const VoxelAggregate* VoxelScene::getAggregate(int layer)
 	if (layer == 1)
 		return editingLayer->aggregate;
 	return 0;
-}
-
-void VoxelScene::completeToolAction()
-{
-	// rendering should not be affected by this as it effectively only transfers data
-	// VoxelScene::update() will happen in editing updates, one more after this call, most likely
-	// allocate undo memento:
-	AggregateMemento *memento = new AggregateMemento;
-	// TODO: for each visible scene layer instead of single editing layer
-	editingLayer->aggregate->applyChanges(*toolLayer, memento);
-	if (undoState != undoList.end())
-	{
-		std::cout << "deleting outdated redo history\n";
-		undoList.erase(undoState, undoList.end());
-	}
-	undoList.emplace_back(UndoItem(memento));
-	undoState = undoList.end();
-	toolLayer->clear();
 }
 
 void VoxelScene::applyToolChanges(AggregateMemento *memento)
@@ -244,46 +218,6 @@ bool VoxelScene::rayIntersect(const ray_t &ray, SceneRayHit &hit, int flags) con
 		hit.rayT = hitInfo.tNear;
 	}
 	return didHit;
-}
-
-void VoxelScene::undo()
-{
-	// on empty list, begin() == end()
-	if (undoState != undoList.begin())
-	{
-		// undoState always points to the element past the last saved state.
-		// i.e. in the case of no available redo, it will be undoList.end()
-		--undoState;
-		restoreState(*undoState);
-	}
-}
-
-void VoxelScene::redo()
-{
-	if (undoState != undoList.end())
-	{
-		restoreState(*undoState);
-		++undoState;
-	}
-}
-
-void VoxelScene::restoreState(UndoItem &state)
-{
-	/* // TODO: determine layer of memento
-	// TODO: get the dirty blocks caused by changedBlocks
-	editingLayer->aggregate->restoreState(state.getMemento(), changedBlocks);
-	// convert changed blocks to dirty volumes, can't recover one (yet?) unfortunately
-	for (auto &block: changedBlocks)
-	{
-		DirtyVolume vol;
-		VoxelAggregate::blockPos(block, vol.low);
-		for (int i = 0; i < 3; ++i)
-			vol.high[i] = vol.low[i] + GRID_LEN - 1;
-		vol.valid = true;
-		dirtyVolumes[block] = vol;
-	} */
-	// temp fix! remove function...
-	restoreAggregate(editingLayer, state.getMemento());
 }
 
 void VoxelScene::restoreAggregate(VoxelLayer *layer, AggregateMemento *memento)
