@@ -108,7 +108,10 @@ void VGMainWindow::on_action_redo_triggered()
 	}
 }
 
+// TODO: create header
 void qubicle_import(const QString &filename, VoxelScene &scene);
+void qubicle_export(const QString &filename, VoxelScene &scene);
+void qubicle_export_layer(const QString &filename, SceneProxy *sceneP);
 
 void VGMainWindow::on_action_open_triggered()
 {
@@ -118,6 +121,28 @@ void VGMainWindow::on_action_open_triggered()
 	if (fileName.isEmpty())
 		return;
 	qubicle_import(fileName, *scene);
+}
+
+void VGMainWindow::on_action_save_triggered()
+{
+	QString browseDir;
+	QString fileName = QFileDialog::getSaveFileName(this, "Open File",
+			browseDir, "Qubicle (*.qb)");
+	if (fileName.isEmpty())
+		return;
+	// TODO: add proper extension if not entered
+	qubicle_export(fileName, *scene);
+}
+
+void VGMainWindow::on_action_export_layer_triggered()
+{
+	QString browseDir;
+	QString fileName = QFileDialog::getSaveFileName(this, "Open File",
+			browseDir, "Qubicle (*.qb)");
+	if (fileName.isEmpty())
+		return;
+	// TODO: add proper extension if not entered
+	qubicle_export_layer(fileName, sceneProxy);
 }
 
 void VGMainWindow::on_material_currentIndexChanged(int index)

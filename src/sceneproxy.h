@@ -53,6 +53,8 @@ class SceneProxy: public QObject
 		int activeLayer() const;
 		int layerCount() const;
 		const VoxelLayer* getLayer(int layerN) const;
+		/*! use with care! */
+		VoxelScene* getScene() { return scene; }
 		void completeToolAction();
 		bool createLayer(int layerN = -1);
 		bool deleteLayer(int layerN);

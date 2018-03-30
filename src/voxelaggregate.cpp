@@ -213,7 +213,7 @@ void VoxelAggregate::getNeighbours(const int gridPos[3], const VoxelGrid* neighb
 	}
 }
 
-bool VoxelAggregate::getBound(BBox &bound) const
+bool VoxelAggregate::getBound(IBBox &bound) const
 {
 	bool haveBound = false;
 	for (auto &grid: blockMap)

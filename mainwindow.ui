@@ -77,7 +77,7 @@
     <addaction name="action_saveas"/>
     <addaction name="separator"/>
     <addaction name="action_export_troxel"/>
-    <addaction name="action_export_image"/>
+    <addaction name="action_export_layer"/>
     <addaction name="separator"/>
     <addaction name="action_exit"/>
    </widget>
@@ -477,12 +477,12 @@
     <string>Ctrl+G</string>
    </property>
   </action>
-  <action name="action_export_image">
+  <action name="action_export_layer">
    <property name="text">
-    <string>Export Image...</string>
+    <string>Export Layer...</string>
    </property>
    <property name="toolTip">
-    <string>Export image of current model view</string>
+    <string>Export the currently active layer</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+E</string>

@@ -69,6 +69,8 @@ class BBox
 			// valid hit when interval [tNear, tFar] overlaps ray interval [t_min, t_max]
 			return ray.t_max >= h.tNear && h.tFar >= ray.t_min;
 		}
+		// temporary
+		operator IBBox() const { return IBBox(pMin, pMax); }
 		IVector3D pMin, pMax;
 };
 

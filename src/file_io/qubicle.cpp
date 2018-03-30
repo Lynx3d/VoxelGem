@@ -7,6 +7,7 @@
  */
 
 #include "../voxelscene.h"
+#include "../sceneproxy.h"
 #include "../voxelaggregate.h"
 
 #include <QFile>
@@ -24,6 +25,7 @@ union rgba_t
 	};
 	char bytes[4];
 	rgba_t() {}
+	rgba_t(uint32_t rgba): raw(rgba) {}
 	rgba_t(uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4):
 		r(b1), g(b2), b(b3), a(b4) {}
 };
@@ -59,12 +61,15 @@ class SceneOp
 	public:
 		SceneOp(VoxelScene &lscene): scene(lscene) {}
 		virtual void operator()(rgba_t data, int x, int y, int z) = 0;
+		virtual rgba_t operator()(int x, int y, int z) { return rgba_t(0); } // TODO: make pure virtual
+		void setAggregate(const VoxelAggregate* agg) { aggregate = agg; }
 		bool matches(rgba_t c1, rgba_t c2)
 		{
 			return ((c1.raw ^ c2.raw) & col_mask.raw) == 0;
 		}
 	protected:
 		VoxelScene &scene;
+		const VoxelAggregate* aggregate;
 };
 
 class BaseColOp: public SceneOp
@@ -76,6 +81,18 @@ class BaseColOp: public SceneOp
 			VoxelEntry voxel(data.raw, Voxel::VF_NON_EMPTY);
 			int pos[3] = { x, y, z };
 			scene.setVoxel(pos, voxel);
+		}
+		rgba_t operator()(int x, int y, int z) override
+		{
+			int pos[3] = { x, y, z };
+			const VoxelEntry *entry = aggregate->getVoxel(pos);
+			if (entry && entry->flags & Voxel::VF_NON_EMPTY)
+			{
+				rgba_t data(entry->raw_rgba);
+				data.a = 255;
+				return data;
+			}
+			return rgba_t(0);
 		}
 };
 
@@ -280,4 +297,91 @@ void qubicle_import(const QString &filename, VoxelScene &scene)
 		AlphaMapOp alphaOp(scene, scene.getAggregate(0));
 		parse_file(alpha_stream, alphaOp);
 	}
+}
+
+void write_file_header(QDataStream &fstream, uint32_t numLayers)
+{
+	fstream << (uint32_t)0x01010000; // Version 1.1.0.0
+	fstream << (uint32_t)0; // RGBA format
+	fstream << (uint32_t)1; // right-handed
+	fstream << (uint32_t)0; // uncompressed
+	fstream << (uint32_t)0; // no visibility mask encoding
+	fstream << numLayers; // currently only support 1 matrix
+}
+
+void write_layer(QDataStream &fstream, const std::string &name, IBBox bound, SceneOp &dataOp)
+{
+	// name length
+	uint8_t nameLen = std::min(255, (int)name.length());
+	fstream << nameLen;
+	fstream.writeRawData(name.data(), nameLen);
+	// matrix size
+	fstream << bound.pMax[0] - bound.pMin[0];
+	fstream << bound.pMax[1] - bound.pMin[1];
+	fstream << bound.pMax[2] - bound.pMin[2];
+	// matrix position; z gets inverted here => upper bound becomes lower pos
+	fstream << bound.pMin[0] << bound.pMin[1] << -bound.pMax[2] + 1;
+	// voxels; z gets inverted here
+	for (int z =  bound.pMax[2] - 1; z >= bound.pMin[2]; --z)
+		for (int y = bound.pMin[1]; y < bound.pMax[1]; ++y)
+			for (int x = bound.pMin[0]; x < bound.pMax[0]; ++x)
+	{
+		fstream << dataOp(x, y, z).raw;
+	}
+}
+
+void write_file(QDataStream &fstream, IBBox bound, SceneOp &dataOp)
+{
+	// Qubicle files are little endian...
+	fstream.setByteOrder(QDataStream::LittleEndian);
+	write_file_header(fstream, 1);
+	write_layer(fstream, "VGEM", bound, dataOp);
+}
+
+void qubicle_export(const QString &filename, VoxelScene &scene)
+{
+	QFileInfo file_info(filename);
+	if (!file_info.isWritable())
+	{
+		std::cout << filename.toStdString() << " not writable." << std::endl;
+		//return;
+	}
+	std::cout << "exporting " << filename.toStdString() << std::endl;
+	QFile file(file_info.filePath());
+	if (!file.open(QIODevice::WriteOnly))
+		return;
+	QDataStream fstream(&file);
+	BaseColOp colOp(scene);
+	colOp.setAggregate(scene.getAggregate(1));
+	IBBox sceneBound(IVector3D(0,0,0), IVector3D(0,0,0)); // TODO: proper constructor
+	scene.getAggregate(1)->getBound(sceneBound);
+	write_file(fstream, sceneBound, colOp);
+}
+
+void qubicle_export_layer(const QString &filename, SceneProxy *sceneP)
+{
+	QFileInfo file_info(filename);
+	if (!file_info.isWritable())
+	{
+		std::cout << filename.toStdString() << " not writable." << std::endl;
+		//return; // seems false when file doesn't exist yet
+	}
+	std::cout << "exporting " << filename.toStdString() << std::endl;
+	QFile file(file_info.filePath());
+	if (!file.open(QIODevice::WriteOnly))
+		return;
+	QDataStream fstream(&file);
+	// Qubicle files are little endian...
+	fstream.setByteOrder(QDataStream::LittleEndian);
+	const VoxelLayer *layer = sceneP->getLayer(sceneP->activeLayer());
+	// TODO: get scene from proxy, and here also allow op without scene
+	BaseColOp colOp(*sceneP->getScene());
+	colOp.setAggregate(layer->aggregate);
+	IBBox sceneBound(IVector3D(0,0,0), IVector3D(0,0,0)); // TODO: proper constructor
+	if (layer->useBound)
+		sceneBound = layer->bound;
+	else
+		layer->aggregate->getBound(sceneBound);
+	write_file_header(fstream, 1);
+	write_layer(fstream, layer->name, sceneBound, colOp);
 }
