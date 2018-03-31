@@ -12,14 +12,19 @@
 
 uint64_t VoxelAggregate::setVoxel(int x, int y, int z, const VoxelEntry &voxel)
 {
-	uint64_t id = blockID(x, y, z);
+	return setVoxel(IVector3D(x, y, z), voxel);
+}
+
+uint64_t VoxelAggregate::setVoxel(const IVector3D &pos, const VoxelEntry &voxel)
+{
+	uint64_t id = blockID(pos.x, pos.y, pos.z);
 	blockMap_t::iterator grid = blockMap.find(id);
 	if (grid == blockMap.end())
 	{
 		int gridPos[3] = {
-			x & ~(int)(GRID_LEN - 1),
-			y & ~(int)(GRID_LEN - 1),
-			z & ~(int)(GRID_LEN - 1) };
+			pos.x & ~(int)(GRID_LEN - 1),
+			pos.y & ~(int)(GRID_LEN - 1),
+			pos.z & ~(int)(GRID_LEN - 1) };
 		std::cout << "creating grid at (" << gridPos[0] << ", " << gridPos[1] << ", " << gridPos[2] << ")\n";
 		voxelGridPtr_t posGrid(new VoxelGrid(gridPos));
 		grid = blockMap.emplace(id, posGrid).first;
@@ -32,11 +37,16 @@ uint64_t VoxelAggregate::setVoxel(int x, int y, int z, const VoxelEntry &voxel)
 		grid->second = voxelGridPtr_t(new VoxelGrid(*grid->second));
 	}
 //	std::cout << "setting voxel (" << (x & (int)(GRID_LEN - 1)) << ", " << (y & (int)(GRID_LEN - 1)) << ", " << (z & (int)(GRID_LEN - 1)) << ")\n";
-	grid->second->setVoxel(x & (int)(GRID_LEN - 1), y & (int)(GRID_LEN - 1), z & (int)(GRID_LEN - 1), voxel);
+	grid->second->setVoxel(pos.x & (int)(GRID_LEN - 1), pos.y & (int)(GRID_LEN - 1), pos.z & (int)(GRID_LEN - 1), voxel);
 	return id;
 }
 
 const VoxelEntry* VoxelAggregate::getVoxel(const int pos[3]) const
+{
+	return getVoxel(IVector3D(pos));
+}
+
+const VoxelEntry* VoxelAggregate::getVoxel(const IVector3D &pos) const
 {
 	uint64_t id = blockID(pos[0], pos[1], pos[2]);
 	blockMap_t::const_iterator grid = blockMap.find(id);
@@ -46,7 +56,7 @@ const VoxelEntry* VoxelAggregate::getVoxel(const int pos[3]) const
 	return grid->second->getVoxel(gridPos);
 }
 
-bool VoxelAggregate::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) const
+bool VoxelAggregate::rayIntersect(const ray_t &ray, IVector3D &hitPos, intersect_t &hit) const
 {
 	// TODO: this is a brute force place holder implementation
 	bool didHit = false;

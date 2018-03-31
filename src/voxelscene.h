@@ -37,18 +37,16 @@ class SceneRayHit
 			HIT_MASK = 0x700
 		};
 		bool didHit() const { return (flags & HIT_MASK) != 0; }
-		bool getAdjacentVoxel(int pos[3]) const
+		bool getAdjacentVoxel(IVector3D &pos) const
 		{
 			if ((flags & SceneRayHit::HIT_MASK) == 0)
 				return false;
-			pos[0] = voxelPos[0];
-			pos[1] = voxelPos[1];
-			pos[2] = voxelPos[2];
+			pos = IVector3D(voxelPos);
 			// TODO: invert meaning of SceneRayHit::AXIS_NEGATIVE
 			pos[flags & SceneRayHit::AXIS_MASK] += (flags & SceneRayHit::AXIS_NEGATIVE) ? 1 : -1;
 			return true;
 		}
-		int voxelPos[3];
+		IVector3D voxelPos;
 		int flags { 0 };
 		float rayT;
 };
@@ -84,9 +82,9 @@ class VoxelScene
 		VoxelScene();
 		~VoxelScene();
 		/* set a voxel of the editing layer */
-		void setVoxel(const int pos[3], const VoxelEntry &voxel);
+		void setVoxel(const IVector3D &pos, const VoxelEntry &voxel);
 		/* mark a voxel as erased in the editing layer */
-		void eraseVoxel(const int pos[3]);
+		void eraseVoxel(const IVector3D &pos);
 		/* read a voxel from the scene (exclude current edit changes) */
 		const VoxelEntry* getVoxel(const int pos[3]);
 		const VoxelEntry* getVoxelTemplate() const { return &voxelTemplate; }

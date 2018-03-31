@@ -63,20 +63,16 @@ void PaintTool::mouseDown(const ToolEvent &event, VoxelScene &scene)
 	{
 		deleting = true;
 		scene.eraseVoxel(hit.voxelPos);
-		lastPos[0] = hit.voxelPos[0];
-		lastPos[1] = hit.voxelPos[1];
-		lastPos[2] = hit.voxelPos[2];
+		lastPos = hit.voxelPos;
 		haveLastPos = true;
 	}
 	else
 	{
 		deleting = false;
-		int fillPos[3];
+		IVector3D fillPos;
 		hit.getAdjacentVoxel(fillPos);
 		scene.setVoxel(fillPos, *scene.getVoxelTemplate());
-		lastPos[0] = fillPos[0];
-		lastPos[1] = fillPos[1];
-		lastPos[2] = fillPos[2];
+		lastPos = fillPos;
 		haveLastPos = true;
 	}
 }
@@ -99,27 +95,23 @@ void PaintTool::mouseMoved(const ToolEvent &event, VoxelScene &scene)
 	{
 		if (haveLastPos)
 		{
-			int fillPos[3];
+			IVector3D fillPos;
 			hit.getAdjacentVoxel(fillPos);
 			if (lastPos[0] == fillPos[0] && lastPos[1] == fillPos[1] && lastPos[2] == fillPos[2])
 				return;
 		}
-		lastPos[0] = hit.voxelPos[0];
-		lastPos[1] = hit.voxelPos[1];
-		lastPos[2] = hit.voxelPos[2];
+		lastPos = hit.voxelPos;
 		haveLastPos = true;
 		scene.eraseVoxel(hit.voxelPos);
 	}
 	else
 	{
-		int fillPos[3];
+		IVector3D fillPos;
 		hit.getAdjacentVoxel(fillPos);
 		if (haveLastPos && lastPos[0] == fillPos[0] && lastPos[1] == fillPos[1] && lastPos[2] == fillPos[2])
 			return;
 		scene.setVoxel(fillPos, *scene.getVoxelTemplate());
-		lastPos[0] = fillPos[0];
-		lastPos[1] = fillPos[1];
-		lastPos[2] = fillPos[2];
+		lastPos = fillPos;
 		haveLastPos = true;
 	}
 }

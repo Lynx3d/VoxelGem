@@ -63,17 +63,17 @@ void VoxelScene::setActiveLayer(int layerN)
 	activeLayerN = layerN;
 }
 
-void VoxelScene::setVoxel(const int pos[3], const VoxelEntry &voxel)
+void VoxelScene::setVoxel(const IVector3D &pos, const VoxelEntry &voxel)
 {
-	uint64_t blockId = toolLayer->setVoxel(pos[0], pos[1], pos[2], voxel);
+	uint64_t blockId = toolLayer->setVoxel(pos, voxel);
 	//changedBlocks.insert(blockId);
 	editingLayer->dirtyVolumes[blockId].addPosition(pos);
 	dirty = true;
 }
 
-void VoxelScene::eraseVoxel(const int pos[3])
+void VoxelScene::eraseVoxel(const IVector3D &pos)
 {
-	uint64_t blockId = toolLayer->setVoxel(pos[0], pos[1], pos[2], VoxelEntry(0, Voxel::VF_ERASED));
+	uint64_t blockId = toolLayer->setVoxel(pos, VoxelEntry(0, Voxel::VF_ERASED));
 	//changedBlocks.insert(blockId);
 	editingLayer->dirtyVolumes[blockId].addPosition(pos);
 	dirty = true;

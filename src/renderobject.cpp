@@ -92,7 +92,7 @@ void LineGrid::render(QOpenGLFunctions_3_3_Core &glf)
 	glVAO.release();
 }
 
-bool LineGrid::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit)
+bool LineGrid::rayIntersect(const ray_t &ray, IVector3D &hitPos, intersect_t &hit)
 {
 	// TODO: implement axis
 	int axis = 1;

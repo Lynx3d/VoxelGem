@@ -66,7 +66,7 @@ class PaintTool: public EditTool
 		bool painting = false;
 		bool deleting;
 		bool haveLastPos;
-		int lastPos[3];
+		IVector3D lastPos;
 };
 
 

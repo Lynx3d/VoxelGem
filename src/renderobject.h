@@ -51,7 +51,7 @@ class GLRenderable
 		bool isDirty() const { return dirty; }
 		virtual void setup(QOpenGLFunctions_3_3_Core &glf) = 0;
 		virtual void render(QOpenGLFunctions_3_3_Core &glf) = 0;
-		virtual bool rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) { return false; }
+		virtual bool rayIntersect(const ray_t &ray, IVector3D &hitPos, intersect_t &hit) { return false; }
 	protected:
 		virtual void uploadBuffer(QOpenGLFunctions_3_3_Core &glf, void *data, GLsizeiptr size);
 		void deleteBuffer(QOpenGLFunctions_3_3_Core &glf);
@@ -68,7 +68,7 @@ class LineGrid : public GLRenderable
 		void setup(QOpenGLFunctions_3_3_Core &glf);
 		void setSize(int gridSize);
 		void render(QOpenGLFunctions_3_3_Core &glf);
-		bool rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit);
+		bool rayIntersect(const ray_t &ray, IVector3D &hitPos, intersect_t &hit);
 	protected:
 		int radius;
 		int numVert;

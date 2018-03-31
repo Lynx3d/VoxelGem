@@ -88,10 +88,22 @@ class VoxelEntry
 		unsigned int flags;
 };
 
+class IVector3D
+{
+	public:
+		IVector3D() {}
+		IVector3D(const IVector3D &v): x(v.x), y(v.y), z(v.z) {}
+		explicit IVector3D(const int v[3]): x(v[0]), y(v[1]), z(v[2]) {}
+		IVector3D(int vx, int vy, int vz): x(vx), y(vy), z(vz) {}
+		int operator[](int i) const { return (&x)[i]; }
+		int& operator[](int i) { return (&x)[i]; }
+		int x, y, z;
+};
+
 class DirtyVolume
 {
 	public:
-		void addPosition(const int pos[3])
+		void addPosition(const IVector3D &pos)
 		{
 			if (valid)
 				for (int i = 0; i < 3; ++i)
@@ -106,7 +118,7 @@ class DirtyVolume
 				valid = true;
 			}
 		}
-		int low[3];
+		int low[3]; // TODO: use IVector3D
 		int high[3];
 		bool valid = false;
 };
@@ -117,18 +129,6 @@ struct ray_t
 	QVector3D from;
 	float t_min;
 	float t_max;
-};
-
-class IVector3D
-{
-	public:
-		IVector3D() {}
-		IVector3D(const IVector3D &v): x(v.x), y(v.y), z(v.z) {}
-		explicit IVector3D(const int v[3]): x(v[0]), y(v[1]), z(v[2]) {}
-		IVector3D(int vx, int vy, int vz): x(vx), y(vy), z(vz) {}
-		int operator[](int i) const { return (&x)[i]; }
-		int& operator[](int i) { return (&x)[i]; }
-		int x, y, z;
 };
 
 // TODO: think about rayIntersect() when replacing BBox with IBBox!
