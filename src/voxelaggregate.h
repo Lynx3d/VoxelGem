@@ -45,9 +45,7 @@ class VoxelAggregate
 			pos[2] = (id >> (42 - LOG_GRID_LEN)) & POS_MASK;
 		}
 		#undef POS_MASK
-		uint64_t setVoxel(int x, int y, int z, const VoxelEntry &voxel); // deprecated!
 		uint64_t setVoxel(const IVector3D &pos, const VoxelEntry &voxel);
-		const VoxelEntry* getVoxel(const int pos[3]) const; // deprecated!
 		const VoxelEntry* getVoxel(const IVector3D &pos) const;
 		bool rayIntersect(const ray_t &ray, IVector3D &hitPos, intersect_t &hit) const;
 		void clear();

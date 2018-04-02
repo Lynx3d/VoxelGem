@@ -10,11 +10,6 @@
 
 #include <iostream>
 
-uint64_t VoxelAggregate::setVoxel(int x, int y, int z, const VoxelEntry &voxel)
-{
-	return setVoxel(IVector3D(x, y, z), voxel);
-}
-
 uint64_t VoxelAggregate::setVoxel(const IVector3D &pos, const VoxelEntry &voxel)
 {
 	uint64_t id = blockID(pos.x, pos.y, pos.z);
@@ -39,11 +34,6 @@ uint64_t VoxelAggregate::setVoxel(const IVector3D &pos, const VoxelEntry &voxel)
 //	std::cout << "setting voxel (" << (x & (int)(GRID_LEN - 1)) << ", " << (y & (int)(GRID_LEN - 1)) << ", " << (z & (int)(GRID_LEN - 1)) << ")\n";
 	grid->second->setVoxel(pos.x & (int)(GRID_LEN - 1), pos.y & (int)(GRID_LEN - 1), pos.z & (int)(GRID_LEN - 1), voxel);
 	return id;
-}
-
-const VoxelEntry* VoxelAggregate::getVoxel(const int pos[3]) const
-{
-	return getVoxel(IVector3D(pos));
 }
 
 const VoxelEntry* VoxelAggregate::getVoxel(const IVector3D &pos) const

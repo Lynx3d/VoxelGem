@@ -68,9 +68,9 @@ bool SceneProxy::createLayer(int layerN)
 
 	if (layerN == -1)
 		layerN = scene->layers.size();
-	else
-		// TODO: implement
-		return false;
+	//else
+		// [TODO: implement] should work now
+		//return false;
 
 	VoxelLayer* newLayer = new VoxelLayer;
 	newLayer->name = "New Layer";
@@ -81,6 +81,26 @@ bool SceneProxy::createLayer(int layerN)
 	SceneMemento &memento = editHistory.back();
 	memento.action = SceneMemento::ADD_LAYER;
 	//memento.sourceLayers.push_back(newLayer); // ??
+	memento.targetLayerIndex = layerN;
+	undoState = editHistory.end();
+
+	emit(layerCreated(layerN));
+	return true;
+}
+
+bool SceneProxy::insertLayer(VoxelLayer *layer, int layerN)
+{
+	if (layerN < -1 || layerN > layerCount() || !layer->aggregate)
+		return false;
+
+	if (layerN == -1)
+		layerN = scene->layers.size();
+
+	scene->insertLayer(layer, layerN);
+	dropRedoHistory();
+	editHistory.emplace_back(SceneMemento());
+	SceneMemento &memento = editHistory.back();
+	memento.action = SceneMemento::ADD_LAYER;
 	memento.targetLayerIndex = layerN;
 	undoState = editHistory.end();
 

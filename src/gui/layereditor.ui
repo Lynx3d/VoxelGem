@@ -101,7 +101,14 @@
        <number>2</number>
       </property>
       <item row="2" column="1">
-       <widget class="QSpinBox" name="sb_min_z"/>
+       <widget class="QSpinBox" name="sb_min_z">
+        <property name="minimum">
+         <number>-999999</number>
+        </property>
+        <property name="maximum">
+         <number>999999</number>
+        </property>
+       </widget>
       </item>
       <item row="0" column="1">
        <widget class="QSpinBox" name="sb_min_x">
@@ -120,7 +127,14 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QSpinBox" name="sb_min_y"/>
+       <widget class="QSpinBox" name="sb_min_y">
+        <property name="minimum">
+         <number>-999999</number>
+        </property>
+        <property name="maximum">
+         <number>999999</number>
+        </property>
+       </widget>
       </item>
       <item row="2" column="0">
        <widget class="QLabel" name="label_3">
@@ -187,10 +201,24 @@
        </widget>
       </item>
       <item row="1" column="3">
-       <widget class="QSpinBox" name="sb_max_y"/>
+       <widget class="QSpinBox" name="sb_max_y">
+        <property name="minimum">
+         <number>-999999</number>
+        </property>
+        <property name="maximum">
+         <number>999999</number>
+        </property>
+       </widget>
       </item>
       <item row="2" column="3">
-       <widget class="QSpinBox" name="sb_max_z"/>
+       <widget class="QSpinBox" name="sb_max_z">
+        <property name="minimum">
+         <number>-999999</number>
+        </property>
+        <property name="maximum">
+         <number>999999</number>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

@@ -40,9 +40,9 @@ static const rgba_t col_mask(255, 255, 255, 0);
 static const mat_map_t TypeMap[] =
 {
 	{ rgba_t(255, 255, 255, 255), Voxel::SOLID },
+	{ rgba_t(255,   0,   0, 255), Voxel::GLOWING_SOLID },
 	{ rgba_t(128, 128, 128, 255), Voxel::GLASS },
 	{ rgba_t( 64,  64,  64, 255), Voxel::TILED_GLASS },
-	{ rgba_t(255,   0,   0, 255), Voxel::GLOWING_SOLID },
 	{ rgba_t(255, 255,   0, 255), Voxel::GLOWING_GLASS }
 };
 
@@ -59,32 +59,29 @@ static const mat_map_t SpecularMap[] =
 class SceneOp
 {
 	public:
-		SceneOp(VoxelScene &lscene): scene(lscene) {}
 		virtual void operator()(rgba_t data, int x, int y, int z) = 0;
-		virtual rgba_t operator()(int x, int y, int z) { return rgba_t(0); } // TODO: make pure virtual
-		void setAggregate(const VoxelAggregate* agg) { aggregate = agg; }
+		virtual rgba_t operator()(int x, int y, int z) const { return rgba_t(0); } // TODO: make pure virtual
+		void setAggregate(VoxelAggregate* agg) { aggregate = agg; }
 		bool matches(rgba_t c1, rgba_t c2)
 		{
 			return ((c1.raw ^ c2.raw) & col_mask.raw) == 0;
 		}
 	protected:
-		VoxelScene &scene;
-		const VoxelAggregate* aggregate;
+		VoxelAggregate* aggregate;
 };
 
 class BaseColOp: public SceneOp
 {
 	public:
-		BaseColOp(VoxelScene &lscene): SceneOp(lscene) {}
 		void operator()(rgba_t data, int x, int y, int z) override
 		{
 			VoxelEntry voxel(data.raw, Voxel::VF_NON_EMPTY);
-			int pos[3] = { x, y, z };
-			scene.setVoxel(pos, voxel);
+			IVector3D pos(x, y, z);
+			aggregate->setVoxel(pos, voxel);
 		}
-		rgba_t operator()(int x, int y, int z) override
+		rgba_t operator()(int x, int y, int z) const override
 		{
-			int pos[3] = { x, y, z };
+			IVector3D pos(x, y, z);
 			const VoxelEntry *entry = aggregate->getVoxel(pos);
 			if (entry && entry->flags & Voxel::VF_NON_EMPTY)
 			{
@@ -99,7 +96,6 @@ class BaseColOp: public SceneOp
 class TypeMapOp: public SceneOp
 {
 	public:
-		TypeMapOp(VoxelScene &lscene, const VoxelAggregate* bv): SceneOp(lscene), base(bv) {}
 		void operator()(rgba_t data, int x, int y, int z) override
 		{
 			int mat_type = -1;
@@ -111,22 +107,20 @@ class TypeMapOp: public SceneOp
 				}
 			if (mat_type != -1)
 			{
-				int pos[3] = { x, y, z };
-				const VoxelEntry *entry = base->getVoxel(pos);
+				IVector3D pos(x, y, z);
+				const VoxelEntry *entry = aggregate->getVoxel(pos);
 				if (!entry || !(entry->flags & Voxel::VF_NON_EMPTY))
 					return;
 				VoxelEntry voxel(*entry);
 				voxel.setMaterial(static_cast<Voxel::Material>(mat_type));
-				scene.setVoxel(pos, voxel);
+				aggregate->setVoxel(pos, voxel);
 			}
 		}
-		const VoxelAggregate* base;
 };
 
 class SpecMapOp: public SceneOp
 {
 	public:
-		SpecMapOp(VoxelScene &lscene, const VoxelAggregate* bv): SceneOp(lscene), base(bv) {}
 		void operator()(rgba_t data, int x, int y, int z) override
 		{
 			int spec_type = -1;
@@ -138,40 +132,38 @@ class SpecMapOp: public SceneOp
 				}
 			if (spec_type != -1)
 			{
-				int pos[3] = { x, y, z };
-				const VoxelEntry *entry = base->getVoxel(pos);
+				IVector3D pos(x, y, z);
+				const VoxelEntry *entry = aggregate->getVoxel(pos);
 				if (!entry || !(entry->flags & Voxel::VF_NON_EMPTY))
 					return;
 				VoxelEntry voxel(*entry);
 				voxel.setSpecular(static_cast<Voxel::Specular>(spec_type));
-				scene.setVoxel(pos, voxel);
+				aggregate->setVoxel(pos, voxel);
 			}
 		}
-		const VoxelAggregate* base;
 };
 
 class AlphaMapOp: public SceneOp
 {
 	public:
-		AlphaMapOp(VoxelScene &lscene, const VoxelAggregate* bv): SceneOp(lscene), base(bv) {}
 		void operator()(rgba_t data, int x, int y, int z) override
 		{
 			if (data.r != data.b || data.r != data.g)
 				return;
 
-			int pos[3] = { x, y, z };
-			const VoxelEntry *entry = base->getVoxel(pos);
+			IVector3D pos(x, y, z);
+			const VoxelEntry *entry = aggregate->getVoxel(pos);
 			if (!entry || !(entry->flags & Voxel::VF_NON_EMPTY) || !entry->isTransparent())
 				return;
 			VoxelEntry voxel(*entry);
 			voxel.col[3] = data.r;
-			scene.setVoxel(pos, voxel);
+			aggregate->setVoxel(pos, voxel);
 		}
-		const VoxelAggregate* base;
 };
 
-void parse_file(QDataStream &fstream, SceneOp &dataOp)
+void parse_file(QDataStream &fstream, SceneOp &dataOp, std::vector<VoxelLayer*> &layers)
 {
+	bool create = (layers.size() == 0);
 	// Qubicle files are little endian...
 	fstream.setByteOrder(QDataStream::LittleEndian);
 	const rgba_t CODEFLAG(2, 0, 0, 0);
@@ -199,6 +191,22 @@ void parse_file(QDataStream &fstream, SceneOp &dataOp)
 		uint32_t  posX, posY, posZ;
 		fstream >> posX >> posY >> posZ;
 
+		if (create)
+		{
+			VoxelLayer* newLayer = new VoxelLayer;
+			newLayer->name = "New Layer"; // TODO: proper name
+			newLayer->aggregate = new VoxelAggregate();
+			newLayer->bound.pMin = IVector3D(posX, posY, zRight ? -posZ - sizeZ + 1 : posZ);
+			newLayer->bound.pMax = IVector3D(posX + sizeX, posY + sizeY, zRight ? -posZ + 1 : posZ + sizeZ);
+			newLayer->name = std::string(nameBuff);
+			layers.push_back(newLayer);
+			dataOp.setAggregate(newLayer->aggregate);
+		}
+		else
+		{
+			dataOp.setAggregate(layers[i]->aggregate);
+		}
+
 		if (compressed == 0) // uncompressd
 		{
 			for (uint32_t z = 0; z < sizeZ; z++)
@@ -207,7 +215,7 @@ void parse_file(QDataStream &fstream, SceneOp &dataOp)
 			{
 				fstream.readRawData(data.bytes, 4);
 				if (data.a)
-					dataOp(data, -posX - x, posY + y, (zRight ? posZ + z : - posZ - z));
+					dataOp(data, posX + x, posY + y, (zRight ? -posZ - z : posZ + z));
 			}
 		}
 		else // RLE compressed
@@ -234,7 +242,7 @@ void parse_file(QDataStream &fstream, SceneOp &dataOp)
 						uint32_t y = index / sizeX;
 						++index;
 						if (data.a)
-							dataOp(data, -posX - x, posY + y, (zRight ? posZ + z : - posZ - z));
+							dataOp(data, posX + x, posY + y, (zRight ? -posZ - z : posZ + z));
 					}
 				}
 			}
@@ -242,7 +250,7 @@ void parse_file(QDataStream &fstream, SceneOp &dataOp)
 	}
 }
 
-void qubicle_import(const QString &filename, VoxelScene &scene)
+void qubicle_import(const QString &filename, SceneProxy *sceneP)
 {
 	QFileInfo file_info(filename);
 	std::cout << "importing " << filename.toStdString() << std::endl;
@@ -252,8 +260,14 @@ void qubicle_import(const QString &filename, VoxelScene &scene)
 	if (!file.open(QIODevice::ReadOnly))
 		return;
 	QDataStream fstream(&file);
-	BaseColOp colOp(scene);
-	parse_file(fstream, colOp);
+	BaseColOp colOp;
+	std::vector<VoxelLayer*> fileLayers;
+	parse_file(fstream, colOp, fileLayers);
+	if (fileLayers.size() == 0)
+	{
+		std::cout << "error: no layer read from file.\n";
+		return;
+	}
 	// Trove specific:
 	// check if we have files with _t, _a and _s suffix for material properties
 	QString base = file_info.completeBaseName();
@@ -268,8 +282,8 @@ void qubicle_import(const QString &filename, VoxelScene &scene)
 		if (!type_file.open(QIODevice::ReadOnly))
 			return;
 		QDataStream type_stream(&type_file);
-		TypeMapOp typeOp(scene, scene.getAggregate(0));
-		parse_file(type_stream, typeOp);
+		TypeMapOp typeOp;
+		parse_file(type_stream, typeOp, fileLayers);
 	}
 	//== Specular Map ==//
 	QFileInfo specmap_info(file_info.dir(), base + "_s." + suffix);
@@ -281,8 +295,8 @@ void qubicle_import(const QString &filename, VoxelScene &scene)
 		if (!spec_file.open(QIODevice::ReadOnly))
 			return;
 		QDataStream spec_stream(&spec_file);
-		SpecMapOp specOp(scene, scene.getAggregate(0));
-		parse_file(spec_stream, specOp);
+		SpecMapOp specOp;
+		parse_file(spec_stream, specOp, fileLayers);
 	}
 	//== Alpha Map ==//
 	QFileInfo alphamap_info(file_info.dir(), base + "_a." + suffix);
@@ -294,9 +308,11 @@ void qubicle_import(const QString &filename, VoxelScene &scene)
 		if (!alpha_file.open(QIODevice::ReadOnly))
 			return;
 		QDataStream alpha_stream(&alpha_file);
-		AlphaMapOp alphaOp(scene, scene.getAggregate(0));
-		parse_file(alpha_stream, alphaOp);
+		AlphaMapOp alphaOp;
+		parse_file(alpha_stream, alphaOp, fileLayers);
 	}
+	for (auto &layer: fileLayers)
+		sceneP->insertLayer(layer);
 }
 
 void write_file_header(QDataStream &fstream, uint32_t numLayers)
@@ -340,6 +356,7 @@ void write_file(QDataStream &fstream, IBBox bound, SceneOp &dataOp)
 
 void qubicle_export(const QString &filename, VoxelScene &scene)
 {
+	/* temporarily disabled...
 	QFileInfo file_info(filename);
 	if (!file_info.isWritable())
 	{
@@ -351,11 +368,11 @@ void qubicle_export(const QString &filename, VoxelScene &scene)
 	if (!file.open(QIODevice::WriteOnly))
 		return;
 	QDataStream fstream(&file);
-	BaseColOp colOp(scene);
+	BaseColOp colOp;
 	colOp.setAggregate(scene.getAggregate(1));
 	IBBox sceneBound(IVector3D(0,0,0), IVector3D(0,0,0)); // TODO: proper constructor
 	scene.getAggregate(1)->getBound(sceneBound);
-	write_file(fstream, sceneBound, colOp);
+	write_file(fstream, sceneBound, colOp); */
 }
 
 void qubicle_export_layer(const QString &filename, SceneProxy *sceneP)
@@ -374,8 +391,7 @@ void qubicle_export_layer(const QString &filename, SceneProxy *sceneP)
 	// Qubicle files are little endian...
 	fstream.setByteOrder(QDataStream::LittleEndian);
 	const VoxelLayer *layer = sceneP->getLayer(sceneP->activeLayer());
-	// TODO: get scene from proxy, and here also allow op without scene
-	BaseColOp colOp(*sceneP->getScene());
+	BaseColOp colOp;
 	colOp.setAggregate(layer->aggregate);
 	IBBox sceneBound(IVector3D(0,0,0), IVector3D(0,0,0)); // TODO: proper constructor
 	if (layer->useBound)
