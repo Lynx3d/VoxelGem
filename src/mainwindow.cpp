@@ -8,12 +8,14 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "edittool.h"
+#include "edittool.h" // TODO: can be removed when done
 #include "glviewport.h"
 #include "palette.h"
 #include "gui/layereditor.h"
 #include "voxelscene.h"
 #include "sceneproxy.h"
+// tools
+#include "tools/draw.h"
 
 #include <QFileDialog>
 #include <QActionGroup>
@@ -49,8 +51,8 @@ VGMainWindow::VGMainWindow():
 	LayerEditor *layer_ed = new LayerEditor(mainUi->layers, sceneProxy);
 	layer_ed->setParent(this);
 	// TODO: load tools in a better place...
-	ToolInstance *testTool = PaintTool::getInstance();
-	addTool(testTool);
+	ToolInstance *tool = DrawTool::getInstance();
+	addTool(tool);
 }
 
 VGMainWindow::~VGMainWindow()

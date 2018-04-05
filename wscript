@@ -40,6 +40,7 @@ def build(bld):
 				'src/file_io/qubicle.cpp',
 				'src/gui/layereditor.cpp',
 				'src/gui/layereditor.ui',
+				'src/tools/draw.cpp',
 				'resources.qrc',
 				'mainwindow.ui']
 	bld(

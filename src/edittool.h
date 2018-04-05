@@ -55,19 +55,4 @@ class ToolInstance
 		QString statusTip;
 };
 
-class PaintTool: public EditTool
-{
-	public:
-		void mouseMoved(const ToolEvent &event, VoxelScene &scene) override;
-		void mouseDown(const ToolEvent &event, VoxelScene &scene) override;
-		void mouseUp(const ToolEvent &event, VoxelScene &scene) override;
-		static ToolInstance* getInstance();
-	private:
-		bool painting = false;
-		bool deleting;
-		bool haveLastPos;
-		IVector3D lastPos;
-};
-
-
 #endif // VG_EDITTOOL_H
