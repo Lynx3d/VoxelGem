@@ -40,16 +40,27 @@ namespace Voxel
 	};
 }
 
+union rgba_t
+{
+	uint32_t raw;
+	struct
+	{
+		uint8_t r, g, b, a;
+	};
+	char bytes[4];
+	rgba_t() {}
+	rgba_t(uint32_t rgba): raw(rgba) {}
+	rgba_t(uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4):
+		r(b1), g(b2), b(b3), a(b4) {}
+};
+
 class VoxelEntry
 {
 
 	public:
-		VoxelEntry(): raw_rgba(0), flags(0) {}
-		VoxelEntry(uint32_t rgba, uint32_t vflags): raw_rgba(rgba), flags(vflags) {}
-		VoxelEntry(uint8_t r, uint8_t g, uint8_t b, uint8_t a): flags(Voxel::VF_NON_EMPTY)
-		{
-			col[0] = r, col[1] = g, col[2] = b, col[3] = a;
-		}
+		VoxelEntry(): col(0), flags(0) {}
+		VoxelEntry(uint32_t rgba, uint32_t vflags): col(rgba), flags(vflags) {}
+		VoxelEntry(uint8_t r, uint8_t g, uint8_t b, uint8_t a): col(r, g, b, a), flags(Voxel::VF_NON_EMPTY) {}
 		void setMaterial(Voxel::Material mat)
 		{
 			flags &= ~0xF00; // clear bits 9-12
@@ -80,11 +91,7 @@ class VoxelEntry
 				return getMaterial() + 5;
 		}
 		// data members
-		union
-		{
-			unsigned int raw_rgba;
-			unsigned char col[4];
-		};
+		rgba_t col;
 		unsigned int flags;
 };
 

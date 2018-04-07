@@ -16,20 +16,6 @@
 #include <QDataStream>
 #include <iostream>
 
-union rgba_t
-{
-	uint32_t raw;
-	struct
-	{
-		uint8_t r, g, b, a;
-	};
-	char bytes[4];
-	rgba_t() {}
-	rgba_t(uint32_t rgba): raw(rgba) {}
-	rgba_t(uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4):
-		r(b1), g(b2), b(b3), a(b4) {}
-};
-
 struct mat_map_t
 {
 	rgba_t col;
@@ -37,6 +23,7 @@ struct mat_map_t
 };
 
 static const rgba_t col_mask(255, 255, 255, 0);
+static const rgba_t refpoint_col(255, 0, 255, 255);
 static const mat_map_t TypeMap[] =
 {
 	{ rgba_t(255, 255, 255, 255), Voxel::SOLID },
@@ -62,7 +49,7 @@ class SceneOp
 		virtual void operator()(rgba_t data, int x, int y, int z) = 0;
 		virtual rgba_t operator()(int x, int y, int z) const { return rgba_t(0); } // TODO: make pure virtual
 		void setAggregate(VoxelAggregate* agg) { aggregate = agg; }
-		bool matches(rgba_t c1, rgba_t c2)
+		static bool matches(rgba_t c1, rgba_t c2)
 		{
 			return ((c1.raw ^ c2.raw) & col_mask.raw) == 0;
 		}
@@ -85,7 +72,7 @@ class BaseColOp: public SceneOp
 			const VoxelEntry *entry = aggregate->getVoxel(pos);
 			if (entry && entry->flags & Voxel::VF_NON_EMPTY)
 			{
-				rgba_t data(entry->raw_rgba);
+				rgba_t data(entry->col.raw);
 				data.a = 255;
 				return data;
 			}
@@ -116,6 +103,19 @@ class TypeMapOp: public SceneOp
 				aggregate->setVoxel(pos, voxel);
 			}
 		}
+		rgba_t operator()(int x, int y, int z) const override
+		{
+			IVector3D pos(x, y, z);
+			const VoxelEntry *entry = aggregate->getVoxel(pos);
+			if (entry && entry->flags & Voxel::VF_NON_EMPTY)
+			{
+				int material = entry->getMaterial();
+				if (matches(entry->col, refpoint_col))
+					return refpoint_col;
+				return TypeMap[material].col;
+			}
+			return rgba_t(0);
+		}
 };
 
 class SpecMapOp: public SceneOp
@@ -141,6 +141,19 @@ class SpecMapOp: public SceneOp
 				aggregate->setVoxel(pos, voxel);
 			}
 		}
+		rgba_t operator()(int x, int y, int z) const override
+		{
+			IVector3D pos(x, y, z);
+			const VoxelEntry *entry = aggregate->getVoxel(pos);
+			if (entry && entry->flags & Voxel::VF_NON_EMPTY)
+			{
+				int specular = entry->getSpecular();
+				if (matches(entry->col, refpoint_col))
+					return refpoint_col;
+				return SpecularMap[specular].col;
+			}
+			return rgba_t(0);
+		}
 };
 
 class AlphaMapOp: public SceneOp
@@ -156,7 +169,7 @@ class AlphaMapOp: public SceneOp
 			if (!entry || !(entry->flags & Voxel::VF_NON_EMPTY) || !entry->isTransparent())
 				return;
 			VoxelEntry voxel(*entry);
-			voxel.col[3] = data.r;
+			voxel.col.a = data.r;
 			aggregate->setVoxel(pos, voxel);
 		}
 };

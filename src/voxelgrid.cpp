@@ -198,10 +198,10 @@ inline int VoxelGrid::writeFaces(const VoxelEntry &entry, uint8_t matIndex, int 
 			vertex.pos[0] = bound.pMin[0] + float(pos[0] + vpos[0]);
 			vertex.pos[1] = bound.pMin[1] + float(pos[1] + vpos[1]);
 			vertex.pos[2] = bound.pMin[2] + float(pos[2] + vpos[2]);
-			vertex.col[0] = entry.col[0];
-			vertex.col[1] = entry.col[1];
-			vertex.col[2] = entry.col[2];
-			vertex.col[3] = entry.col[3];
+			vertex.col[0] = entry.col.r;
+			vertex.col[1] = entry.col.g;
+			vertex.col[2] = entry.col.b;
+			vertex.col[3] = entry.col.a;
 			vertex.index = 4*face + i;
 			vertex.matIndex = matIndex;
 			vertex.texIndex = matIndex == 8 ? 0 : getNormalMapIndex(face, mask);
