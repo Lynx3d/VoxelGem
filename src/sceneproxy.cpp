@@ -177,6 +177,15 @@ bool SceneProxy::renameLayer(int layerN, const std::string &name)
 	return true;
 }
 
+void SceneProxy::setTemplateColor(rgba_t col)
+{
+	if (col != scene->voxelTemplate.col)
+	{
+		scene->voxelTemplate.col = col;
+		emit(templateColorChanged(scene->voxelTemplate.col));
+	}
+}
+
 void SceneProxy::undo()
 {
 	// on empty list, begin() == end()

@@ -48,6 +48,7 @@ VGMainWindow::VGMainWindow():
 	connect(paletteView, SIGNAL(entrySelected(const ColorSetEntry &)), this, SLOT(on_colorSetEntrySelected(const ColorSetEntry &)));
 	// layer editor
 	sceneProxy = new SceneProxy(scene, this);
+	connect(sceneProxy, &SceneProxy::templateColorChanged, this, &VGMainWindow::on_templateColorChanged);
 	LayerEditor *layer_ed = new LayerEditor(mainUi->layers, sceneProxy);
 	layer_ed->setParent(this);
 	// TODO: load tools in a better place...
@@ -161,15 +162,18 @@ void VGMainWindow::on_specular_currentIndexChanged(int index)
 
 void VGMainWindow::on_colorSelectionChanged(QColor col)
 {
-	scene->setTemplateColor(col.red(), col.green(), col.blue(), col.alpha());
-	emit(colorSelectionChanged(col));
+	sceneProxy->setTemplateColor(rgba_t(col.red(), col.green(), col.blue(), col.alpha()));
+}
+
+void VGMainWindow::on_templateColorChanged(rgba_t col)
+{
+	emit(colorSelectionChanged(QColor(col.r, col.g, col.b, col.a)));
 }
 
 void VGMainWindow::on_colorSetEntrySelected(const ColorSetEntry &entry)
 {
 	QColor col = entry.color;
-	scene->setTemplateColor(col.red(), col.green(), col.blue(), col.alpha());
-	emit(colorSelectionChanged(col));
+	sceneProxy->setTemplateColor(rgba_t(col.red(), col.green(), col.blue(), col.alpha()));
 }
 
 void VGMainWindow::on_toolActionTriggered(QAction *action)

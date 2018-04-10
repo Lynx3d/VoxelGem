@@ -9,6 +9,7 @@
 #ifndef VG_MAINWINDOW_H
 #define VG_MAINWINDOW_H
 
+#include <voxelgem.h>
 #include <map>
 #include <QMainWindow>
 
@@ -45,6 +46,7 @@ class VGMainWindow : public QMainWindow
 		void on_material_currentIndexChanged(int index);
 		void on_specular_currentIndexChanged(int index);
 		void on_colorSelectionChanged(QColor col);
+		void on_templateColorChanged(rgba_t col);
 		void on_colorSetEntrySelected(const ColorSetEntry &entry);
 		void on_toolActionTriggered(QAction *action);
 	Q_SIGNALS:

@@ -11,6 +11,8 @@
 
 #include <QObject>
 
+#include "voxelgem.h"
+
 #include <list>
 
 class IBBox;
@@ -64,6 +66,7 @@ class SceneProxy: public QObject
 		bool setLayerBoundUse(int layerN, bool enabled);
 		bool setLayerVisibility(int layerN, bool visible);
 		bool renameLayer(int layerN, const std::string &name);
+		void setTemplateColor(rgba_t col);
 		void undo();
 		void redo();
 	Q_SIGNALS:
@@ -71,6 +74,7 @@ class SceneProxy: public QObject
 		void layerCreated(int layerN);
 		void layerSettingsChanged(int layerN);
 		void activeLayerChanged(int layerN, int prev);
+		void templateColorChanged(rgba_t col);
 	protected:
 		void dropRedoHistory();
 		VoxelScene *scene;

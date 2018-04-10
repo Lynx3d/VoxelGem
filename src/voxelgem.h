@@ -54,6 +54,9 @@ union rgba_t
 		r(b1), g(b2), b(b3), a(b4) {}
 };
 
+static inline bool operator==(rgba_t c1, rgba_t c2) { return c1.raw == c2.raw; }
+static inline bool operator!=(rgba_t c1, rgba_t c2) { return c1.raw != c2.raw; }
+
 class VoxelEntry
 {
 
