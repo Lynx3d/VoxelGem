@@ -112,7 +112,7 @@ void VGMainWindow::on_action_redo_triggered()
 
 // TODO: create header
 void qubicle_import(const QString &filename, SceneProxy *sceneP);
-void qubicle_export(const QString &filename, VoxelScene &scene);
+void qubicle_export(const QString &filename, SceneProxy *sceneP);
 void qubicle_export_layer(const QString &filename, SceneProxy *sceneP);
 
 void VGMainWindow::on_action_open_triggered()
@@ -133,7 +133,7 @@ void VGMainWindow::on_action_save_triggered()
 	if (fileName.isEmpty())
 		return;
 	// TODO: add proper extension if not entered
-	qubicle_export(fileName, *scene);
+	qubicle_export(fileName, sceneProxy);
 }
 
 void VGMainWindow::on_action_export_layer_triggered()

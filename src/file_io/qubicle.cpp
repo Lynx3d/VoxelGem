@@ -359,33 +359,30 @@ void write_layer(QDataStream &fstream, const std::string &name, IBBox bound, Sce
 	}
 }
 
-void write_file(QDataStream &fstream, IBBox bound, SceneOp &dataOp)
+void qubicle_export(const QString &filename, SceneProxy *sceneP)
 {
-	// Qubicle files are little endian...
-	fstream.setByteOrder(QDataStream::LittleEndian);
-	write_file_header(fstream, 1);
-	write_layer(fstream, "VGEM", bound, dataOp);
-}
-
-void qubicle_export(const QString &filename, VoxelScene &scene)
-{
-	/* temporarily disabled...
 	QFileInfo file_info(filename);
-	if (!file_info.isWritable())
-	{
-		std::cout << filename.toStdString() << " not writable." << std::endl;
-		//return;
-	}
 	std::cout << "exporting " << filename.toStdString() << std::endl;
 	QFile file(file_info.filePath());
 	if (!file.open(QIODevice::WriteOnly))
 		return;
 	QDataStream fstream(&file);
+	// Qubicle files are little endian...
+	fstream.setByteOrder(QDataStream::LittleEndian);
 	BaseColOp colOp;
-	colOp.setAggregate(scene.getAggregate(1));
-	IBBox sceneBound(IVector3D(0,0,0), IVector3D(0,0,0)); // TODO: proper constructor
-	scene.getAggregate(1)->getBound(sceneBound);
-	write_file(fstream, sceneBound, colOp); */
+	int layerCount = sceneP->layerCount();
+	write_file_header(fstream, layerCount);
+	for (int i = 0; i < layerCount; ++i)
+	{
+		const VoxelLayer *layer = sceneP->getLayer(i);
+		colOp.setAggregate(layer->aggregate);
+		IBBox sceneBound(IVector3D(0,0,0), IVector3D(0,0,0)); // TODO: proper constructor
+		if (layer->useBound)
+			sceneBound = layer->bound;
+		else
+			layer->aggregate->getBound(sceneBound);
+		write_layer(fstream, layer->name, sceneBound, colOp);
+	}
 }
 
 void qubicle_export_layer(const QString &filename, SceneProxy *sceneP)
