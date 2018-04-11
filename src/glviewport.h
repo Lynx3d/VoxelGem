@@ -65,6 +65,7 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 	Q_OBJECT
 	public:
 		GlViewportWidget(VoxelScene *pscene): scene(pscene), dragStatus(DRAG_NONE), currentTool(0) {};
+		void setSamples(int numSamples);
 		static float sRGB_LUT[1024];
 		GLRenderable* getGrid();
 	private Q_SLOTS:

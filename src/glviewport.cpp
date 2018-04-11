@@ -156,6 +156,13 @@ void GlViewportWidget::generateUBOs()
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
+void GlViewportWidget::setSamples(int numSamples)
+{
+	QSurfaceFormat fmt = format();
+	fmt.setSamples(numSamples);
+	setFormat(fmt);
+}
+
 void GlViewportWidget::initializeGL()
 {
 	initializeOpenGLFunctions();
@@ -163,6 +170,9 @@ void GlViewportWidget::initializeGL()
 	glDebug = new QOpenGLDebugLogger(this);
 	if (glDebug->initialize())
 		std::cout << "OpenGL debug logging enabled!\n";
+	int32_t nmsg;
+	glGetIntegerv(GL_MAX_DEBUG_LOGGED_MESSAGES, &nmsg);
+	std::cout << "log limit: " << nmsg << " messages\n";
 #endif
 	glClearColor(0.2f, 0.3f, 0.35f, 1.0f);
 	// debug

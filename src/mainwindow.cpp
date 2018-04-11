@@ -32,6 +32,7 @@ VGMainWindow::VGMainWindow():
 	#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
 	viewport->setTextureFormat(GL_SRGB8_ALPHA8); /* Qt 5.10+ */
 	#endif
+	viewport->setSamples(4);
 	mainUi->glparent->layout()->addWidget(viewport);
 	// setup toolbar
 	toolGroup = new QActionGroup(this);
