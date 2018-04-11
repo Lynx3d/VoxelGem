@@ -18,7 +18,7 @@
 struct GlVertex_t
 {
 	float pos[3];
-	unsigned char col[4];
+	rgba_t col;
 };
 
 struct GlVoxelVertex_t

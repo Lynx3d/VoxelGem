@@ -101,8 +101,8 @@ void ViewportSettings::zoomBy(float dZ)
 	camDistance -= steps;
 	if (camDistance < 1)
 		camDistance = 1;
-	else if (camDistance > 20)
-		camDistance = 20;
+	else if (camDistance > 40)
+		camDistance = 40;
 	updateViewMatrix();
 }
 
@@ -213,7 +213,9 @@ void GlViewportWidget::initializeGL()
 	//GLInfoLib::getUniformsInfo(m_voxel_program->programId());
 
 	//testobject
-	testObject = new LineGrid();
+	LineGrid *grid = new LineGrid();
+	grid->setSize(32);
+	testObject = grid;
 
 	glEnable(GL_DEPTH_TEST);
 

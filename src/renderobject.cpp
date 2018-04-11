@@ -63,26 +63,32 @@ void LineGrid::render(QOpenGLFunctions_3_3_Core &glf)
 
 	if (dirty) // create and upload buffer
 	{
-		numVert = 4 + 8 * radius;
+		numVert = 8 + 8 * radius;
 		GlVertex_t *vertices = new GlVertex_t[numVert];
-		// coordinate cross
-		vertices[0] = {{ (float)-radius, 0.f, 0.f }, { 200, 0, 0, 255 }};
-		vertices[1] = {{ (float)radius, 0.f, 0.f }, { 200, 0, 0, 255 }};
-		vertices[2] = {{ 0.f, 0.f, (float)-radius }, { 0, 0, 200, 255 }};
-		vertices[3] = {{ 0.f, 0.f, (float)radius }, { 0, 0, 200, 255 }};
-		int v = 4;
+		// coordinate cross positive
+		vertices[0] = {{ 0.f, 0.f, 0.f }, 			rgba_t(200, 0, 0, 255)};
+		vertices[1] = {{ (float)radius, 0.f, 0.f }, rgba_t(200, 0, 0, 255)};
+		vertices[2] = {{ 0.f, 0.f, 0.f }, 			rgba_t(0, 0, 200, 255)};
+		vertices[3] = {{ 0.f, 0.f, (float)radius }, rgba_t(0, 0, 200, 255)};
+		// coordinate cross negative
+		vertices[4] = {{ (float)-radius, 0.f, 0.f }, rgba_t(150, 50, 50, 255)};
+		vertices[5] = {{ 0.f, 0.f, 0.f }, 			 rgba_t(150, 50, 50, 255)};
+		vertices[6] = {{ 0.f, 0.f, (float)-radius }, rgba_t(50, 50, 150, 255)};
+		vertices[7] = {{ 0.f, 0.f, 0.f }, 			 rgba_t(50, 50, 150, 255)};
+		int v = 8;
 		for (int i = 1; i <= radius; ++i)
 		{
+			rgba_t lineCol = (i & 0xf) ? rgba_t(128, 128, 128, 128) : rgba_t(80, 80, 80, 80);
 			// x-direction
-			vertices[v++] = {{ (float)-radius, 0.f, (float)i }, { 128, 128, 128, 255 }};
-			vertices[v++] = {{ (float)radius, 0.f, (float)i }, { 128, 128, 128, 255 }};
-			vertices[v++] = {{ (float)-radius, 0.f, (float)-i }, { 128, 128, 128, 255 }};
-			vertices[v++] = {{ (float)radius, 0.f, (float)-i }, { 128, 128, 128, 255 }};
+			vertices[v++] = {{ (float)-radius, 0.f, (float)i }, lineCol};
+			vertices[v++] = {{ (float)radius, 0.f, (float)i }, lineCol};
+			vertices[v++] = {{ (float)-radius, 0.f, (float)-i }, lineCol};
+			vertices[v++] = {{ (float)radius, 0.f, (float)-i }, lineCol};
 			// z-direction
-			vertices[v++] = {{ (float)i, 0.f, (float)-radius }, { 128, 128, 128, 255 }};
-			vertices[v++] = {{ (float)i, 0.f, (float)radius }, { 128, 128, 128, 255 }};
-			vertices[v++] = {{ (float)-i, 0.f, (float)-radius }, { 128, 128, 128, 255 }};
-			vertices[v++] = {{ (float)-i, 0.f, (float)radius }, { 128, 128, 128, 255 }};
+			vertices[v++] = {{ (float)i, 0.f, (float)-radius }, lineCol};
+			vertices[v++] = {{ (float)i, 0.f, (float)radius }, lineCol};
+			vertices[v++] = {{ (float)-i, 0.f, (float)-radius }, lineCol};
+			vertices[v++] = {{ (float)-i, 0.f, (float)radius }, lineCol};
 		}
 		uploadBuffer(glf, vertices, numVert * sizeof(GlVertex_t));
 		dirty = false;
@@ -128,4 +134,10 @@ bool LineGrid::rayIntersect(const ray_t &ray, IVector3D &hitPos, intersect_t &hi
 		return true;
 	}
 	return false;
+}
+
+void LineGrid::setSize(int gridSize)
+{
+	radius = gridSize;
+	dirty = true;
 }
