@@ -86,7 +86,7 @@ class VoxelScene
 		/* mark a voxel as erased in the editing layer */
 		void eraseVoxel(const IVector3D &pos);
 		/* read a voxel from the scene (exclude current edit changes) */
-		const VoxelEntry* getVoxel(const int pos[3]);
+		const VoxelEntry* getVoxel(const IVector3D &pos);
 		const VoxelEntry* getVoxelTemplate() const { return &voxelTemplate; }
 		/* probably an iterator/accessor class would be better */
 		const VoxelAggregate* getAggregate(int layer);

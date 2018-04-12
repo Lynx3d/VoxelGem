@@ -80,9 +80,9 @@ void VoxelScene::eraseVoxel(const IVector3D &pos)
 }
 
 // TODO!
-const VoxelEntry* VoxelScene::getVoxel(const int pos[3])
+const VoxelEntry* VoxelScene::getVoxel(const IVector3D &pos)
 {
-	return 0;
+	return editingLayer->aggregate->getVoxel(pos);
 }
 
 const VoxelAggregate* VoxelScene::getAggregate(int layer)

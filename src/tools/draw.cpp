@@ -17,6 +17,7 @@ void DrawTool::mouseDown(const ToolEvent &event, VoxelScene &scene)
 	if (!hit.didHit())
 		return;
 
+	// TODO: deleting must be set before returing on non-ray-hit
 	if (event.isShiftPressed())
 	{
 		deleting = true;

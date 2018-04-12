@@ -16,6 +16,7 @@
 #include "sceneproxy.h"
 // tools
 #include "tools/draw.h"
+#include "tools/paint.h"
 
 #include <QFileDialog>
 #include <QActionGroup>
@@ -54,6 +55,8 @@ VGMainWindow::VGMainWindow():
 	layer_ed->setParent(this);
 	// TODO: load tools in a better place...
 	ToolInstance *tool = DrawTool::getInstance();
+	addTool(tool);
+	tool = PaintTool::getInstance();
 	addTool(tool);
 }
 
