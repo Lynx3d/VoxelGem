@@ -118,7 +118,7 @@ void VGMainWindow::on_action_redo_triggered()
 // TODO: create header
 void qubicle_import(const QString &filename, SceneProxy *sceneP);
 void qubicle_export(const QString &filename, SceneProxy *sceneP);
-void qubicle_export_layer(const QString &filename, SceneProxy *sceneP);
+void qubicle_export_layer(const QString &filename, SceneProxy *sceneP, bool trove_maps);
 
 void VGMainWindow::on_action_open_triggered()
 {
@@ -149,7 +149,7 @@ void VGMainWindow::on_action_export_layer_triggered()
 	if (fileName.isEmpty())
 		return;
 	// TODO: add proper extension if not entered
-	qubicle_export_layer(fileName, sceneProxy);
+	qubicle_export_layer(fileName, sceneProxy, true);
 }
 
 void VGMainWindow::on_material_currentIndexChanged(int index)

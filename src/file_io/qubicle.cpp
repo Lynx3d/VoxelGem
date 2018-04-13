@@ -172,6 +172,19 @@ class AlphaMapOp: public SceneOp
 			voxel.col.a = data.r;
 			aggregate->setVoxel(pos, voxel);
 		}
+		rgba_t operator()(int x, int y, int z) const override
+		{
+			IVector3D pos(x, y, z);
+			const VoxelEntry *entry = aggregate->getVoxel(pos);
+			if (entry && entry->flags & Voxel::VF_NON_EMPTY)
+			{
+				if (matches(entry->col, refpoint_col))
+					return refpoint_col;
+				uint8_t alpha = (entry->col.a == 255) ? 255 : (entry->col.a & 0xE0) + 0x10;
+				return rgba_t(alpha, alpha, alpha, 255);
+			}
+			return rgba_t(0);
+		}
 };
 
 void parse_file(QDataStream &fstream, SceneOp &dataOp, std::vector<VoxelLayer*> &layers)
@@ -385,7 +398,7 @@ void qubicle_export(const QString &filename, SceneProxy *sceneP)
 	}
 }
 
-void qubicle_export_layer(const QString &filename, SceneProxy *sceneP)
+void qubicle_export_layer(const QString &filename, SceneProxy *sceneP, bool trove_maps)
 {
 	QFileInfo file_info(filename);
 	if (!file_info.isWritable())
@@ -410,4 +423,45 @@ void qubicle_export_layer(const QString &filename, SceneProxy *sceneP)
 		layer->aggregate->getBound(sceneBound);
 	write_file_header(fstream, 1);
 	write_layer(fstream, layer->name, sceneBound, colOp);
+	if (trove_maps)
+	{
+		QString base = file_info.completeBaseName();
+		QString suffix = file_info.suffix();
+		//== Type Map ==//
+		QFileInfo typemap_info(file_info.dir(), base + "_t." + suffix);
+		std::cout << "exporting " << typemap_info.filePath().toStdString() << std::endl;
+		QFile type_file(typemap_info.filePath());
+		if (!type_file.open(QIODevice::WriteOnly))
+			return;
+		QDataStream type_stream(&type_file);
+		type_stream.setByteOrder(QDataStream::LittleEndian);
+		TypeMapOp typeOp;
+		typeOp.setAggregate(layer->aggregate);
+		write_file_header(type_stream, 1);
+		write_layer(type_stream, layer->name, sceneBound, typeOp);
+		//== Specular Map ==//
+		QFileInfo specmap_info(file_info.dir(), base + "_s." + suffix);
+		std::cout << "exporting " << specmap_info.filePath().toStdString() << std::endl;
+		QFile spec_file(specmap_info.filePath());
+		if (!spec_file.open(QIODevice::WriteOnly))
+			return;
+		QDataStream spec_stream(&spec_file);
+		spec_stream.setByteOrder(QDataStream::LittleEndian);
+		SpecMapOp specOp;
+		specOp.setAggregate(layer->aggregate);
+		write_file_header(spec_stream, 1);
+		write_layer(spec_stream, layer->name, sceneBound, specOp);
+		//== Alpha Map ==//
+		QFileInfo alphamap_info(file_info.dir(), base + "_a." + suffix);
+		std::cout << "exporting " << alphamap_info.filePath().toStdString() << std::endl;
+		QFile alpha_file(alphamap_info.filePath());
+		if (!alpha_file.open(QIODevice::WriteOnly))
+			return;
+		QDataStream alpha_stream(&alpha_file);
+		alpha_stream.setByteOrder(QDataStream::LittleEndian);
+		AlphaMapOp alphaOp;
+		alphaOp.setAggregate(layer->aggregate);
+		write_file_header(alpha_stream, 1);
+		write_layer(alpha_stream, layer->name, sceneBound, alphaOp);
+	}
 }
