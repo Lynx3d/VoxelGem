@@ -22,9 +22,11 @@ struct mat_map_t
 	int property;
 };
 
-static const rgba_t col_mask(255, 255, 255, 0);
-static const rgba_t refpoint_col(255, 0, 255, 255);
-static const mat_map_t TypeMap[] =
+const rgba_t CODEFLAG(2, 0, 0, 0);
+const rgba_t NEXTSLICEFLAG(6, 0, 0, 0);
+const rgba_t col_mask(255, 255, 255, 0);
+const rgba_t refpoint_col(255, 0, 255, 255);
+const mat_map_t TypeMap[] =
 {
 	{ rgba_t(255, 255, 255, 255), Voxel::SOLID },
 	{ rgba_t(255,   0,   0, 255), Voxel::GLOWING_SOLID },
@@ -33,7 +35,7 @@ static const mat_map_t TypeMap[] =
 	{ rgba_t(255, 255,   0, 255), Voxel::GLOWING_GLASS }
 };
 
-static const mat_map_t SpecularMap[] =
+const mat_map_t SpecularMap[] =
 {
 	{ rgba_t(128,   0,   0, 255), Voxel::ROUGH },
 	{ rgba_t(  0, 128,   0, 255), Voxel::METAL },
@@ -192,8 +194,6 @@ void parse_file(QDataStream &fstream, SceneOp &dataOp, std::vector<VoxelLayer*> 
 	bool create = (layers.size() == 0);
 	// Qubicle files are little endian...
 	fstream.setByteOrder(QDataStream::LittleEndian);
-	const rgba_t CODEFLAG(2, 0, 0, 0);
-	const rgba_t NEXTSLICEFLAG(6, 0, 0, 0);
 	uint32_t version, colorFormat, zRight, compressed, visibilityMaskEncoded, numMatrices;
 	fstream >> version;
 	fstream >> colorFormat;
@@ -341,17 +341,31 @@ void qubicle_import(const QString &filename, SceneProxy *sceneP)
 		sceneP->insertLayer(layer);
 }
 
-void write_file_header(QDataStream &fstream, uint32_t numLayers)
+void write_file_header(QDataStream &fstream, uint32_t numLayers, bool compressed)
 {
 	fstream << (uint32_t)0x01010000; // Version 1.1.0.0
 	fstream << (uint32_t)0; // RGBA format
 	fstream << (uint32_t)1; // right-handed
-	fstream << (uint32_t)0; // uncompressed
+	fstream << (uint32_t)compressed;
 	fstream << (uint32_t)0; // no visibility mask encoding
 	fstream << numLayers; // currently only support 1 matrix
 }
 
-void write_layer(QDataStream &fstream, const std::string &name, IBBox bound, SceneOp &dataOp)
+void writeRun(QDataStream &fstream, rgba_t col, uint32_t count)
+{
+	// count == 0 happens at new slice, need to skip
+	if (count > 0 && count <= 3)
+		for (uint32_t i = 0; i < count; ++i)
+			fstream << col.raw;
+	else if (count > 3)
+	{
+		fstream << CODEFLAG.raw;
+		fstream << count;
+		fstream << col.raw;
+	}
+}
+
+void write_layer(QDataStream &fstream, const std::string &name, IBBox bound, SceneOp &dataOp, bool compressed)
 {
 	// name length
 	uint8_t nameLen = std::min(255, (int)name.length());
@@ -363,17 +377,46 @@ void write_layer(QDataStream &fstream, const std::string &name, IBBox bound, Sce
 	fstream << bound.pMax[2] - bound.pMin[2];
 	// matrix position; z gets inverted here => upper bound becomes lower pos
 	fstream << bound.pMin[0] << bound.pMin[1] << -bound.pMax[2] + 1;
-	// voxels; z gets inverted here
-	for (int z =  bound.pMax[2] - 1; z >= bound.pMin[2]; --z)
-		for (int y = bound.pMin[1]; y < bound.pMax[1]; ++y)
-			for (int x = bound.pMin[0]; x < bound.pMax[0]; ++x)
+	if (compressed)
 	{
-		fstream << dataOp(x, y, z).raw;
+		// voxels; z gets inverted here
+		for (int z =  bound.pMax[2] - 1; z >= bound.pMin[2]; --z)
+		{
+			rgba_t lastData(0);
+			uint32_t count = 0;
+
+			for (int y = bound.pMin[1]; y < bound.pMax[1]; ++y)
+				for (int x = bound.pMin[0]; x < bound.pMax[0]; ++x)
+			{
+				rgba_t data = dataOp(x, y, z);
+				if (data != lastData)
+				{
+					writeRun(fstream, lastData, count);
+					count = 0;
+					lastData = data;
+				}
+				++count;
+			}
+			writeRun(fstream, lastData, count);
+			count = 0;
+			fstream << NEXTSLICEFLAG.raw;
+		}
+	}
+	else
+	{
+		// voxels; z gets inverted here
+		for (int z =  bound.pMax[2] - 1; z >= bound.pMin[2]; --z)
+			for (int y = bound.pMin[1]; y < bound.pMax[1]; ++y)
+				for (int x = bound.pMin[0]; x < bound.pMax[0]; ++x)
+		{
+			fstream << dataOp(x, y, z).raw;
+		}
 	}
 }
 
 void qubicle_export(const QString &filename, SceneProxy *sceneP)
 {
+	bool compressed = true;
 	QFileInfo file_info(filename);
 	std::cout << "exporting " << filename.toStdString() << std::endl;
 	QFile file(file_info.filePath());
@@ -384,7 +427,7 @@ void qubicle_export(const QString &filename, SceneProxy *sceneP)
 	fstream.setByteOrder(QDataStream::LittleEndian);
 	BaseColOp colOp;
 	int layerCount = sceneP->layerCount();
-	write_file_header(fstream, layerCount);
+	write_file_header(fstream, layerCount, compressed);
 	for (int i = 0; i < layerCount; ++i)
 	{
 		const VoxelLayer *layer = sceneP->getLayer(i);
@@ -394,12 +437,13 @@ void qubicle_export(const QString &filename, SceneProxy *sceneP)
 			sceneBound = layer->bound;
 		else
 			layer->aggregate->getBound(sceneBound);
-		write_layer(fstream, layer->name, sceneBound, colOp);
+		write_layer(fstream, layer->name, sceneBound, colOp, compressed);
 	}
 }
 
 void qubicle_export_layer(const QString &filename, SceneProxy *sceneP, bool trove_maps)
 {
+	bool compressed = true;
 	QFileInfo file_info(filename);
 	if (!file_info.isWritable())
 	{
@@ -421,8 +465,8 @@ void qubicle_export_layer(const QString &filename, SceneProxy *sceneP, bool trov
 		sceneBound = layer->bound;
 	else
 		layer->aggregate->getBound(sceneBound);
-	write_file_header(fstream, 1);
-	write_layer(fstream, layer->name, sceneBound, colOp);
+	write_file_header(fstream, 1, compressed);
+	write_layer(fstream, layer->name, sceneBound, colOp, compressed);
 	if (trove_maps)
 	{
 		QString base = file_info.completeBaseName();
@@ -437,8 +481,8 @@ void qubicle_export_layer(const QString &filename, SceneProxy *sceneP, bool trov
 		type_stream.setByteOrder(QDataStream::LittleEndian);
 		TypeMapOp typeOp;
 		typeOp.setAggregate(layer->aggregate);
-		write_file_header(type_stream, 1);
-		write_layer(type_stream, layer->name, sceneBound, typeOp);
+		write_file_header(type_stream, 1, compressed);
+		write_layer(type_stream, layer->name, sceneBound, typeOp, compressed);
 		//== Specular Map ==//
 		QFileInfo specmap_info(file_info.dir(), base + "_s." + suffix);
 		std::cout << "exporting " << specmap_info.filePath().toStdString() << std::endl;
@@ -449,8 +493,8 @@ void qubicle_export_layer(const QString &filename, SceneProxy *sceneP, bool trov
 		spec_stream.setByteOrder(QDataStream::LittleEndian);
 		SpecMapOp specOp;
 		specOp.setAggregate(layer->aggregate);
-		write_file_header(spec_stream, 1);
-		write_layer(spec_stream, layer->name, sceneBound, specOp);
+		write_file_header(spec_stream, 1, compressed);
+		write_layer(spec_stream, layer->name, sceneBound, specOp, compressed);
 		//== Alpha Map ==//
 		QFileInfo alphamap_info(file_info.dir(), base + "_a." + suffix);
 		std::cout << "exporting " << alphamap_info.filePath().toStdString() << std::endl;
@@ -461,7 +505,7 @@ void qubicle_export_layer(const QString &filename, SceneProxy *sceneP, bool trov
 		alpha_stream.setByteOrder(QDataStream::LittleEndian);
 		AlphaMapOp alphaOp;
 		alphaOp.setAggregate(layer->aggregate);
-		write_file_header(alpha_stream, 1);
-		write_layer(alpha_stream, layer->name, sceneBound, alphaOp);
+		write_file_header(alpha_stream, 1, compressed);
+		write_layer(alpha_stream, layer->name, sceneBound, alphaOp, compressed);
 	}
 }
