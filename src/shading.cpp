@@ -8,7 +8,13 @@
 
 #include "shading.h"
 
+#include <vector>
 #include <cstring>
+#include <QOpenGLShaderProgram>
+#include <QString>
+#include <QByteArray>
+#include <QFile>
+#include <iostream>
 
 #define MAP_RES 64
 #define UV_LO (0.5f / MAP_RES)
@@ -213,4 +219,55 @@ GLuint genNormalTex(QOpenGLFunctions_3_3_Core &glf)
 	}
 	delete[] data;
 	return normal_tex;
+}
+
+static std::vector<QOpenGLShader*> VG_SHADERS;
+static std::vector<QOpenGLShaderProgram*> VG_SHADER_PROGS;
+
+static QOpenGLShader* loadShader(QOpenGLShader::ShaderType type, const QString &filename)
+{
+	QFile shaderFile(filename);
+	if (!shaderFile.open(QIODevice::ReadOnly))
+		return nullptr;
+
+	QByteArray shaderCode = shaderFile.readAll();
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
+	static const QByteArray GLSL_defines("#define QT_5_10\n");
+#else
+	static const QByteArray GLSL_defines("#define QT_5_9\n");
+#endif
+	shaderCode.replace("//VOXELGEM_DEFINES", GLSL_defines);
+	QOpenGLShader *shader = new QOpenGLShader(type /*TODO: QObject as parent when stored in class*/);
+	if (!shader->compileSourceCode(shaderCode))
+	{
+		delete shader;
+		return nullptr;
+	}
+	return shader;
+}
+
+void initShaders(QOpenGLFunctions_3_3_Core &glf)
+{
+	VG_SHADERS.resize(SHADER_MAX_ID);
+	VG_SHADER_PROGS.resize(SHADERPROG_MAX_ID);
+	// voxel shader
+	VG_SHADERS[VT_SHADER_VOXEL] = loadShader(QOpenGLShader::Fragment, ":/shader/voxel_fragment.glsl");
+	VG_SHADERS[FR_SHADER_VOXEL] = loadShader(QOpenGLShader::Vertex, ":/shader/voxel_vertex.glsl");
+
+	QOpenGLShaderProgram *program;
+	program = new QOpenGLShaderProgram(/*TODO: QObject as parent when stored in class*/);
+	// TODO: make sure both shaders could be created
+	program->addShader(VG_SHADERS[VT_SHADER_VOXEL]);
+	program->addShader(VG_SHADERS[FR_SHADER_VOXEL]);
+	if (!program->link())
+	{
+		std::cout << "linking failed!\n";
+		std::cout << program->log().toStdString() << std::endl;
+	}
+	VG_SHADER_PROGS[SHADER_VOXEL] = program;
+}
+
+QOpenGLShaderProgram* getShaderProgram(ShaderProgId program)
+{
+	return VG_SHADER_PROGS[program];
 }

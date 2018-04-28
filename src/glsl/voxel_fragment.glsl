@@ -1,4 +1,7 @@
 #version 330
+
+//VOXELGEM_DEFINES
+
 in vec4 frag_color;
 in vec3 frag_normal;
 in vec3 frag_tangent;
@@ -56,4 +59,7 @@ void main()
 	final_color += spec * m_prop.spec_amount * light_col * mix(vec4(1.0), frag_color, m_prop.spec_tinting);
 	// Trove renders specular highlights increasingly opaque rather than as additive effect
 	final_color.a = frag_color.a + spec;
+#ifndef QT_5_10
+	final_color.rgb = pow(final_color.rgb, vec3(1.0/2.2));
+#endif
 }

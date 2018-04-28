@@ -125,7 +125,7 @@ void ViewportSettings::updateViewMatrix()
 
 /* ========== GlViewportWidget ==============*/
 // TODO: create proper shader library
-QOpenGLShaderProgram *m_program, *m_voxel_program;
+QOpenGLShaderProgram *m_program;
 GLRenderable *testObject;
 
 void GlViewportWidget::generateUBOs()
@@ -185,6 +185,7 @@ void GlViewportWidget::initializeGL()
 			<< std::endl;
 
 	generateUBOs();
+	initShaders(*this);
 	m_normal_tex = genNormalTex(*this);
 	// load shaders
 	m_program = new QOpenGLShaderProgram(/*TODO: "self" as parent when stored in class*/);
@@ -199,18 +200,15 @@ void GlViewportWidget::initializeGL()
 	glUniformBlockBinding(m_program->programId(), block_index, 0);
 	m_program->release();
 
-	m_voxel_program = new QOpenGLShaderProgram(/*TODO: "self" as parent when stored in class*/);
-	m_voxel_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shader/voxel_fragment.glsl");
-	m_voxel_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shader/voxel_vertex.glsl");
-	m_voxel_program->link();
-	m_voxel_program->bind();
+	QOpenGLShaderProgram* voxelProgram = getShaderProgram(SHADER_VOXEL);
+	voxelProgram->bind();
 	// connect sRGB and material UBO
-	block_index = glGetUniformBlockIndex(m_voxel_program->programId(), "sRGB_LUT");
-	glUniformBlockBinding(m_voxel_program->programId(), block_index, 0);
-	block_index = glGetUniformBlockIndex(m_voxel_program->programId(), "materials");
-	glUniformBlockBinding(m_voxel_program->programId(), block_index, 1);
+	block_index = glGetUniformBlockIndex(voxelProgram->programId(), "sRGB_LUT");
+	glUniformBlockBinding(voxelProgram->programId(), block_index, 0);
+	block_index = glGetUniformBlockIndex(voxelProgram->programId(), "materials");
+	glUniformBlockBinding(voxelProgram->programId(), block_index, 1);
 	// test: print UBO layout info
-	//GLInfoLib::getUniformsInfo(m_voxel_program->programId());
+	//GLInfoLib::getUniformsInfo(voxelProgram->programId());
 
 	//testobject
 	LineGrid *grid = new LineGrid();
@@ -256,15 +254,15 @@ void GlViewportWidget::paintGL()
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
-	m_voxel_program->bind();
-	m_voxel_program->setUniformValue("mvp_mat", final);
-	m_voxel_program->setUniformValue("view_mat", vpSettings->getViewMatrix());
+	QOpenGLShaderProgram* voxelProgram = getShaderProgram(SHADER_VOXEL);
+	voxelProgram->bind();
+	voxelProgram->setUniformValue("mvp_mat", final);
+	voxelProgram->setUniformValue("view_mat", vpSettings->getViewMatrix());
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_normal_tex);
 	//scene->renderLayer->render(*this);
 	scene->render(*this);
-	m_program->release();
 	glDisable(GL_CULL_FACE);
 
 #if DEBUG_GL
