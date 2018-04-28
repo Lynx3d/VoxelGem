@@ -14,8 +14,6 @@
 
 #include <QOpenGLShaderProgram>
 
-extern QOpenGLShaderProgram *m_program, *m_voxel_program;
-
 GLuint g_indexBuffer = 0;
 GlVoxelVertex_t *g_vertexBuffer = 0;
 
@@ -333,23 +331,28 @@ void initIndexBuffer(QOpenGLFunctions_3_3_Core &glf)
 
 void RenderGrid::setup(QOpenGLFunctions_3_3_Core &glf)
 {
-	m_voxel_program->bind();
-	m_voxel_program->enableAttributeArray("v_position");
+	// Attribute 0: vertex position
+	glf.glEnableVertexAttribArray(0);
 	glf.glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(GlVoxelVertex_t),
 								(const GLvoid*)offsetof(GlVoxelVertex_t, pos));
-	m_voxel_program->enableAttributeArray("v_color");
+	// Attribute 1: vertex color
+	glf.glEnableVertexAttribArray(1);
 	glf.glVertexAttribIPointer(1, 4, GL_UNSIGNED_BYTE, sizeof(GlVoxelVertex_t),
 								(const GLvoid*)offsetof(GlVoxelVertex_t, col));
-	m_voxel_program->enableAttributeArray("v_index");
+	// Attribute 2: vertex index
+	glf.glEnableVertexAttribArray(2);
 	glf.glVertexAttribIPointer(2, 1, GL_UNSIGNED_BYTE, sizeof(GlVoxelVertex_t),
 								(const GLvoid*)offsetof(GlVoxelVertex_t, index));
-	m_voxel_program->enableAttributeArray("v_mat_index");
+	// Attribute 3: vertex material index
+	glf.glEnableVertexAttribArray(3);
 	glf.glVertexAttribIPointer(3, 1, GL_UNSIGNED_BYTE, sizeof(GlVoxelVertex_t),
 								(const GLvoid*)offsetof(GlVoxelVertex_t, matIndex));
-	m_voxel_program->enableAttributeArray("v_tex_index");
+	// Attribute 4: vertex texture index (normal map/glow map)
+	glf.glEnableVertexAttribArray(4);
 	glf.glVertexAttribIPointer(4, 1, GL_UNSIGNED_BYTE, sizeof(GlVoxelVertex_t),
 								(const GLvoid*)offsetof(GlVoxelVertex_t, texIndex));
-	m_voxel_program->enableAttributeArray("v_occlusion");
+	// Attribute 5: vertex occlusion
+	glf.glEnableVertexAttribArray(5);
 	glf.glVertexAttribPointer(5, 1, GL_UNSIGNED_BYTE, false, sizeof(GlVoxelVertex_t),
 								(const GLvoid*)offsetof(GlVoxelVertex_t, occlusion));
 }
