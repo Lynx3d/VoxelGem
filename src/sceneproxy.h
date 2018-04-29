@@ -75,6 +75,7 @@ class SceneProxy: public QObject
 		void layerSettingsChanged(int layerN);
 		void activeLayerChanged(int layerN, int prev);
 		void templateColorChanged(rgba_t col);
+		void renderDataChanged();
 	protected:
 		void dropRedoHistory();
 		VoxelScene *scene;

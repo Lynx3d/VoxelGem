@@ -68,8 +68,9 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 		void setSamples(int numSamples);
 		static float sRGB_LUT[1024];
 		GLRenderable* getGrid();
-	private Q_SLOTS:
+	public Q_SLOTS:
 		void on_activeToolChanged(EditTool *tool);
+		void on_renderDataChanged();
 	protected:
 		void generateUBOs();
 		void initializeGL() override;

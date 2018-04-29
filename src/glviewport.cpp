@@ -342,3 +342,8 @@ void GlViewportWidget::on_activeToolChanged(EditTool *tool)
 		currentTool = tool;
 	}
 }
+
+void GlViewportWidget::on_renderDataChanged()
+{
+	update();
+}

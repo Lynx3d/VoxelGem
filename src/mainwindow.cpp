@@ -51,6 +51,7 @@ VGMainWindow::VGMainWindow():
 	// layer editor
 	sceneProxy = new SceneProxy(scene, this);
 	connect(sceneProxy, &SceneProxy::templateColorChanged, this, &VGMainWindow::on_templateColorChanged);
+	connect(sceneProxy, &SceneProxy::renderDataChanged, viewport, &GlViewportWidget::on_renderDataChanged);
 	LayerEditor *layer_ed = new LayerEditor(mainUi->layers, sceneProxy);
 	layer_ed->setParent(this);
 	// TODO: load tools in a better place...
@@ -98,21 +99,11 @@ void VGMainWindow::on_action_axis_grids_triggered(bool checked)
 void VGMainWindow::on_action_undo_triggered()
 {
 	sceneProxy->undo();
-	if (scene->needsUpdate())
-	{
-		scene->update();
-		viewport->update();
-	}
 }
 
 void VGMainWindow::on_action_redo_triggered()
 {
 	sceneProxy->redo();
-	if (scene->needsUpdate())
-	{
-		scene->update();
-		viewport->update();
-	}
 }
 
 // TODO: create header

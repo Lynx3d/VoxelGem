@@ -105,6 +105,7 @@ bool SceneProxy::insertLayer(VoxelLayer *layer, int layerN)
 	undoState = editHistory.end();
 
 	emit(layerCreated(layerN));
+	emit(renderDataChanged());
 	return true;
 }
 
@@ -123,6 +124,7 @@ bool SceneProxy::deleteLayer(int layerN)
 	undoState = editHistory.end();
 
 	emit(layerDeleted(layerN));
+	emit(renderDataChanged());
 	return true;
 }
 
@@ -163,8 +165,8 @@ bool SceneProxy::setLayerVisibility(int layerN, bool visible)
 		return false;
 	scene->layers[layerN]->visible = visible;
 	//TODO: emit(layerSettingsChanged(layerN)); ?
-	//      add a mechanism to redraw scene
 	scene->dirty = true;
+	emit(renderDataChanged());
 	return true;
 }
 
@@ -215,6 +217,7 @@ void SceneProxy::undo()
 		case SceneMemento::INVALID_ACTION:
 			std::cout << "Invalid undo state!\n";
 	}
+	emit(renderDataChanged());
 }
 
 void SceneProxy::redo()
@@ -245,4 +248,5 @@ void SceneProxy::redo()
 	}
 	// undoState points one beyond current state, i.e. the first redo state
 	++undoState;
+	emit(renderDataChanged());
 }
