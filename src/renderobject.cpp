@@ -14,8 +14,6 @@
 
 #include <QOpenGLShaderProgram>
 
-extern QOpenGLShaderProgram* m_program;
-
 // Note: leaves the array buffer bound
 void GLRenderable::uploadBuffer(QOpenGLFunctions_3_3_Core &glf, void *data, GLsizeiptr size)
 {
@@ -46,11 +44,11 @@ void GLRenderable::deleteBuffer(QOpenGLFunctions_3_3_Core &glf)
 
 void LineGrid::setup(QOpenGLFunctions_3_3_Core &glf)
 {
-	m_program->bind();
-	m_program->enableAttributeArray("v_position");
+	// Attribute 0: vertex position
+	glf.glEnableVertexAttribArray(0);
 	glf.glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(GlVertex_t), (const GLvoid*)offsetof(GlVertex_t, pos));
-	m_program->enableAttributeArray("v_color");
-	//glf.glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(GlVertex_t), (const GLvoid*)offsetof(GlVertex_t, col));
+	// Attribute 1: vertex color
+	glf.glEnableVertexAttribArray(1);
 	glf.glVertexAttribIPointer(1, 4, GL_UNSIGNED_BYTE, sizeof(GlVertex_t), (const GLvoid*)offsetof(GlVertex_t, col));
 }
 

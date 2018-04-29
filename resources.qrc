@@ -1,20 +1,22 @@
 <RCC>
   <qresource prefix="images">
 	<file>gfx/icons/block.svg</file>
-    <file>gfx/icons/edit-redo.svg</file>
-    <file>gfx/icons/edit-undo.svg</file>
-    <file>gfx/icons/disk.svg</file>
-    <file>gfx/icons/document-new.svg</file>
-    <file>gfx/icons/folder.svg</file>
-    <file>gfx/icons/grid.svg</file>
+	<file>gfx/icons/edit-redo.svg</file>
+	<file>gfx/icons/edit-undo.svg</file>
+	<file>gfx/icons/disk.svg</file>
+	<file>gfx/icons/document-new.svg</file>
+	<file>gfx/icons/folder.svg</file>
+	<file>gfx/icons/grid.svg</file>
 	<file>gfx/icons/paintbrush.svg</file>
-    <file>gfx/icons/palette.svg</file>
+	<file>gfx/icons/palette.svg</file>
 	<file>gfx/icons/pencil.svg</file>
 	<file>gfx/icons/visible.svg</file>
 	<file>gfx/icons/visible_off.svg</file>
   </qresource>
   <qresource prefix="shader">
-    <file alias="voxel_fragment.glsl">src/glsl/voxel_fragment.glsl</file>
+	<file alias="flat_col_fragment.glsl">src/glsl/flat_col_fragment.glsl</file>
+	<file alias="flat_col_vertex.glsl">src/glsl/flat_col_vertex.glsl</file>
+	<file alias="voxel_fragment.glsl">src/glsl/voxel_fragment.glsl</file>
 	<file alias="voxel_vertex.glsl">src/glsl/voxel_vertex.glsl</file>
   </qresource>
 </RCC>

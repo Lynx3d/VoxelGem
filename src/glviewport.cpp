@@ -21,30 +21,6 @@
 
 float GlViewportWidget::sRGB_LUT[1024];
 
-const char* v_shader =
-"#version 330\n"
-"layout(location = 0) in vec3 v_position;\n"
-"layout(location = 1) in uvec4 v_color;\n"
-"out vec4 frag_color;\n"
-"uniform mat4 mvp_mat;\n"
-"layout (std140) uniform sRGB_LUT {\n"
-"	vec4 val[256];\n"
-"};\n"
-"void main() {\n"
-"	gl_Position = mvp_mat * vec4(v_position, 1);\n"
-"	frag_color = vec4(val[v_color.r].a, val[v_color.g].a, val[v_color.b].a, float(v_color.a)/255.0);\n"
-//"	frag_color = v_color;\n"
-"}\n";
-
-const char* flat_shader =
-"#version 330\n"
-"in vec4 frag_color;\n"
-"out vec4 final_color;\n"
-"void main() {\n"
-"	final_color = frag_color;\n"
-"}";
-
-
 /* ========== GlViewportSettings ==============*/
 /* QMatrix4x4().perspective(...) * QMatrix().lookAt(...);
    is equivalent to
@@ -124,8 +100,7 @@ void ViewportSettings::updateViewMatrix()
 }
 
 /* ========== GlViewportWidget ==============*/
-// TODO: create proper shader library
-QOpenGLShaderProgram *m_program;
+
 GLRenderable *testObject;
 
 void GlViewportWidget::generateUBOs()
@@ -185,20 +160,17 @@ void GlViewportWidget::initializeGL()
 			<< std::endl;
 
 	generateUBOs();
+	// load shaders
 	initShaders(*this);
 	m_normal_tex = genNormalTex(*this);
-	// load shaders
-	m_program = new QOpenGLShaderProgram(/*TODO: "self" as parent when stored in class*/);
-	m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, v_shader);
-	m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, flat_shader);
-	m_program->link();
-	m_program->bind();
+
+	QOpenGLShaderProgram* flatProgram = getShaderProgram(SHADER_FLAT_COLOR);
+	flatProgram->bind(); // unnecessary?
 	// test: print UBO layout info
-	//GLInfoLib::getUniformsInfo(m_program->programId());
+	//GLInfoLib::getUniformsInfo(flatProgram->programId());
 	// connect sRGB UBO
-	GLuint block_index = glGetUniformBlockIndex(m_program->programId(), "sRGB_LUT");
-	glUniformBlockBinding(m_program->programId(), block_index, 0);
-	m_program->release();
+	GLuint block_index = glGetUniformBlockIndex(flatProgram->programId(), "sRGB_LUT");
+	glUniformBlockBinding(flatProgram->programId(), block_index, 0);
 
 	QOpenGLShaderProgram* voxelProgram = getShaderProgram(SHADER_VOXEL);
 	voxelProgram->bind();
@@ -242,11 +214,12 @@ void GlViewportWidget::paintGL()
 	glEnable(GL_FRAMEBUFFER_SRGB); // no effect prior to Qt 5.10+ (no way to request sRGB buffers)
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	m_program->bind();
 
 	QMatrix4x4 final = vpSettings->getGlMatrix();
 
-	m_program->setUniformValue("mvp_mat", final);
+	QOpenGLShaderProgram* flatProgram = getShaderProgram(SHADER_FLAT_COLOR);
+	flatProgram->bind();
+	flatProgram->setUniformValue("mvp_mat", final);
 	glBindBuffer(GL_UNIFORM_BUFFER, m_ubo_LUT);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ubo_LUT);
 	// test object

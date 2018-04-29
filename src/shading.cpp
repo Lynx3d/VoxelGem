@@ -246,25 +246,33 @@ static QOpenGLShader* loadShader(QOpenGLShader::ShaderType type, const QString &
 	return shader;
 }
 
+static QOpenGLShaderProgram* createProgram(QOpenGLShader *vtx, QOpenGLShader *frag)
+{
+	QOpenGLShaderProgram *program = new QOpenGLShaderProgram(/*TODO: QObject as parent when stored in class*/);
+	program->addShader(vtx);
+	program->addShader(frag);
+	if (!program->link())
+	{
+		std::cout << "Failed to link program!\n";
+		std::cout << program->log().toStdString() << std::endl;
+	}
+	return program;
+}
+
 void initShaders(QOpenGLFunctions_3_3_Core &glf)
 {
 	VG_SHADERS.resize(SHADER_MAX_ID);
 	VG_SHADER_PROGS.resize(SHADERPROG_MAX_ID);
 	// voxel shader
-	VG_SHADERS[VT_SHADER_VOXEL] = loadShader(QOpenGLShader::Fragment, ":/shader/voxel_fragment.glsl");
-	VG_SHADERS[FR_SHADER_VOXEL] = loadShader(QOpenGLShader::Vertex, ":/shader/voxel_vertex.glsl");
+	VG_SHADERS[VT_SHADER_VOXEL] = loadShader(QOpenGLShader::Vertex, ":/shader/voxel_vertex.glsl");
+	VG_SHADERS[FR_SHADER_VOXEL] = loadShader(QOpenGLShader::Fragment, ":/shader/voxel_fragment.glsl");
+	// flat shader
+	VG_SHADERS[VT_SHADER_FLAT_COLOR] = loadShader(QOpenGLShader::Vertex, ":/shader/flat_col_vertex.glsl");
+	VG_SHADERS[FR_SHADER_FLAT_COLOR] = loadShader(QOpenGLShader::Fragment, ":/shader/flat_col_fragment.glsl");
 
-	QOpenGLShaderProgram *program;
-	program = new QOpenGLShaderProgram(/*TODO: QObject as parent when stored in class*/);
-	// TODO: make sure both shaders could be created
-	program->addShader(VG_SHADERS[VT_SHADER_VOXEL]);
-	program->addShader(VG_SHADERS[FR_SHADER_VOXEL]);
-	if (!program->link())
-	{
-		std::cout << "linking failed!\n";
-		std::cout << program->log().toStdString() << std::endl;
-	}
-	VG_SHADER_PROGS[SHADER_VOXEL] = program;
+	// programs
+	VG_SHADER_PROGS[SHADER_VOXEL] = createProgram(VG_SHADERS[VT_SHADER_VOXEL], VG_SHADERS[FR_SHADER_VOXEL]);
+	VG_SHADER_PROGS[SHADER_FLAT_COLOR] = createProgram(VG_SHADERS[VT_SHADER_FLAT_COLOR], VG_SHADERS[FR_SHADER_FLAT_COLOR]);
 }
 
 QOpenGLShaderProgram* getShaderProgram(ShaderProgId program)
