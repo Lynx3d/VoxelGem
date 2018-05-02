@@ -168,7 +168,7 @@ class AlphaMapOp: public SceneOp
 
 			IVector3D pos(x, y, z);
 			const VoxelEntry *entry = aggregate->getVoxel(pos);
-			if (!entry || !(entry->flags & Voxel::VF_NON_EMPTY) || !entry->isTransparent())
+			if (!entry || !(entry->flags & Voxel::VF_NON_EMPTY) /* || !entry->isTransparent() */)
 				return;
 			VoxelEntry voxel(*entry);
 			voxel.col.a = data.r;
@@ -343,7 +343,7 @@ void qubicle_import(const QString &filename, SceneProxy *sceneP)
 
 void write_file_header(QDataStream &fstream, uint32_t numLayers, bool compressed)
 {
-	fstream << (uint32_t)0x01010000; // Version 1.1.0.0
+	fstream << (uint32_t)0x00000101; // Version 1.1.0.0 in little endian
 	fstream << (uint32_t)0; // RGBA format
 	fstream << (uint32_t)1; // right-handed
 	fstream << (uint32_t)compressed;
