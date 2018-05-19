@@ -19,7 +19,8 @@ namespace Voxel
 	{
 		VF_NON_EMPTY = 		1,
 		VF_ERASED = 		1 << 1,
-		VF_NO_COLLISION = 	1 << 2
+		VF_NO_COLLISION = 	1 << 2,
+		VF_TOOL_SELECT = 	1 << 3,
 	};
 	enum Material
 	{
@@ -109,6 +110,11 @@ class IVector3D
 		int& operator[](int i) { return (&x)[i]; }
 		int x, y, z;
 };
+
+static inline IVector3D operator+(const IVector3D &v1, const IVector3D &v2)
+{
+	return IVector3D(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
+}
 
 class DirtyVolume
 {

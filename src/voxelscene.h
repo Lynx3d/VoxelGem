@@ -37,6 +37,8 @@ class SceneRayHit
 			HIT_MASK = 0x700
 		};
 		bool didHit() const { return (flags & HIT_MASK) != 0; }
+		int hitFaceAxis() const { return flags & SceneRayHit::AXIS_MASK; }
+		int hitFaceOrientation() const { return (flags & SceneRayHit::AXIS_NEGATIVE) ? 1 : -1; }
 		bool getAdjacentVoxel(IVector3D &pos) const
 		{
 			if ((flags & SceneRayHit::HIT_MASK) == 0)
