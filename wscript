@@ -41,6 +41,7 @@ def build(bld):
 				'src/gui/layereditor.cpp',
 				'src/gui/layereditor.ui',
 				'src/tools/draw.cpp',
+				'src/tools/extrude.cpp',
 				'src/tools/paint.cpp',
 				'resources.qrc',
 				'mainwindow.ui']

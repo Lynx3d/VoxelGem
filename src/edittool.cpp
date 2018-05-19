@@ -31,6 +31,12 @@ bool ToolEvent::isControlPressed() const
 	return mouseEvent->modifiers() & Qt::ControlModifier;
 }
 
+QVector3D ToolEvent::cursorPos() const
+{
+	// TODO: decide if origin shall be OpenGL (bottom left) or window system (top left)
+	return QVector3D(mouseEvent->localPos());
+}
+
 /*========= EditTool ==========*/
 
 void EditTool::mouseMoved(const ToolEvent &event, VoxelScene &scene)

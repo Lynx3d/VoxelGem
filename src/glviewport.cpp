@@ -48,7 +48,7 @@ ray_t ViewportSettings::unproject(const QVector3D &pNear) const
 	ray.t_min = 0;
 	ray.t_max = ray.dir.length();
 	ray.dir /= ray.t_max;
-	qDebug() << camPivot << "\n ray.from:" << ray.from << "\n ray.dir:" << ray. dir << "\n t_max:" << ray.t_max;
+	//qDebug() << camPivot << "\n ray.from:" << ray.from << "\n ray.dir:" << ray. dir << "\n t_max:" << ray.t_max;
 	return ray;
 }
 
@@ -291,6 +291,10 @@ void GlViewportWidget::mouseReleaseEvent(QMouseEvent *event)
 		ray_t ray = vpSettings->unproject(QVector3D(event->x(), height() - event->y(), 0.f));
 		ToolEvent toolEvent(event, ray);
 		currentTool->mouseUp(toolEvent, *scene);
+		if (scene->needsUpdate())
+		{
+			update();
+		}
 	}
 	dragStatus = DRAG_NONE;
 }

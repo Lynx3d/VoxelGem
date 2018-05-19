@@ -28,6 +28,7 @@ class ToolEvent
 		bool isShiftPressed() const;
 		bool isAltPressed() const;
 		bool isControlPressed() const;
+		QVector3D cursorPos() const;
 	protected:
 		QMouseEvent *mouseEvent;
 		ray_t cursorRay;
