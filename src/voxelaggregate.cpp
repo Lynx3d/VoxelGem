@@ -16,10 +16,10 @@ uint64_t VoxelAggregate::setVoxel(const IVector3D &pos, const VoxelEntry &voxel)
 	blockMap_t::iterator grid = blockMap.find(id);
 	if (grid == blockMap.end())
 	{
-		int gridPos[3] = {
+		IVector3D gridPos(
 			pos.x & ~(int)(GRID_LEN - 1),
 			pos.y & ~(int)(GRID_LEN - 1),
-			pos.z & ~(int)(GRID_LEN - 1) };
+			pos.z & ~(int)(GRID_LEN - 1) );
 		std::cout << "creating grid at (" << gridPos[0] << ", " << gridPos[1] << ", " << gridPos[2] << ")\n";
 		voxelGridPtr_t posGrid(new VoxelGrid(gridPos));
 		grid = blockMap.emplace(id, posGrid).first;
@@ -42,25 +42,21 @@ const VoxelEntry* VoxelAggregate::getVoxel(const IVector3D &pos) const
 	blockMap_t::const_iterator grid = blockMap.find(id);
 	if (grid == blockMap.end())
 		return 0;
-	int gridPos[3] = { pos[0] & (int)(GRID_LEN - 1), pos[1] & (int)(GRID_LEN - 1), pos[2] & (int)(GRID_LEN - 1) };
+	IVector3D gridPos(pos.x & (int)(GRID_LEN - 1), pos.y & (int)(GRID_LEN - 1), pos.z & (int)(GRID_LEN - 1));
 	return grid->second->getVoxel(gridPos);
 }
 
-bool VoxelAggregate::rayIntersect(const ray_t &ray, IVector3D &hitPos, intersect_t &hit) const
+bool VoxelAggregate::rayIntersect(const ray_t &ray, SceneRayHit &hit) const
 {
 	// TODO: this is a brute force place holder implementation
 	bool didHit = false;
 	for (auto &grid: blockMap)
 	{
-		intersect_t isect;
-		int iPos[3];
-		if (grid.second->rayIntersect(ray, iPos, isect))
+		SceneRayHit isect;
+		if (grid.second->rayIntersect(ray, isect))
 		{
-			if (!didHit || isect.tNear < hit.tNear)
+			if (!didHit || isect.rayT < hit.rayT)
 			{
-				hitPos[0] = iPos[0];
-				hitPos[1] = iPos[1];
-				hitPos[2] = iPos[2];
 				hit = isect;
 			}
 			didHit = true;
@@ -198,7 +194,7 @@ void VoxelAggregate::restoreState(AggregateMemento *memento, std::unordered_set<
 	}
 }
 
-void VoxelAggregate::getNeighbours(const int gridPos[3], const VoxelGrid* neighbours[27])
+void VoxelAggregate::getNeighbours(const IVector3D &gridPos, const VoxelGrid* neighbours[27])
 {
 	for (int z = -1, i = 0; z < 2; ++z)
 		for (int y = -1; y < 2; ++y)

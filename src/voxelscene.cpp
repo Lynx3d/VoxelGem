@@ -197,15 +197,15 @@ void VoxelScene::render(QOpenGLFunctions_3_3_Core &glf)
 bool VoxelScene::rayIntersect(const ray_t &ray, SceneRayHit &hit, int flags) const
 {
 	bool didHit = false;
-	intersect_t hitInfo;
 	if (flags & SceneRayHit::HIT_VOXEL)
 	{
-		didHit = editingLayer->aggregate->rayIntersect(ray, hit.voxelPos, hitInfo);
+		didHit = editingLayer->aggregate->rayIntersect(ray, hit);
 		if (didHit)
 			hit.flags |= SceneRayHit::HIT_VOXEL;
 	}
 	// TODO: currently it's purely a fallback, not a test which is hit first
 	// tools probably should query separately if they want a fallback
+	intersect_t hitInfo;
 	if (!didHit && (flags & SceneRayHit::HIT_LINEGRID))
 	{
 		didHit = viewport->getGrid()->rayIntersect(ray, hit.voxelPos, hitInfo);

@@ -24,35 +24,6 @@ class SceneProxy;
 class GlViewportWidget;
 class QOpenGLFunctions_3_3_Core;
 
-class SceneRayHit
-{
-	public:
-		enum
-		{
-			AXIS_MASK = 0x3,
-			AXIS_NEGATIVE = 0x4,
-			HIT_VOXEL = 0x100,
-			HIT_LINEGRID = 0x200,
-			HIT_HANDLE = 0x400,
-			HIT_MASK = 0x700
-		};
-		bool didHit() const { return (flags & HIT_MASK) != 0; }
-		int hitFaceAxis() const { return flags & SceneRayHit::AXIS_MASK; }
-		int hitFaceOrientation() const { return (flags & SceneRayHit::AXIS_NEGATIVE) ? 1 : -1; }
-		bool getAdjacentVoxel(IVector3D &pos) const
-		{
-			if ((flags & SceneRayHit::HIT_MASK) == 0)
-				return false;
-			pos = IVector3D(voxelPos);
-			// TODO: invert meaning of SceneRayHit::AXIS_NEGATIVE
-			pos[flags & SceneRayHit::AXIS_MASK] += (flags & SceneRayHit::AXIS_NEGATIVE) ? 1 : -1;
-			return true;
-		}
-		IVector3D voxelPos;
-		int flags { 0 };
-		float rayT;
-};
-
 typedef std::unordered_map<uint64_t, DirtyVolume> dirtyMap_t;
 
 class VoxelLayer

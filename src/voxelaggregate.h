@@ -47,7 +47,7 @@ class VoxelAggregate
 		#undef POS_MASK
 		uint64_t setVoxel(const IVector3D &pos, const VoxelEntry &voxel);
 		const VoxelEntry* getVoxel(const IVector3D &pos) const;
-		bool rayIntersect(const ray_t &ray, IVector3D &hitPos, intersect_t &hit) const;
+		bool rayIntersect(const ray_t &ray, SceneRayHit &hit) const;
 		void clear();
 		void clearBlocks(const std::unordered_set<uint64_t> &blocks);
 		void clearBlocks(const std::unordered_map<uint64_t, DirtyVolume> &blocks);
@@ -62,7 +62,7 @@ class VoxelAggregate
 		const VoxelGrid* getBlock(uint64_t blockId) const;
 		const blockMap_t& getBlockMap() const { return blockMap; }
 		static void markDirtyBlocks(const DirtyVolume &vol, std::unordered_set<uint64_t> &blocks);
-		void getNeighbours(const int gridPos[3], const VoxelGrid* neighbours[27]);
+		void getNeighbours(const IVector3D &gridPos, const VoxelGrid* neighbours[27]);
 		bool getBound(IBBox &bound) const;
 	protected:
 		blockMap_t blockMap;

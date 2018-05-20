@@ -11,6 +11,7 @@
 
 #include <QVector3D>
 #include <cstdint>
+#include <cfloat>
 #include <algorithm>
 
 namespace Voxel
@@ -147,7 +148,36 @@ struct ray_t
 	float t_max;
 };
 
-// TODO: think about rayIntersect() when replacing BBox with IBBox!
+
+class SceneRayHit
+{
+	public:
+		enum
+		{
+			AXIS_MASK = 0x3,
+			AXIS_NEGATIVE = 0x4,
+			HIT_VOXEL = 0x100,
+			HIT_LINEGRID = 0x200,
+			HIT_HANDLE = 0x400,
+			HIT_MASK = 0x700
+		};
+		bool didHit() const { return (flags & HIT_MASK) != 0; }
+		int hitFaceAxis() const { return flags & SceneRayHit::AXIS_MASK; }
+		int hitFaceOrientation() const { return (flags & SceneRayHit::AXIS_NEGATIVE) ? 1 : -1; }
+		bool getAdjacentVoxel(IVector3D &pos) const
+		{
+			if ((flags & SceneRayHit::HIT_MASK) == 0)
+				return false;
+			pos = IVector3D(voxelPos);
+			// TODO: invert meaning of SceneRayHit::AXIS_NEGATIVE
+			pos[flags & SceneRayHit::AXIS_MASK] += (flags & SceneRayHit::AXIS_NEGATIVE) ? 1 : -1;
+			return true;
+		}
+		IVector3D voxelPos;
+		int flags { 0 };
+		float rayT;
+};
+
 // TODO: think about 'valid' member and replace DirtyVolume, or derive DirtyVolume from IBBox
 
 class IBBox
@@ -174,6 +204,32 @@ class IBBox
 				pMin[i] = std::min(pMin[i], b.pMin[i]);
 				pMax[i] = std::max(pMax[i], b.pMax[i]);
 			}
+		}
+		bool rayIntersect(const ray_t &ray, float &tHit, int &entryAxis) const
+		{
+			float tMin = -FLT_MAX, tMax = FLT_MAX;
+			for (int i = 0; i < 3; ++i)
+			{
+				int axisDirFlag = 0;
+				float invDir = 1.f / ray.dir[i];
+				float tNear = invDir * ((float)pMin[i] - ray.from[i]);
+				float tFar = invDir * ((float)pMax[i] - ray.from[i]);
+				if (tNear > tFar)
+				{
+					std::swap(tNear, tFar);
+					axisDirFlag = SceneRayHit::AXIS_NEGATIVE;
+				}
+				if (tNear > tMin)
+				{
+					tMin = tNear;
+					entryAxis = i | axisDirFlag;
+				}
+				if (tFar < tMax) tMax = tFar;
+				if (tMin > tMax) return false;
+			}
+			// valid hit when interval [tMin, tMax] overlaps ray interval [t_min, t_max]
+			tHit = tMin;
+			return ray.t_max >= tMin && tMax >= ray.t_min;
 		}
 		IVector3D pMin, pMax;
 };

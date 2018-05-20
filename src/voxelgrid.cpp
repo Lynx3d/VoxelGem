@@ -29,38 +29,34 @@ const int neighbor_offset[] = {
 	 271,  272,  273
 };
 
-VoxelGrid::VoxelGrid(const int pos[3]):
-	bound(IVector3D(pos), IVector3D(pos[0] + GRID_LEN, pos[1] + GRID_LEN, pos[2] + GRID_LEN)),
-	voxels(GRID_LEN * GRID_LEN * GRID_LEN)
+VoxelGrid::VoxelGrid(const IVector3D &pos):
+	bound(pos, pos + IVector3D(GRID_LEN, GRID_LEN, GRID_LEN)),
+	gridPos(pos), voxels(GRID_LEN * GRID_LEN * GRID_LEN)
 {
-	gridPos[0] = pos[0];
-	gridPos[1] = pos[1];
-	gridPos[2] = pos[2];
 	memset(voxels.data(), 0, voxels.capacity()); // TODO: should be redundant with current VoxelEntry() constructor...
 }
 
 VoxelGrid::VoxelGrid(const VoxelGrid &other):
-	bound(other.bound), voxels(other.voxels)
+	bound(other.bound), gridPos(other.gridPos), voxels(other.voxels)
 {
-	gridPos[0] = other.gridPos[0];
-	gridPos[1] = other.gridPos[1];
-	gridPos[2] = other.gridPos[2];
 }
 
 VoxelGrid::~VoxelGrid()
 {
 }
 
-bool VoxelGrid::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) const
+bool VoxelGrid::rayIntersect(const ray_t &ray, SceneRayHit &hit) const
 {
-	//intersect_t hit;
-	if (!bound.rayIntersect(ray, &hit))
+	float rayT;
+	int hitAxis;
+	if (!bound.rayIntersect(ray, rayT, hitAxis))
 		return false;
 	// for interior ray origin, bound intersection returns negative tMin
-	hit.tNear = std::max(ray.t_min, hit.tNear);
-	QVector3D gridIntersect = ray.from + hit.tNear * ray.dir;
+	rayT = std::max(ray.t_min, rayT);
+	hit.rayT = rayT;
+	QVector3D gridIntersect = ray.from + rayT * ray.dir;
 	float nextVoxelT[3], deltaT[3];
-	float rayT = hit.tNear;
+
 	int vPos[3], vOut[3], stepDir[3];
 	// TODO: handle ray cast from inside voxel, currently causes paint tool to replace that voxel
 	for (int axis = 0; axis < 3; ++axis)
@@ -87,9 +83,7 @@ bool VoxelGrid::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) 
 		const VoxelEntry &voxel = voxels[voxelIndex(vPos[0], vPos[1], vPos[2])];
 		if ((voxel.flags & (Voxel::VF_NON_EMPTY | Voxel::VF_NO_COLLISION)) == Voxel::VF_NON_EMPTY)
 		{
-			hitPos[0] = vPos[0] + gridPos[0];
-			hitPos[1] = vPos[1] + gridPos[1];
-			hitPos[2] = vPos[2] + gridPos[2];
+			hit.voxelPos = IVector3D(vPos) + gridPos;
 			return true;
 		}
 		// Step to net voxel, find axis:
@@ -97,9 +91,9 @@ bool VoxelGrid::rayIntersect(const ray_t &ray, int hitPos[3], intersect_t &hit) 
 				 ( nextVoxelT[0] < nextVoxelT[2] ? 0 : 2) :
 				 ( nextVoxelT[1] < nextVoxelT[2] ? 1 : 2);
 		vPos[axis] += stepDir[axis];
-		hit.entryAxis = axis | (stepDir[axis] < 0 ? intersect_t::AXIS_NEGATIVE : 0);
-		hit.tNear = nextVoxelT[axis];
-		if (vPos[axis] == vOut[axis] || hit.tNear > ray.t_max)
+		hit.flags = axis | (stepDir[axis] < 0 ? SceneRayHit::AXIS_NEGATIVE : 0);
+		hit.rayT = nextVoxelT[axis];
+		if (vPos[axis] == vOut[axis] || hit.rayT > ray.t_max)
 			break;
 		nextVoxelT[axis] += deltaT[axis];
 	}
