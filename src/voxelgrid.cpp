@@ -48,8 +48,7 @@ VoxelGrid::~VoxelGrid()
 bool VoxelGrid::rayIntersect(const ray_t &ray, SceneRayHit &hit) const
 {
 	float rayT;
-	int hitAxis;
-	if (!bound.rayIntersect(ray, rayT, hitAxis))
+	if (!bound.rayIntersect(ray, rayT, hit.flags))
 		return false;
 	// for interior ray origin, bound intersection returns negative tMin
 	rayT = std::max(ray.t_min, rayT);
