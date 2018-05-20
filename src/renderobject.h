@@ -31,18 +31,6 @@ struct GlVoxelVertex_t
 	unsigned char occlusion;
 };
 
-// TODO: cleanup
-struct intersect_t
-{
-	static const int AXIS_NONE = 1 << 7;
-	static const int AXIS_NEGATIVE = 1 << 2;
-	intersect_t() {}
-	intersect_t(float near, float far): tNear(near), tFar(far) {}
-	float tNear;
-	float tFar;
-	int entryAxis = AXIS_NONE;
-};
-
 class GLRenderable
 {
 	public:
@@ -51,7 +39,7 @@ class GLRenderable
 		bool isDirty() const { return dirty; }
 		virtual void setup(QOpenGLFunctions_3_3_Core &glf) = 0;
 		virtual void render(QOpenGLFunctions_3_3_Core &glf) = 0;
-		virtual bool rayIntersect(const ray_t &ray, IVector3D &hitPos, intersect_t &hit) { return false; }
+		virtual bool rayIntersect(const ray_t &ray, SceneRayHit &hit) { return false; }
 	protected:
 		virtual void uploadBuffer(QOpenGLFunctions_3_3_Core &glf, void *data, GLsizeiptr size);
 		void deleteBuffer(QOpenGLFunctions_3_3_Core &glf);
@@ -68,7 +56,7 @@ class LineGrid : public GLRenderable
 		void setup(QOpenGLFunctions_3_3_Core &glf);
 		void setSize(int gridSize);
 		void render(QOpenGLFunctions_3_3_Core &glf);
-		bool rayIntersect(const ray_t &ray, IVector3D &hitPos, intersect_t &hit);
+		bool rayIntersect(const ray_t &ray, SceneRayHit &hit);
 	protected:
 		int radius;
 		int numVert;

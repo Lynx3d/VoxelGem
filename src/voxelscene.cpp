@@ -205,17 +205,11 @@ bool VoxelScene::rayIntersect(const ray_t &ray, SceneRayHit &hit, int flags) con
 	}
 	// TODO: currently it's purely a fallback, not a test which is hit first
 	// tools probably should query separately if they want a fallback
-	intersect_t hitInfo;
 	if (!didHit && (flags & SceneRayHit::HIT_LINEGRID))
 	{
-		didHit = viewport->getGrid()->rayIntersect(ray, hit.voxelPos, hitInfo);
+		didHit = viewport->getGrid()->rayIntersect(ray, hit);
 		if (didHit)
 			hit.flags |= SceneRayHit::HIT_LINEGRID;
-	}
-	if (didHit)
-	{
-		hit.flags |= hitInfo.entryAxis;
-		hit.rayT = hitInfo.tNear;
 	}
 	return didHit;
 }

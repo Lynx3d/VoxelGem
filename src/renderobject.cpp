@@ -96,7 +96,7 @@ void LineGrid::render(QOpenGLFunctions_3_3_Core &glf)
 	glVAO.release();
 }
 
-bool LineGrid::rayIntersect(const ray_t &ray, IVector3D &hitPos, intersect_t &hit)
+bool LineGrid::rayIntersect(const ray_t &ray, SceneRayHit &hit)
 {
 	// TODO: implement axis
 	int axis = 1;
@@ -109,7 +109,7 @@ bool LineGrid::rayIntersect(const ray_t &ray, IVector3D &hitPos, intersect_t &hi
 	}
 	else if (ray.dir[axis] < -1e-7)
 	{
-		axisDirFlag = intersect_t::AXIS_NEGATIVE;
+		axisDirFlag = SceneRayHit::AXIS_NEGATIVE;
 		tHit = (/*gridLevel[axis]*/ - ray.from[axis]) / ray.dir[axis];
 	}
 	else return false;
@@ -119,16 +119,15 @@ bool LineGrid::rayIntersect(const ray_t &ray, IVector3D &hitPos, intersect_t &hi
 	{
 		QVector3D pHit = ray.from + tHit * ray.dir;
 		for (int i = 0; i < 3; ++i)
-			hitPos[i] = floor(pHit[i]);
+			hit.voxelPos[i] = floor(pHit[i]);
 		// floor() is not suitable for plane axis, but we know the value anyway...
-		hitPos[axis] = 0; /*gridLevel[axis]*/
+		hit.voxelPos[axis] = 0; /*gridLevel[axis]*/
 		// a plane has no volume, so if we shoot towards negative axis
 		// we actually hit one voxel pos lower than in opposite direction
 		if (axisDirFlag)
-			hitPos[axis] -= 1;
-		hit.entryAxis = axis | axisDirFlag;
-		hit.tNear = tHit;
-		hit.tFar = tHit;
+			hit.voxelPos[axis] -= 1;
+		hit.flags = axis | axisDirFlag;
+		hit.rayT = tHit;
 		return true;
 	}
 	return false;
