@@ -32,17 +32,18 @@ class VoxelAggregate
 {
 	public:
 		#define POS_MASK (0x1FFFFF * GRID_LEN)
-		static inline uint64_t blockID(int x, int y, int z)
+		#define POS_MIN   (0xFFFFF * GRID_LEN)
+		static inline uint64_t blockID(int64_t x, int64_t y, int64_t z)
 		{
-			return  uint64_t(x & POS_MASK) >> LOG_GRID_LEN |
-					uint64_t(y & POS_MASK) << (21 - LOG_GRID_LEN) |
-					uint64_t(z & POS_MASK) << (42 - LOG_GRID_LEN);
+			return  uint64_t((x + POS_MIN) & POS_MASK) >> LOG_GRID_LEN |
+					uint64_t((y + POS_MIN) & POS_MASK) << (21 - LOG_GRID_LEN) |
+					uint64_t((z + POS_MIN) & POS_MASK) << (42 - LOG_GRID_LEN);
 		}
-		static inline void blockPos(uint64_t id, int pos[3])
+		static inline void blockPos(uint64_t id, IVector3D &pos)
 		{
-			pos[0] = (id << LOG_GRID_LEN) & POS_MASK;
-			pos[1] = (id >> (21 - LOG_GRID_LEN)) & POS_MASK;
-			pos[2] = (id >> (42 - LOG_GRID_LEN)) & POS_MASK;
+			pos[0] = int64_t((id << LOG_GRID_LEN) & POS_MASK) - POS_MIN;
+			pos[1] = int64_t((id >> (21 - LOG_GRID_LEN)) & POS_MASK) - POS_MIN;
+			pos[2] = int64_t((id >> (42 - LOG_GRID_LEN)) & POS_MASK) - POS_MIN;
 		}
 		#undef POS_MASK
 		uint64_t setVoxel(const IVector3D &pos, const VoxelEntry &voxel);

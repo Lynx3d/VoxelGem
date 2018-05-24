@@ -135,8 +135,8 @@ class DirtyVolume
 				valid = true;
 			}
 		}
-		int low[3]; // TODO: use IVector3D
-		int high[3];
+		IVector3D low;
+		IVector3D high;
 		bool valid = false;
 };
 
