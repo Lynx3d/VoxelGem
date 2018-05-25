@@ -150,18 +150,29 @@ void VoxelAggregate::applyChanges(const VoxelAggregate &toolLayer, AggregateMeme
 		GridMemento *gridMem = new GridMemento;
 		if (grid == blockMap.end())
 		{
-			// TODO: implement empty grid memento handling and emplace tool grid
 			voxelGridPtr_t posGrid(new VoxelGrid(toolGrid.second->getGridPos()));
-			posGrid->applyChanges(*toolGrid.second, gridMem);
+			if (posGrid->applyChanges(*toolGrid.second, nullptr) == 0)
+			{
+				std::cout << "grid still empty, deleting grid and memento\n";
+				// posGrid will be deleted automatically due to refcounting
+				delete gridMem;
+				continue;
+			}
 			grid = blockMap.emplace(toolGrid.first, posGrid).first;
 		}
 		else
 		{
+			// TODO: this creates an unnecessary copy when erasing grind with use_count > 1
+			// but we don't know yet if it will be empty
 			if (grid->second.use_count() > 1) // need to copy or we modify multiple aggregates
 			{
 				grid->second = voxelGridPtr_t(new VoxelGrid(*grid->second));
 			}
-			grid->second->applyChanges(*toolGrid.second, gridMem);
+			if (grid->second->applyChanges(*toolGrid.second, gridMem) == 0)
+			{
+				//std::cout << "grid now empty, erasing from aggregate\n";
+				blockMap.erase(toolGrid.first);
+			}
 		}
 		memento->blockMap.emplace(toolGrid.first, gridMementoPtr_t(gridMem));
 	}
@@ -171,13 +182,17 @@ void VoxelAggregate::restoreState(AggregateMemento *memento, std::unordered_set<
 {
 	for (auto &memGrid: memento->blockMap)
 	{
-		if (memGrid.second)
+		if (!memGrid.second.get()->isEmpty())
 		{
 			blockMap_t::iterator grid = blockMap.find(memGrid.first);
 			if (grid == blockMap.end())
 			{
-				// TODO: restore deleted grid
-				std::cout << "ERR: restoring erased grid unimplemented!\n";
+				// restore deleted grid; memento will be empty after construction
+				IVector3D pos;
+				blockPos(memGrid.first, pos);
+				voxelGridPtr_t posGrid(new VoxelGrid(pos, memGrid.second.get()));
+				grid = blockMap.emplace(memGrid.first, posGrid).first;
+				//std::cout << "restored emptied grid; mememto.isEmpty(): " << memGrid.second.get()->isEmpty() << std::endl;
 			}
 			else
 			{
@@ -185,10 +200,21 @@ void VoxelAggregate::restoreState(AggregateMemento *memento, std::unordered_set<
 				grid->second->restoreState(memGrid.second.get());
 			}
 		}
-		// TODO: null pointer denotes deleted grid
+		// delete grid
 		else
 		{
-			std::cout << "ERR: grid erasing unimplemented!\n";
+			blockMap_t::iterator grid = blockMap.find(memGrid.first);
+			if (grid == blockMap.end())
+			{
+				std::cout << "(!) unexpected erasing of already empty grid!\n";
+			}
+			else
+			{
+				// note: we could probably move the state rather than copy,
+				// but grid access would be invalid until scene is updated.
+				grid->second->saveState(memGrid.second.get());
+			}
+			blockMap.erase(memGrid.first);
 		}
 		changed.insert(memGrid.first);
 	}

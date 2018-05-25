@@ -21,7 +21,10 @@
 class GridMemento
 {
 	friend class VoxelGrid;
-	std::vector<VoxelEntry> voxels;
+	public:
+		bool isEmpty() const { return voxels.size() == 0; }
+	protected:
+		std::vector<VoxelEntry> voxels;
 };
 
 class VoxelGrid
@@ -29,6 +32,8 @@ class VoxelGrid
 	public:
 		VoxelGrid(const IVector3D &pos);
 		VoxelGrid(const VoxelGrid &other);
+		//! note: this will empty the memento, basically a movement constructor!
+		VoxelGrid(const IVector3D &pos, GridMemento *memento);
 		virtual ~VoxelGrid();
 		inline int voxelIndex(int x, int y, int z) const
 		{
@@ -52,7 +57,10 @@ class VoxelGrid
 		float voxelEdge(int pos, int axis) const { return bound.pMin[axis] + (float)pos; }
 		bool rayIntersect(const ray_t &ray, SceneRayHit &hit) const;
 		void merge(const VoxelGrid &topLayer, VoxelGrid *targetGrid = 0);
-		void applyChanges(const VoxelGrid &toolLayer, GridMemento *memento);
+		//! returns the number of non-empty voxels
+		int applyChanges(const VoxelGrid &toolLayer, GridMemento *memento);
+		// this only saves the state to memento; used when a grid will be deleted directly rather than modified.
+		void saveState(GridMemento *memento) const;
 		// the memento shall be altered to allow reversing the restore (i.e. "redo" operation)
 		void restoreState(GridMemento *memento);
 		void tesselate(GlVoxelVertex_t *vertices, int nTris[2], const VoxelGrid* neighbourGrids[27]) const;

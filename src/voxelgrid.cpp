@@ -41,6 +41,13 @@ VoxelGrid::VoxelGrid(const VoxelGrid &other):
 {
 }
 
+VoxelGrid::VoxelGrid(const IVector3D &pos, GridMemento *memento):
+	bound(pos, pos + IVector3D(GRID_LEN, GRID_LEN, GRID_LEN)),
+	gridPos(pos)
+{
+	voxels.swap(memento->voxels);
+}
+
 VoxelGrid::~VoxelGrid()
 {
 }
@@ -115,9 +122,11 @@ void VoxelGrid::merge(const VoxelGrid &topLayer, VoxelGrid *targetGrid)
 	}
 }
 
-void VoxelGrid::applyChanges(const VoxelGrid &toolLayer, GridMemento *memento)
+int VoxelGrid::applyChanges(const VoxelGrid &toolLayer, GridMemento *memento)
 {
-	memento->voxels = voxels;
+	int nVoxels = 0;
+	if (memento)
+		memento->voxels = voxels;
 	for (int i = 0; i < GRID_LEN * GRID_LEN * GRID_LEN; ++i)
 	{
 		const VoxelEntry &entry = toolLayer.voxels[i];
@@ -129,7 +138,15 @@ void VoxelGrid::applyChanges(const VoxelGrid &toolLayer, GridMemento *memento)
 			// (doesn't work) clear VF_NO_COLLISION flag, currently only valid for tool and rendering layer
 			// voxels[i].flags &= ~Voxel::VF_NO_COLLISION;
 		}
+		if (voxels[i].flags & Voxel::VF_NON_EMPTY)
+			++nVoxels;
 	}
+	return nVoxels;
+}
+
+void VoxelGrid::saveState(GridMemento *memento) const
+{
+	memento->voxels = voxels;
 }
 
 void VoxelGrid::restoreState(GridMemento *memento)
