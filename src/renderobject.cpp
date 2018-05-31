@@ -102,7 +102,7 @@ bool LineGrid::rayIntersect(const ray_t &ray, SceneRayHit &hit)
 	int axis = 1;
 	int axisDirFlag = 0;
 	float tHit;
-	std::cout << "ray.dir[axis]: " << ray.dir[axis] << std::endl;
+	//std::cout << "ray.dir[axis]: " << ray.dir[axis] << std::endl;
 	if (ray.dir[axis] > 1e-7)
 	{
 		tHit = (/*gridLevel[axis]*/ - ray.from[axis]) / ray.dir[axis];
@@ -114,7 +114,7 @@ bool LineGrid::rayIntersect(const ray_t &ray, SceneRayHit &hit)
 	}
 	else return false;
 
-	std::cout << "tHit: " << tHit << std::endl;
+	//std::cout << "tHit: " << tHit << std::endl;
 	if (tHit >= ray.t_min && tHit <= ray.t_max)
 	{
 		QVector3D pHit = ray.from + tHit * ray.dir;

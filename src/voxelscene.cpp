@@ -46,10 +46,6 @@ VoxelScene::~VoxelScene()
 	delete toolLayer;
 }
 
-/* TODO:
-	So far we only have one editing layer plus a tool layer, merged to a rendering layer.
-*/
-
 void VoxelScene::setActiveLayer(int layerN)
 {
 	// TODO: make sure pending tool changes are handled properly
@@ -145,7 +141,7 @@ void VoxelScene::update()
 	// TODO: for each visible scene layer instead of single editing layer
 	renderLayer->aggregate->merge(*editingLayer->aggregate, editingLayer->dirtyVolumes/* changedBlocks */);
 	renderLayer->aggregate->merge(*toolLayer, editingLayer->dirtyVolumes/* changedBlocks */);
-	std::cout << "VoxelScene::update() editing layer block count:" << editingLayer->aggregate->blockCount() << std::endl;
+	//std::cout << "VoxelScene::update() editing layer block count:" << editingLayer->aggregate->blockCount() << std::endl;
 	//changedBlocks.clear();
 }
 
