@@ -64,8 +64,10 @@ class VoxelGrid
 		// the memento shall be altered to allow reversing the restore (i.e. "redo" operation)
 		void restoreState(GridMemento *memento);
 		void tesselate(GlVoxelVertex_t *vertices, int nTris[2], const VoxelGrid* neighbourGrids[27]) const;
+		void tesselateSlice(GlVoxelVertex_t *vertices, int nTris[2], const VoxelGrid* neighbourGrids[27],
+							int axis, int level) const;
 	protected:
-		int writeFaces(const VoxelEntry &entry, uint8_t matIndex, int mask, int pos[3], GlVoxelVertex_t *vertices) const;
+		int writeFaces(const VoxelEntry &entry, uint8_t matIndex, int mask, IVector3D pos, GlVoxelVertex_t *vertices) const;
 		std::vector<int> getNeighbourMasks(const VoxelGrid* neighbourGrids[27]) const;
 		IBBox bound;
 		IVector3D gridPos; // TODO: redundant right now, use bound.pMin?
@@ -78,8 +80,9 @@ class RenderGrid: public GLRenderable
 	public:
 		void setup(QOpenGLFunctions_3_3_Core &glf) override;
 		void cleanupGL(QOpenGLFunctions_3_3_Core &glf);
+		void clear(QOpenGLFunctions_3_3_Core &glf);
 		/*! @param neighbourGrids: neighbourGrids[13] is the center to generate the mesh from */
-		void update(QOpenGLFunctions_3_3_Core &glf, const VoxelGrid* neighbourGrids[27]);
+		void update(QOpenGLFunctions_3_3_Core &glf, const VoxelGrid* neighbourGrids[27], const RenderOptions &opt);
 		void render(QOpenGLFunctions_3_3_Core &glf) override;
 		void renderTransparent(QOpenGLFunctions_3_3_Core &glf);
 	protected:

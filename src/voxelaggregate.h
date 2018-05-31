@@ -16,6 +16,7 @@
 
 typedef std::shared_ptr<VoxelGrid> voxelGridPtr_t;
 typedef std::unordered_map<uint64_t, std::shared_ptr<VoxelGrid>> blockMap_t;
+typedef std::unordered_map<uint64_t, RenderGrid*> renderBlockMap_t;
 
 typedef std::unique_ptr<GridMemento> gridMementoPtr_t;
 typedef std::unordered_map<uint64_t, gridMementoPtr_t> mementoMap_t;
@@ -75,13 +76,16 @@ class RenderAggregate
 		RenderAggregate(VoxelAggregate *va = 0): aggregate(va) {};
 		void clear(QOpenGLFunctions_3_3_Core &glf);
 		void update(QOpenGLFunctions_3_3_Core &glf, const blockSet_t &dirtyBlocks);
-		void rebuild(QOpenGLFunctions_3_3_Core &glf);
+		void rebuild(QOpenGLFunctions_3_3_Core &glf, const RenderOptions *opt = nullptr);
 		void render(QOpenGLFunctions_3_3_Core &glf);
 		void renderTransparent(QOpenGLFunctions_3_3_Core &glf);
 		void setAggregate(VoxelAggregate *va) { aggregate = va; }
 	protected:
-		std::unordered_map<uint64_t, RenderGrid*> renderBlocks;
+		void updateBlock(QOpenGLFunctions_3_3_Core &glf, uint64_t blockId, const VoxelGrid* grid);
+		void updateBlockSliced(QOpenGLFunctions_3_3_Core &glf, uint64_t blockId, const VoxelGrid* grid);
+		renderBlockMap_t renderBlocks;
 		VoxelAggregate *aggregate;
+		RenderOptions options;
 };
 
 #endif // VG_VOXELAGGREGATE_H

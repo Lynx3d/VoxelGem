@@ -296,27 +296,59 @@ void RenderAggregate::clear(QOpenGLFunctions_3_3_Core &glf)
 	renderBlocks.clear();
 }
 
+void RenderAggregate::updateBlock(QOpenGLFunctions_3_3_Core &glf, uint64_t blockId, const VoxelGrid* grid)
+{
+	renderBlockMap_t::iterator rgrid = renderBlocks.find(blockId);
+	const VoxelGrid* neighbours[27];
+	if (rgrid == renderBlocks.end())
+	{
+		std::cout << "    allocating new RenderGrid" << std::endl;
+		rgrid = renderBlocks.emplace(blockId, new RenderGrid).first;
+	}
+	aggregate->getNeighbours(grid->getGridPos(), neighbours);
+	rgrid->second->update(glf, neighbours, options);
+}
+
+void RenderAggregate::updateBlockSliced(QOpenGLFunctions_3_3_Core &glf, uint64_t blockId, const VoxelGrid* grid)
+{
+	renderBlockMap_t::iterator rgrid = renderBlocks.find(blockId);
+	// TODO: check if sliced
+	const IBBox &bound = grid->getBound();
+	if (bound.pMin[options.axis] > options.level || bound.pMax[options.axis] <= options.level)
+	{
+		if (rgrid != renderBlocks.end())
+			rgrid->second->clear(glf);
+		return;
+	}
+
+	const VoxelGrid* neighbours[27];
+	if (rgrid == renderBlocks.end())
+	{
+		std::cout << "    allocating new RenderGrid" << std::endl;
+		rgrid = renderBlocks.emplace(blockId, new RenderGrid).first;
+	}
+	aggregate->getNeighbours(grid->getGridPos(), neighbours);
+	// TODO: sliced update function
+	rgrid->second->update(glf, neighbours, options);
+}
+
 void RenderAggregate::update(QOpenGLFunctions_3_3_Core &glf, const blockSet_t &dirtyBlocks)
 {
+	auto updateFunc = &RenderAggregate::updateBlock;
+	if (options.mode == RenderOptions::MODE_SLICE)
+		updateFunc = &RenderAggregate::updateBlockSliced;
+
 	for (auto &blockId: dirtyBlocks)
 	{
 		const VoxelGrid* blockGrid = aggregate->getBlock(blockId);
-		// TODO: Typedef ^^
-		std::unordered_map<uint64_t, RenderGrid*>::iterator rgrid = renderBlocks.find(blockId);
 		if (blockGrid)
 		{
-			const VoxelGrid* neighbours[27];
-			if (rgrid == renderBlocks.end())
-			{
-				std::cout << "    allocating new RenderGrid" << std::endl;
-				rgrid = renderBlocks.emplace(blockId, new RenderGrid).first;
-			}
-			aggregate->getNeighbours(blockGrid->getGridPos(), neighbours);
-			rgrid->second->update(glf, neighbours);
+			(this->*updateFunc)(glf, blockId, blockGrid);
 		}
 		else
 		{
 			// does not exist (anymore)
+			renderBlockMap_t::iterator rgrid = renderBlocks.find(blockId);
 			if (rgrid != renderBlocks.end())
 			{
 				rgrid->second->cleanupGL(glf);
@@ -327,16 +359,19 @@ void RenderAggregate::update(QOpenGLFunctions_3_3_Core &glf, const blockSet_t &d
 	}
 }
 
-void RenderAggregate::rebuild(QOpenGLFunctions_3_3_Core &glf)
+void RenderAggregate::rebuild(QOpenGLFunctions_3_3_Core &glf, const RenderOptions *opt)
 {
-	clear(glf);
+	if (opt)
+		options = *opt;
+	auto updateFunc = &RenderAggregate::updateBlock;
+	if (options.mode == RenderOptions::MODE_SLICE)
+		updateFunc = &RenderAggregate::updateBlockSliced;
+
+	clear(glf); // TODO: only delete RenderGrids for non-existing VoxelGrids
 	const blockMap_t &blocks = aggregate->getBlockMap();
 	for (auto block: blocks)
 	{
-		const VoxelGrid* neighbours[27];
-		std::unordered_map<uint64_t, RenderGrid*>::iterator rgrid = renderBlocks.emplace(block.first, new RenderGrid).first;
-		aggregate->getNeighbours(block.second->getGridPos(), neighbours);
-		rgrid->second->update(glf, neighbours);
+		(this->*updateFunc)(glf, block.first, block.second.get());
 	}
 }
 

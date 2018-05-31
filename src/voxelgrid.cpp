@@ -188,7 +188,7 @@ static inline int getNormalMapIndex(int face, int mask)
 	return index;
 }
 
-inline int VoxelGrid::writeFaces(const VoxelEntry &entry, uint8_t matIndex, int mask, int pos[3], GlVoxelVertex_t *vertices) const
+inline int VoxelGrid::writeFaces(const VoxelEntry &entry, uint8_t matIndex, int mask, IVector3D pos, GlVoxelVertex_t *vertices) const
 {
 	int nTriangles = 0;
 	for (int face=0; face < 6; ++face)
@@ -240,7 +240,7 @@ void VoxelGrid::tesselate(GlVoxelVertex_t *vertices, int nTris[2], const VoxelGr
 		}
 		uint8_t matIndex = entry.getMaterialIndex();
 
-		int pos[3] = { x, y, z };
+		IVector3D pos(x, y, z);
 		nTris[0] += writeFaces(entry, matIndex, masks[index], pos, vertices + 2 * nTris[0]);
 	}
 	// TODO: tesselating in two passes is probably not the fastest
@@ -257,8 +257,73 @@ void VoxelGrid::tesselate(GlVoxelVertex_t *vertices, int nTris[2], const VoxelGr
 			continue;
 
 		uint8_t matIndex = entry.getMaterialIndex();
-		int pos[3] = { x, y, z };
+		IVector3D pos(x, y, z);
 		nTris[1] += writeFaces(entry, matIndex, masks[index], pos, vertices + 2 * nTris[1]);
+	}
+}
+
+void VoxelGrid::tesselateSlice(GlVoxelVertex_t *vertices, int nTris[2], const VoxelGrid* neighbourGrids[27],
+								int axis, int level) const
+{
+	static const int slice_mask[3] =
+	{
+		(VN_nyz | VN_nnz | VN_nYz | VN_nyn | VN_nnn | VN_nYn | VN_nyZ | VN_nnZ | VN_nYZ),
+		(VN_xnz | VN_nnz | VN_Xnz | VN_xnn | VN_nnn | VN_Xnn | VN_xnZ | VN_nnZ | VN_XnZ),
+		(VN_xyn | VN_nyn | VN_Xyn | VN_xnn | VN_nnn | VN_Xnn | VN_xYn | VN_nYn | VN_XYn)
+	};
+	nTris[0] = nTris[1] = 0;
+
+	int sxAxis = 1, syAxis = 2;
+	if (axis == 1)
+	{
+		sxAxis = 0;
+	}
+	else if (axis == 2)
+	{
+		sxAxis = 0;
+		syAxis = 1;
+	}
+	bool haveTransparent = false;
+	// TODO: we don't need to compute all neighbour masks
+	std::vector<int> masks = getNeighbourMasks(neighbourGrids);
+
+	for (int sy = 0; sy < GRID_LEN; ++sy)
+		for (int sx = 0; sx < GRID_LEN; ++sx)
+	{
+		IVector3D pos;
+		pos[axis] = level;
+		pos[sxAxis] = sx;
+		pos[syAxis] = sy;
+		int index = voxelIndex(pos.x, pos.y, pos.z);
+		const VoxelEntry &entry = voxels[index];
+		if (!(entry.flags & Voxel::VF_NON_EMPTY))
+			continue;
+		if (entry.isTransparent())
+		{
+			haveTransparent = true;
+			continue;
+		}
+		uint8_t matIndex = entry.getMaterialIndex();
+		nTris[0] += writeFaces(entry, matIndex, masks[index]&slice_mask[axis], pos, vertices + 2 * nTris[0]);
+	}
+	// TODO: tesselating in two passes is probably not the fastest
+	if (!haveTransparent)
+		return;
+
+	vertices += 2 * nTris[0];
+	for (int sy = 0; sy < GRID_LEN; ++sy)
+		for (int sx = 0; sx < GRID_LEN; ++sx)
+	{
+		IVector3D pos;
+		pos[axis] = level;
+		pos[sxAxis] = sx;
+		pos[syAxis] = sy;
+		int index = voxelIndex(pos.x, pos.y, pos.z);
+		const VoxelEntry &entry = voxels[index];
+		if (!(entry.flags & Voxel::VF_NON_EMPTY) || !entry.isTransparent())
+			continue;
+		uint8_t matIndex = entry.getMaterialIndex();
+		nTris[1] += writeFaces(entry, matIndex, masks[index]&slice_mask[axis], pos, vertices + 2 * nTris[1]);
 	}
 }
 
@@ -374,7 +439,13 @@ void RenderGrid::cleanupGL(QOpenGLFunctions_3_3_Core &glf)
 	glVAO.destroy();
 }
 
-void RenderGrid::update(QOpenGLFunctions_3_3_Core &glf, const VoxelGrid* neighbourGrids[27])
+void RenderGrid::clear(QOpenGLFunctions_3_3_Core &glf)
+{
+	cleanupGL(glf);
+	nTessTris[0] = nTessTris[1] = 0;
+}
+
+void RenderGrid::update(QOpenGLFunctions_3_3_Core &glf, const VoxelGrid* neighbourGrids[27], const RenderOptions &opt)
 {
 	// TODO: move to a better place...
 	if (!g_vertexBuffer)
@@ -388,7 +459,10 @@ void RenderGrid::update(QOpenGLFunctions_3_3_Core &glf, const VoxelGrid* neighbo
 	glVAO.bind();
 
 	const VoxelGrid *tessGrid = neighbourGrids[13];
-	tessGrid->tesselate(g_vertexBuffer, nTessTris, neighbourGrids);
+	if (opt.mode == RenderOptions::MODE_SLICE)
+		tessGrid->tesselateSlice(g_vertexBuffer, nTessTris, neighbourGrids, opt.axis, opt.level & (GRID_LEN - 1));
+	else
+		tessGrid->tesselate(g_vertexBuffer, nTessTris, neighbourGrids);
 	int totalTris = nTessTris[0] + nTessTris[1];
 	if (totalTris > 0)
 		uploadBuffer(glf, g_vertexBuffer, 2 * totalTris * sizeof(GlVoxelVertex_t));

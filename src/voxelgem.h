@@ -234,5 +234,20 @@ class IBBox
 		IVector3D pMin, pMax;
 };
 
+
+class RenderOptions
+{
+	public:
+		enum Modes
+		{
+			MODE_FULL,
+			MODE_SLICE
+		};
+
+		Modes mode = MODE_FULL;
+		int axis = 1;
+		int level = 0;
+};
+
 #endif // VG_VOXELGEM_H
 
