@@ -52,13 +52,17 @@ class GLRenderable
 class LineGrid : public GLRenderable
 {
 	public:
-		LineGrid(): radius(4){}
+		LineGrid(): axis(1), bound(IVector3D(-4,0,-4), IVector3D(4,0,4)) {}
 		void setup(QOpenGLFunctions_3_3_Core &glf);
-		void setSize(int gridSize);
+		void setSize(int gridSize); // deprecated!
+		void setShape(int gridPlane, const IBBox &bounds);
 		void render(QOpenGLFunctions_3_3_Core &glf);
 		bool rayIntersect(const ray_t &ray, SceneRayHit &hit);
 	protected:
-		int radius;
+		void rebuild(QOpenGLFunctions_3_3_Core &glf);
+		void buildLines(std::vector<GlVertex_t> &vertices, int lineAxis, int spaceAxis);
+		int axis;
+		IBBox bound;
 		int numVert;
 };
 
