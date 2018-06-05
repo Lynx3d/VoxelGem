@@ -13,6 +13,9 @@
 #include <QAbstractItemDelegate>
 #include <QMouseEvent>
 #include <QColorDialog>
+#include <QTextStream>
+
+#include <iostream>
 
 ColorSet* getTestPalette()
 {
@@ -26,6 +29,91 @@ ColorSet* getTestPalette()
 		testSet->append(entry);
 	}
 	return testSet;
+}
+
+static bool isComment(const QString &line)
+{
+	for (int i = 0; i < line.size(); ++i)
+	{
+		if (line[i].isSpace())
+			continue;
+		if (line[i] != '#')
+			return false;
+		break;
+	}
+	return true;
+}
+
+ColorSet* loadGimpPalette(const QString &filename)
+{
+	QFile file(filename);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+		return nullptr;
+	QString line;
+	QTextStream palStream(&file), lineStream;
+	if (!palStream.readLineInto(&line))
+		return nullptr;
+	if (!line.startsWith("GIMP Palette"))
+	{
+		std::cout << "File does not appear to be a GIMP Palette.\n";
+		return nullptr;
+	}
+	int lNum = 2;
+	bool haveLine = palStream.readLineInto(&line);
+	if (!haveLine)
+	{
+		std::cout << "Palette file ended unexpectedly.\n";
+		return nullptr;
+	}
+	if (line.startsWith("Name:"))
+	{
+		// don't support palette names yet...skip
+		haveLine = palStream.readLineInto(&line);
+		++lNum;
+	}
+	if (!haveLine)
+	{
+		std::cout << "Palette file ended unexpectedly.\n";
+		return nullptr;
+	}
+	if (line.startsWith("Columns:"))
+	{
+		// don't support column hints yet...skip
+		haveLine = palStream.readLineInto(&line);
+		++lNum;
+	}
+	ColorSet* colorSet = new ColorSet();
+	while (haveLine)
+	{
+		if (!isComment(line))
+		{
+			lineStream.setString(&line);
+			int col[3];
+
+			for (int i = 0; i < 3; ++i)
+			{
+				lineStream >> col[i];
+				if (lineStream.status() != QTextStream::Ok || col[i] < 0 || col[i] > 255)
+				{
+					std::cout << "Invalid token at line " << lNum << " token " << i << ", skipping entry.\n";
+					break;
+				}
+			}
+			if (lineStream.status() == QTextStream::Ok)
+			{
+				ColorSetEntry entry;
+				entry.color = QColor(col[0], col[1], col[2]);
+				entry.name = lineStream.readLine().trimmed();
+				colorSet->append(entry);
+				// TODO: handle empty color name?
+			}
+		}
+
+		++lNum;
+		haveLine = palStream.readLineInto(&line);
+	}
+
+	return colorSet;
 }
 
 /*============================

@@ -44,6 +44,7 @@ class ColorSet
 };
 
 ColorSet* getTestPalette();
+ColorSet* loadGimpPalette(const QString &filename);
 
 class ColorPaletteModel : public QAbstractTableModel
 {
