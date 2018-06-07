@@ -54,7 +54,6 @@ class LineGrid : public GLRenderable
 	public:
 		LineGrid(): axis(1), bound(IVector3D(-4,0,-4), IVector3D(4,0,4)) {}
 		void setup(QOpenGLFunctions_3_3_Core &glf);
-		void setSize(int gridSize); // deprecated!
 		void setShape(int gridPlane, const IBBox &bounds);
 		void render(QOpenGLFunctions_3_3_Core &glf);
 		bool rayIntersect(const ray_t &ray, SceneRayHit &hit);

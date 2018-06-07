@@ -40,6 +40,10 @@ VGMainWindow::VGMainWindow():
 	toolGroup = new QActionGroup(this);
 	connect(toolGroup, SIGNAL(triggered(QAction *)), this, SLOT(on_toolActionTriggered(QAction *)));
 	connect(this, SIGNAL(activeToolChanged(EditTool *)), viewport, SLOT(on_activeToolChanged(EditTool *)));
+	viewModeGroup = new QActionGroup(this);
+	mainUi->action_view3D->setActionGroup(viewModeGroup);
+	mainUi->action_view2D->setActionGroup(viewModeGroup);
+	connect(viewModeGroup, &QActionGroup::triggered, this, &VGMainWindow::on_viewModeActionTriggered);
 	// color palette
 	ColorPaletteModel *paletteModel = new ColorPaletteModel;
 	colorSet = getTestPalette();
@@ -182,4 +186,12 @@ void VGMainWindow::on_toolActionTriggered(QAction *action)
 	if (entry != toolMap.end())
 		tool = entry->second;
 	emit(activeToolChanged(tool));
+}
+
+void VGMainWindow::on_viewModeActionTriggered(QAction *action)
+{
+	if (action == mainUi->action_view3D)
+		viewport->setViewMode(RenderOptions::MODE_FULL);
+	else if (action == mainUi->action_view2D)
+		viewport->setViewMode(RenderOptions::MODE_SLICE);
 }

@@ -171,11 +171,3 @@ bool LineGrid::rayIntersect(const ray_t &ray, SceneRayHit &hit)
 	}
 	return false;
 }
-
-void LineGrid::setSize(int gridSize)
-{
-	//radius = gridSize;
-	bound.pMin = IVector3D(-gridSize, 0, -gridSize);
-	bound.pMax = IVector3D(gridSize, 0, gridSize);
-	dirty = true;
-}

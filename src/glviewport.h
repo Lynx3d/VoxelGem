@@ -32,6 +32,7 @@ class GlViewportWidget;
 class VoxelScene;
 class SceneRayHit;
 class GLRenderable;
+class LineGrid;
 
 class ViewportSettings
 {
@@ -64,10 +65,12 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 {
 	Q_OBJECT
 	public:
-		GlViewportWidget(VoxelScene *pscene): scene(pscene), dragStatus(DRAG_NONE), currentTool(0) {};
+		GlViewportWidget(VoxelScene *pscene);
 		void setSamples(int numSamples);
+		void setViewMode(RenderOptions::Modes mode);
 		static float sRGB_LUT[1024];
 		GLRenderable* getGrid();
+		const RenderOptions& getRenderOptions() { return renderOptions; }
 	public Q_SLOTS:
 		void on_activeToolChanged(EditTool *tool);
 		void on_renderDataChanged();
@@ -86,6 +89,9 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 		GLuint m_ubo_material;
 		GLuint m_normal_tex;
 		ViewportSettings *vpSettings;
+		LineGrid *grid; // TODO: move to ViewportSettings?
+		RenderOptions renderOptions; // TODO: move to ViewportSettings?
+		bool tesselationChanged; // TODO: move to ViewportSettings?
 		DragType dragStatus;
 		QPoint dragStart;
 		EditTool *currentTool;

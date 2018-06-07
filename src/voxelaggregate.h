@@ -76,7 +76,7 @@ class RenderAggregate
 		RenderAggregate(VoxelAggregate *va = 0): aggregate(va) {};
 		void clear(QOpenGLFunctions_3_3_Core &glf);
 		void update(QOpenGLFunctions_3_3_Core &glf, const blockSet_t &dirtyBlocks);
-		void rebuild(QOpenGLFunctions_3_3_Core &glf, const RenderOptions *opt = nullptr);
+		void rebuild(QOpenGLFunctions_3_3_Core &glf, const RenderOptions *opt);
 		void render(QOpenGLFunctions_3_3_Core &glf);
 		void renderTransparent(QOpenGLFunctions_3_3_Core &glf);
 		void setAggregate(VoxelAggregate *va) { aggregate = va; }

@@ -150,6 +150,8 @@
    <addaction name="separator"/>
    <addaction name="action_background"/>
    <addaction name="separator"/>
+   <addaction name="action_view3D"/>
+   <addaction name="action_view2D"/>
   </widget>
   <widget class="QToolBar" name="toolbar_edit">
    <property name="windowTitle">
@@ -527,6 +529,25 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+T</string>
+   </property>
+  </action>
+  <action name="action_view3D">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>3D</string>
+   </property>
+  </action>
+  <action name="action_view2D">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>2D</string>
    </property>
   </action>
  </widget>

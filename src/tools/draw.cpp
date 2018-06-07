@@ -11,68 +11,46 @@
 
 void DrawTool::mouseDown(const ToolEvent &event, VoxelScene &scene)
 {
-//	static bool test = false;
-	SceneRayHit hit;
-	scene.rayIntersect(event.getCursorRay(), hit);
-	if (!hit.didHit())
-		return;
-
-	// TODO: deleting must be set before returing on non-ray-hit
-	if (event.isShiftPressed())
-	{
-		deleting = true;
-		scene.eraseVoxel(hit.voxelPos);
-		lastPos = hit.voxelPos;
-		haveLastPos = true;
-	}
-	else
-	{
-		deleting = false;
-		IVector3D fillPos;
-		hit.getAdjacentVoxel(fillPos);
-		scene.setVoxel(fillPos, *scene.getVoxelTemplate());
-		lastPos = fillPos;
-		haveLastPos = true;
-	}
+	haveLastPos = false;
+	deleting = event.isShiftPressed();
+	processDragEvent(event, scene);
 }
 
 void DrawTool::mouseUp(const ToolEvent &event, VoxelScene &scene)
 {
+	if (haveLastPos)
+		completeAction();
 	haveLastPos = false;
-	completeAction();
 }
 
 void DrawTool::mouseMoved(const ToolEvent &event, VoxelScene &scene)
 {
-	//const SceneRayHit *hit = event.getCursorHit();
-	SceneRayHit hit;
-	scene.rayIntersect(event.getCursorRay(), hit);
-	if (!hit.didHit())
-		return;
+	processDragEvent(event, scene);
+}
 
+void DrawTool::processDragEvent(const ToolEvent &event, VoxelScene &scene)
+{
+	IVector3D curPos;
 	if (deleting)
 	{
-		if (haveLastPos)
-		{
-			IVector3D fillPos;
-			hit.getAdjacentVoxel(fillPos);
-			if (lastPos[0] == fillPos[0] && lastPos[1] == fillPos[1] && lastPos[2] == fillPos[2])
-				return;
-		}
-		lastPos = hit.voxelPos;
-		haveLastPos = true;
-		scene.eraseVoxel(hit.voxelPos);
+		const VoxelEntry *voxel = getCursorVoxelEdit(event, curPos);
+		if (!voxel)
+			return;
+		if (haveLastPos && lastPos == curPos)
+			return;
+
+		scene.eraseVoxel(curPos);
 	}
 	else
 	{
-		IVector3D fillPos;
-		hit.getAdjacentVoxel(fillPos);
-		if (haveLastPos && lastPos[0] == fillPos[0] && lastPos[1] == fillPos[1] && lastPos[2] == fillPos[2])
+		if(!getCursorVoxelAdd(event, curPos))
 			return;
-		scene.setVoxel(fillPos, *scene.getVoxelTemplate());
-		lastPos = fillPos;
-		haveLastPos = true;
+		if (haveLastPos && lastPos == curPos)
+			return;
+		scene.setVoxel(curPos, *scene.getVoxelTemplate());
 	}
+	lastPos = curPos;
+	haveLastPos = true;
 }
 
 ToolInstance* DrawTool::getInstance()

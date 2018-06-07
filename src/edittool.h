@@ -18,18 +18,21 @@ class QMouseEvent;
 class SceneRayHit;
 class VoxelScene;
 class SceneProxy;
+class GlViewportWidget;
 
 /*! Wraps and extends the QMouseEvent with viewport details */
 class ToolEvent
 {
 	public:
-		ToolEvent(QMouseEvent *qmEvent, ray_t cRay);
+		ToolEvent(GlViewportWidget *vp, QMouseEvent *qmEvent, ray_t cRay);
 		const ray_t& getCursorRay() const { return cursorRay; }
+		const RenderOptions& getRenderOptions() const;
 		bool isShiftPressed() const;
 		bool isAltPressed() const;
 		bool isControlPressed() const;
 		QVector3D cursorPos() const;
 	protected:
+		GlViewportWidget *viewport;
 		QMouseEvent *mouseEvent;
 		ray_t cursorRay;
 };
@@ -44,6 +47,10 @@ class EditTool
 	protected:
 		/*! this applies the recorded voxel changes and creates an undo step */
 		void completeAction();
+		/*! get the voxel position in front of the voxel(or grid) the cursor hits */
+		bool getCursorVoxelAdd(const ToolEvent &event, IVector3D &pos, SceneRayHit *hit = 0) const;
+		/*! get the voxel under the cursor, if one exists */
+		const VoxelEntry* getCursorVoxelEdit(const ToolEvent &event, IVector3D &pos, SceneRayHit *hit = 0) const;
 		SceneProxy *sceneProxy = 0;
 };
 

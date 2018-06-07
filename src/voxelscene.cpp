@@ -160,7 +160,7 @@ void VoxelScene::render(QOpenGLFunctions_3_3_Core &glf)
 		{
 			if (!layer->renderInitialized)
 			{
-				layer->renderAg->rebuild(glf);
+				layer->renderAg->rebuild(glf, &viewport->getRenderOptions());
 				layer->renderInitialized = true;
 			}
 

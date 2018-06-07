@@ -19,7 +19,7 @@ class DrawTool: public EditTool
 		void mouseUp(const ToolEvent &event, VoxelScene &scene) override;
 		static ToolInstance* getInstance();
 	private:
-		bool painting = false;
+		void processDragEvent(const ToolEvent &event, VoxelScene &scene);
 		bool deleting;
 		bool haveLastPos;
 		IVector3D lastPos;

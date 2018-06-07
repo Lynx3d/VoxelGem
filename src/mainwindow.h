@@ -49,6 +49,7 @@ class VGMainWindow : public QMainWindow
 		void on_templateColorChanged(rgba_t col);
 		void on_colorSetEntrySelected(const ColorSetEntry &entry);
 		void on_toolActionTriggered(QAction *action);
+		void on_viewModeActionTriggered(QAction *action);
 	Q_SIGNALS:
 		void colorSelectionChanged(QColor col);
 		void activeToolChanged(EditTool *tool);
@@ -56,6 +57,7 @@ class VGMainWindow : public QMainWindow
 	private:
 		Ui::MainWindow *mainUi;
 		QActionGroup *toolGroup;
+		QActionGroup *viewModeGroup;
 		std::map<QAction *, EditTool *> toolMap;
 		GlViewportWidget *viewport;
 		ColorPaletteView *paletteView;

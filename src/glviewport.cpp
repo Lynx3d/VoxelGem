@@ -101,7 +101,10 @@ void ViewportSettings::updateViewMatrix()
 
 /* ========== GlViewportWidget ==============*/
 
-GLRenderable *testObject;
+GlViewportWidget::GlViewportWidget(VoxelScene *pscene): scene(pscene), dragStatus(DRAG_NONE), currentTool(0)
+{
+	scene->viewport = this;  // TODO: think about a nicer way...
+}
 
 void GlViewportWidget::generateUBOs()
 {
@@ -182,10 +185,9 @@ void GlViewportWidget::initializeGL()
 	// test: print UBO layout info
 	//GLInfoLib::getUniformsInfo(voxelProgram->programId());
 
-	//testobject
-	LineGrid *grid = new LineGrid();
-	grid->setSize(32);
-	testObject = grid;
+	// line grid
+	grid = new LineGrid();
+	grid->setShape(1, IBBox(IVector3D(-32, 0, -32), IVector3D(32, 0, 32)));
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -206,9 +208,18 @@ void GlViewportWidget::resizeGL(int w, int h)
 
 void GlViewportWidget::paintGL()
 {
-	// TODO: scene->render() without scene->update() loses dirty info, so probably force call internally
+	// TODO: scene->render() without scene->update() loses dirty info, so probably force call internally;
+	// probably dirty and render object should be in viewport after all
 	if (scene->needsUpdate())
 		scene->update();
+	if (tesselationChanged)
+	{
+		for (auto layer: scene->layers)
+		{
+			layer->renderAg->rebuild(*this, &renderOptions);
+		}
+		tesselationChanged = false;
+	}
 	// TODO: multiply with devicePixelRatio() or the devicePixelRatioF() for Qt 5.6+
 	glViewport(0, 0, width(), height());
 	glEnable(GL_FRAMEBUFFER_SRGB); // no effect prior to Qt 5.10+ (no way to request sRGB buffers)
@@ -223,7 +234,7 @@ void GlViewportWidget::paintGL()
 	glBindBuffer(GL_UNIFORM_BUFFER, m_ubo_LUT);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ubo_LUT);
 	// test object
-	testObject->render(*this);
+	grid->render(*this);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -249,8 +260,25 @@ void GlViewportWidget::paintGL()
 
 GLRenderable* GlViewportWidget::getGrid()
 {
-	return testObject;
+	return grid;
 }
+
+void GlViewportWidget::setViewMode(RenderOptions::Modes mode)
+{
+	if (mode != renderOptions.mode)
+	{
+		renderOptions.mode = mode;
+		tesselationChanged = true;
+		// adjust grid
+		IVector3D low(-32, -32, -32), high(32, 32, 32);
+		if (mode == RenderOptions::MODE_FULL)
+			low[renderOptions.axis] = high[renderOptions.axis] = 0;
+		else
+			low[renderOptions.axis] = high[renderOptions.axis] = renderOptions.level;
+		grid->setShape(renderOptions.axis, IBBox(low, high));
+		update();
+	}
+};
 
 void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 {
@@ -260,7 +288,7 @@ void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 		if (currentTool)
 		{
 			ray_t ray = vpSettings->unproject(QVector3D(event->x(), height() - event->y(), 0.f));
-			ToolEvent toolEvent(event, ray);
+			ToolEvent toolEvent(this, event, ray);
 			currentTool->mouseDown(toolEvent, *scene);
 
 			if (scene->needsUpdate())
@@ -289,7 +317,7 @@ void GlViewportWidget::mouseReleaseEvent(QMouseEvent *event)
 	{
 		// TODO: cache ray; currently don't need ray hit yet
 		ray_t ray = vpSettings->unproject(QVector3D(event->x(), height() - event->y(), 0.f));
-		ToolEvent toolEvent(event, ray);
+		ToolEvent toolEvent(this, event, ray);
 		currentTool->mouseUp(toolEvent, *scene);
 		if (scene->needsUpdate())
 		{
@@ -319,7 +347,7 @@ void GlViewportWidget::mouseMoveEvent(QMouseEvent *event)
 	else if (dragStatus == DRAG_TOOL && currentTool)
 	{
 		ray_t ray = vpSettings->unproject(QVector3D(event->x(), height() - event->y(), 0.f));
-		ToolEvent toolEvent(event, ray);
+		ToolEvent toolEvent(this, event, ray);
 		currentTool->mouseMoved(toolEvent, *scene);
 
 		if (scene->needsUpdate())
@@ -332,9 +360,26 @@ void GlViewportWidget::mouseMoveEvent(QMouseEvent *event)
 
 void GlViewportWidget::wheelEvent(QWheelEvent *event)
 {
-	QPoint delta = event->angleDelta();
-	vpSettings->zoomBy(delta.y());
-	update();
+	if (event->modifiers() & Qt::ControlModifier)
+	{
+		if (renderOptions.mode == RenderOptions::MODE_SLICE)
+		{
+			// TODO: some mice may report smaller deltas than 120 (15° * 8)
+			renderOptions.level += event->angleDelta().y()/120;
+			tesselationChanged = true;
+			// adjust grid
+			IVector3D low(-32, -32, -32), high(32, 32, 32);
+			low[renderOptions.axis] = high[renderOptions.axis] = renderOptions.level;
+			grid->setShape(renderOptions.axis, IBBox(low, high));
+			update();
+		}
+	}
+	else
+	{
+		QPoint delta = event->angleDelta();
+		vpSettings->zoomBy(delta.y());
+		update();
+	}
 }
 
 

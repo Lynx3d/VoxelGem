@@ -116,6 +116,10 @@ static inline IVector3D operator+(const IVector3D &v1, const IVector3D &v2)
 {
 	return IVector3D(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
 }
+static inline bool operator==(const IVector3D &v1, const IVector3D &v2)
+{
+	return (v1.x == v2.x && v1.y == v2.y && v1.z == v2.z);
+}
 
 class DirtyVolume
 {

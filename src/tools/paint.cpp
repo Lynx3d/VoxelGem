@@ -19,8 +19,9 @@ void PaintTool::mouseDown(const ToolEvent &event, VoxelScene &scene)
 
 void PaintTool::mouseUp(const ToolEvent &event, VoxelScene &scene)
 {
+	if (haveLastPos)
+		completeAction();
 	haveLastPos = false;
-	completeAction();
 }
 
 void PaintTool::mouseMoved(const ToolEvent &event, VoxelScene &scene)
@@ -30,20 +31,17 @@ void PaintTool::mouseMoved(const ToolEvent &event, VoxelScene &scene)
 
 void PaintTool::processDragEvent(const ToolEvent &event, VoxelScene &scene)
 {
-	SceneRayHit hit;
-	scene.rayIntersect(event.getCursorRay(), hit);
-	if (!(hit.flags & SceneRayHit::HIT_VOXEL))
+	IVector3D curPos;
+	const VoxelEntry *voxel = getCursorVoxelEdit(event, curPos);
+	if (!voxel)
 		return;
 
-	IVector3D &curPos = hit.voxelPos;
 	if (haveLastPos && lastPos[0] == curPos[0] && lastPos[1] == curPos[1] && lastPos[2] == curPos[2])
 		return;
 
 	if (picking)
 	{
-		const VoxelEntry *voxel = scene.getVoxel(curPos);
-		if (voxel)
-			sceneProxy->setTemplateColor(voxel->col);
+		sceneProxy->setTemplateColor(voxel->col);
 	}
 	else
 	{
