@@ -31,19 +31,18 @@ const int neighbor_offset[] = {
 
 VoxelGrid::VoxelGrid(const IVector3D &pos):
 	bound(pos, pos + IVector3D(GRID_LEN, GRID_LEN, GRID_LEN)),
-	gridPos(pos), voxels(GRID_LEN * GRID_LEN * GRID_LEN)
+	voxels(GRID_LEN * GRID_LEN * GRID_LEN)
 {
 	memset(voxels.data(), 0, voxels.capacity()); // TODO: should be redundant with current VoxelEntry() constructor...
 }
 
 VoxelGrid::VoxelGrid(const VoxelGrid &other):
-	bound(other.bound), gridPos(other.gridPos), voxels(other.voxels)
+	bound(other.bound), voxels(other.voxels)
 {
 }
 
 VoxelGrid::VoxelGrid(const IVector3D &pos, GridMemento *memento):
-	bound(pos, pos + IVector3D(GRID_LEN, GRID_LEN, GRID_LEN)),
-	gridPos(pos)
+	bound(pos, pos + IVector3D(GRID_LEN, GRID_LEN, GRID_LEN))
 {
 	voxels.swap(memento->voxels);
 }
@@ -89,7 +88,7 @@ bool VoxelGrid::rayIntersect(const ray_t &ray, SceneRayHit &hit) const
 		const VoxelEntry &voxel = voxels[voxelIndex(vPos[0], vPos[1], vPos[2])];
 		if ((voxel.flags & (Voxel::VF_NON_EMPTY | Voxel::VF_NO_COLLISION)) == Voxel::VF_NON_EMPTY)
 		{
-			hit.voxelPos = IVector3D(vPos) + gridPos;
+			hit.voxelPos = IVector3D(vPos) + bound.pMin;
 			return true;
 		}
 		// Step to net voxel, find axis:

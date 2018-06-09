@@ -52,7 +52,7 @@ class VoxelGrid
 			int val = pos - bound.pMin[axis];
 			return val < 0 ? 0 : (val > GRID_LEN - 1 ? GRID_LEN - 1 : val);
 		}
-		const IVector3D& getGridPos() const { return gridPos; }
+		const IVector3D& getGridPos() const { return bound.pMin; }
 		const IBBox& getBound() const { return bound; }
 		float voxelEdge(int pos, int axis) const { return bound.pMin[axis] + (float)pos; }
 		bool rayIntersect(const ray_t &ray, SceneRayHit &hit) const;
@@ -70,7 +70,6 @@ class VoxelGrid
 		int writeFaces(const VoxelEntry &entry, uint8_t matIndex, int mask, IVector3D pos, GlVoxelVertex_t *vertices) const;
 		std::vector<int> getNeighbourMasks(const VoxelGrid* neighbourGrids[27]) const;
 		IBBox bound;
-		IVector3D gridPos; // TODO: redundant right now, use bound.pMin?
 		std::vector<VoxelEntry> voxels;
 };
 
