@@ -14,6 +14,13 @@
 
 #include <QOpenGLShaderProgram>
 
+void GLRenderable::cleanupGL(QOpenGLFunctions_3_3_Core &glf)
+{
+	if (glVBO)
+		deleteBuffer(glf);
+	glVAO.destroy();
+}
+
 // Note: leaves the array buffer bound
 void GLRenderable::uploadBuffer(QOpenGLFunctions_3_3_Core &glf, void *data, GLsizeiptr size)
 {

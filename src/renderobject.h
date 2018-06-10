@@ -37,6 +37,7 @@ class GLRenderable
 		GLRenderable(): glVBO(0), glBufferSize(0), dirty(true) {}
 		virtual ~GLRenderable() {} // TODO: add checks to ensure OpenGL data was freed, now is too late!
 		bool isDirty() const { return dirty; }
+		virtual void cleanupGL(QOpenGLFunctions_3_3_Core &glf);
 		virtual void setup(QOpenGLFunctions_3_3_Core &glf) = 0;
 		virtual void render(QOpenGLFunctions_3_3_Core &glf) = 0;
 		virtual bool rayIntersect(const ray_t &ray, SceneRayHit &hit) { return false; }
@@ -52,11 +53,11 @@ class GLRenderable
 class LineGrid : public GLRenderable
 {
 	public:
-		LineGrid(): axis(1), bound(IVector3D(-4,0,-4), IVector3D(4,0,4)) {}
-		void setup(QOpenGLFunctions_3_3_Core &glf);
+		LineGrid(): axis(1), bound(IVector3D(-4, 0, -4), IVector3D(4, 0, 4)) {}
 		void setShape(int gridPlane, const IBBox &bounds);
-		void render(QOpenGLFunctions_3_3_Core &glf);
-		bool rayIntersect(const ray_t &ray, SceneRayHit &hit);
+		void setup(QOpenGLFunctions_3_3_Core &glf) override;
+		void render(QOpenGLFunctions_3_3_Core &glf) override;
+		bool rayIntersect(const ray_t &ray, SceneRayHit &hit) override;
 	protected:
 		void rebuild(QOpenGLFunctions_3_3_Core &glf);
 		void buildLines(std::vector<GlVertex_t> &vertices, int lineAxis, int spaceAxis);

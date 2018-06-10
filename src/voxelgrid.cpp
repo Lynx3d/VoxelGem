@@ -431,13 +431,6 @@ void RenderGrid::setup(QOpenGLFunctions_3_3_Core &glf)
 								(const GLvoid*)offsetof(GlVoxelVertex_t, occlusion));
 }
 
-void RenderGrid::cleanupGL(QOpenGLFunctions_3_3_Core &glf)
-{
-	if (glVBO)
-		deleteBuffer(glf);
-	glVAO.destroy();
-}
-
 void RenderGrid::clear(QOpenGLFunctions_3_3_Core &glf)
 {
 	cleanupGL(glf);

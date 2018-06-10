@@ -78,7 +78,6 @@ class RenderGrid: public GLRenderable
 {
 	public:
 		void setup(QOpenGLFunctions_3_3_Core &glf) override;
-		void cleanupGL(QOpenGLFunctions_3_3_Core &glf);
 		void clear(QOpenGLFunctions_3_3_Core &glf);
 		/*! @param neighbourGrids: neighbourGrids[13] is the center to generate the mesh from */
 		void update(QOpenGLFunctions_3_3_Core &glf, const VoxelGrid* neighbourGrids[27], const RenderOptions &opt);
