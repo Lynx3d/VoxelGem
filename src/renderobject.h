@@ -66,4 +66,20 @@ class LineGrid : public GLRenderable
 		int numVert;
 };
 
+class WireCube : public GLRenderable
+{
+	public:
+		WireCube(): pMin(0, 0, 0), pMax(1, 1, 1), col(0) {}
+		void setColor(rgba_t color);
+		void setShape(const IBBox &box, float margin = 0.05);
+		void setup(QOpenGLFunctions_3_3_Core &glf) override;
+		void render(QOpenGLFunctions_3_3_Core &glf) override;
+		static void initializeStaticGL(QOpenGLFunctions_3_3_Core &glf);
+	protected:
+		static GLuint s_indexBuffer;
+		void rebuild(QOpenGLFunctions_3_3_Core &glf);
+		QVector3D pMin, pMax;
+		rgba_t col;
+};
+
 #endif // VG_RENDEROBJECT_H

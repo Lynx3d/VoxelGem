@@ -178,3 +178,76 @@ bool LineGrid::rayIntersect(const ray_t &ray, SceneRayHit &hit)
 	}
 	return false;
 }
+
+//======= WireCube =========== //
+
+GLuint WireCube::s_indexBuffer = 0;
+
+void WireCube::initializeStaticGL(QOpenGLFunctions_3_3_Core &glf)
+{
+	static const uint16_t index_array[24] =
+	{ 0,1, 1,2, 2,3, 3,0,   7,6, 6,5, 5,4, 4,7,  0,4, 1,5, 2,6, 3,7 };
+	glf.glGenBuffers(1, &s_indexBuffer);
+	glf.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_indexBuffer);
+	glf.glBufferData(GL_ELEMENT_ARRAY_BUFFER, 24 * sizeof(uint16_t), index_array, GL_STATIC_DRAW);
+}
+
+void WireCube::setColor(rgba_t color)
+{
+	col = color;
+	dirty = true;
+}
+
+void WireCube::setShape(const IBBox &box, float margin)
+{
+	QVector3D offset(margin, margin, margin);
+	pMin = QVector3D(box.pMin.x, box.pMin.y, box.pMin.z) - offset;
+	pMax = QVector3D(box.pMax.x, box.pMax.y, box.pMax.z) + offset;
+	dirty = true;
+}
+
+// TODO: make 1 function per vertex type rather than copy for each implementation
+void WireCube::setup(QOpenGLFunctions_3_3_Core &glf)
+{
+	// TODO: should only be required when VAO is created
+	glf.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_indexBuffer);
+	// Attribute 0: vertex position
+	glf.glEnableVertexAttribArray(0);
+	glf.glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(GlVertex_t), (const GLvoid*)offsetof(GlVertex_t, pos));
+	// Attribute 1: vertex color
+	glf.glEnableVertexAttribArray(1);
+	glf.glVertexAttribIPointer(1, 4, GL_UNSIGNED_BYTE, sizeof(GlVertex_t), (const GLvoid*)offsetof(GlVertex_t, col));
+}
+
+void WireCube::render(QOpenGLFunctions_3_3_Core &glf)
+{
+	if (!glVAO.isCreated())
+		glVAO.create();
+
+	glVAO.bind();
+
+	if (dirty) // create and upload buffer
+	{
+		rebuild(glf);
+		dirty = false;
+	}
+	//glf.glDrawArrays(GL_LINES, 0, numVert);
+	glf.glDrawElements(GL_LINES, 12 * 2, GL_UNSIGNED_SHORT, nullptr);
+	glVAO.release();
+}
+
+void WireCube::rebuild(QOpenGLFunctions_3_3_Core &glf)
+{
+	std::vector<GlVertex_t> vertices;
+	vertices.resize(8);
+	vertices[0] = { { pMin.x(), pMin.y(), pMin.z() }, col };
+	vertices[1] = { { pMin.x(), pMin.y(), pMax.z() }, col };
+	vertices[2] = { { pMin.x(), pMax.y(), pMax.z() }, col };
+	vertices[3] = { { pMin.x(), pMax.y(), pMin.z() }, col };
+	vertices[4] = { { pMax.x(), pMin.y(), pMin.z() }, col };
+	vertices[5] = { { pMax.x(), pMin.y(), pMax.z() }, col };
+	vertices[6] = { { pMax.x(), pMax.y(), pMax.z() }, col };
+	vertices[7] = { { pMax.x(), pMax.y(), pMin.z() }, col };
+
+	uploadBuffer(glf, vertices.data(), vertices.size() * sizeof(GlVertex_t));
+}
