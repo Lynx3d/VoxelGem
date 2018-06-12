@@ -39,7 +39,7 @@ class LayerEditor: public QObject
 	public Q_SLOTS:
 		void layerCreated(int layerN);
 		void layerDeleted(int layerN);
-		void layerSettingsChanged(int layerN);
+		void layerSettingsChanged(int layerN, int change_flags);
 		void activeLayerChanged(int layerN, int prev);
 		void on_nameEdit_editingFinished();
 		void on_layer_bound_toggled(bool enabled);

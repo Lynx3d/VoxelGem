@@ -71,8 +71,10 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 		static float sRGB_LUT[1024];
 		GLRenderable* getGrid();
 		const RenderOptions& getRenderOptions() { return renderOptions; }
+		void activeLayerChanged(int layerN);
 	public Q_SLOTS:
 		void on_activeToolChanged(EditTool *tool);
+		void on_layerSettingsChanged(int layerN, int change_flags);
 		void on_renderDataChanged();
 	protected:
 		void generateUBOs();
@@ -89,6 +91,7 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 		GLuint m_ubo_material;
 		GLuint m_normal_tex;
 		ViewportSettings *vpSettings;
+		WireCube *boundCube;
 		LineGrid *grid; // TODO: move to ViewportSettings?
 		RenderOptions renderOptions; // TODO: move to ViewportSettings?
 		bool tesselationChanged; // TODO: move to ViewportSettings?

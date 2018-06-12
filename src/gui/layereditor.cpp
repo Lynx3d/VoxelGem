@@ -157,8 +157,6 @@ void LayerEditor::setVisibility(int layerNum, bool visible)
 	if (layerNum >= (int)layerWidgets.size() || layerNum < 0)
 		return;
 	hub->setLayerVisibility(layerNum, visible);
-	// TODO: use signal/slot to sync visibility
-	layerWidgets[layerNum]->setVisibilityStatus(visible);
 }
 
 void LayerEditor::layerCreated(int layerN)
@@ -192,11 +190,14 @@ void LayerEditor::layerDeleted(int layerN)
 		layerWidgets[i]->setLayerNum(i);
 }
 
-void LayerEditor::layerSettingsChanged(int layerN)
+void LayerEditor::layerSettingsChanged(int layerN, int change_flags)
 {
 	const VoxelLayer *layer = hub->getLayer(layerN);
-	layerWidgets[layerN]->setLayerName(QString::fromStdString(layer->name));
-	if (layerN == hub->activeLayer())
+	if (change_flags & VoxelLayer::VISIBILITY_CHANGED)
+		layerWidgets[layerN]->setVisibilityStatus(layer->visible);
+	if (change_flags & VoxelLayer::NAME_CHANGED)
+		layerWidgets[layerN]->setLayerName(QString::fromStdString(layer->name));
+	if (layerN == hub->activeLayer() &&	(change_flags & (VoxelLayer::BOUND_CHANGED | VoxelLayer::USE_BOUND_CHANGED)))
 		loadLayerDetails(layerN);
 }
 

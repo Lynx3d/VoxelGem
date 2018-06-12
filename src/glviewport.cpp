@@ -185,6 +185,13 @@ void GlViewportWidget::initializeGL()
 	// test: print UBO layout info
 	//GLInfoLib::getUniformsInfo(voxelProgram->programId());
 
+	// static object buffers
+	WireCube::initializeStaticGL(*this);
+
+	boundCube = new WireCube;
+	boundCube->setShape(scene->layers[scene->activeLayerN]->bound);
+	boundCube->setColor(rgba_t(255, 160, 160, 255));
+
 	// line grid
 	grid = new LineGrid();
 	grid->setShape(1, IBBox(IVector3D(-32, 0, -32), IVector3D(32, 0, 32)));
@@ -234,6 +241,8 @@ void GlViewportWidget::paintGL()
 	glBindBuffer(GL_UNIFORM_BUFFER, m_ubo_LUT);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ubo_LUT);
 	// test object
+	if (scene->layers[scene->activeLayerN]->useBound)
+		boundCube->render(*this);
 	grid->render(*this);
 
 	glEnable(GL_CULL_FACE);
@@ -279,6 +288,12 @@ void GlViewportWidget::setViewMode(RenderOptions::Modes mode)
 		update();
 	}
 };
+
+void GlViewportWidget::activeLayerChanged(int layerN)
+{
+	boundCube->setShape(scene->layers[scene->activeLayerN]->bound);
+	update();
+}
 
 void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 {
@@ -395,4 +410,23 @@ void GlViewportWidget::on_activeToolChanged(EditTool *tool)
 void GlViewportWidget::on_renderDataChanged()
 {
 	update();
+}
+
+void GlViewportWidget::on_layerSettingsChanged(int layerN, int change_flags)
+{
+	bool redraw = false;
+	if (change_flags & VoxelLayer::VISIBILITY_CHANGED)
+		redraw = true;
+	if (layerN == scene->activeLayerN)
+	{
+		if (change_flags & VoxelLayer::BOUND_CHANGED)
+		{
+			boundCube->setShape(scene->layers[scene->activeLayerN]->bound);
+			redraw = true;
+		}
+		if (change_flags & VoxelLayer::USE_BOUND_CHANGED)
+			redraw = true;
+	}
+	if (redraw)
+		update();
 }

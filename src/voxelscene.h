@@ -29,6 +29,14 @@ typedef std::unordered_map<uint64_t, DirtyVolume> dirtyMap_t;
 class VoxelLayer
 {
 	public:
+		enum ChangeFlags
+		{
+			NAME_CHANGED 		= 1,
+			BOUND_CHANGED 		= 1 << 1,
+			USE_BOUND_CHANGED 	= 1 << 2,
+			VISIBILITY_CHANGED 	= 1 << 3,
+			ALL_CHANGED 		= 15
+		};
 		VoxelLayer(): aggregate(0), visible(true), useBound(false), bound(IVector3D(0,0,0), IVector3D(16,16,16)) {}
 		~VoxelLayer();
 		VoxelAggregate *aggregate;

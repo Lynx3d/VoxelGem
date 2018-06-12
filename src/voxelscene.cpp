@@ -57,6 +57,7 @@ void VoxelScene::setActiveLayer(int layerN)
 	// render layer aggregate needs to be set to editing layer (shallow copy)
 	renderLayer->aggregate->clone(*editingLayer->aggregate);
 	activeLayerN = layerN;
+	viewport->activeLayerChanged(layerN);
 }
 
 void VoxelScene::setVoxel(const IVector3D &pos, const VoxelEntry &voxel)
@@ -114,17 +115,18 @@ void VoxelScene::insertLayer(VoxelLayer *layer, int layerN)
 
 VoxelLayer* VoxelScene::removeLayer(int layerN)
 {
+	assert(layerN != activeLayerN);
 	VoxelLayer *layer = layers[layerN];
 	layers.erase(layers.begin() + layerN);
 	if (layerN <= activeLayerN)
 	{
-		if (layerN == activeLayerN)
+		/* if (layerN == activeLayerN)
 		{
 			if (layerN == int(layers.size()))
 				--activeLayerN;
 			setActiveLayer(activeLayerN);
 		}
-		else
+		else */
 			--activeLayerN;
 	}
 	removedRAg.push_back(layer->renderAg);

@@ -72,12 +72,13 @@ class SceneProxy: public QObject
 	Q_SIGNALS:
 		void layerDeleted(int layerN);
 		void layerCreated(int layerN);
-		void layerSettingsChanged(int layerN);
+		void layerSettingsChanged(int layerN, int change_flags);
 		void activeLayerChanged(int layerN, int prev);
 		void templateColorChanged(rgba_t col);
 		void renderDataChanged();
 	protected:
 		void dropRedoHistory();
+		void moveActiveLayer(int layerN);
 		VoxelScene *scene;
 		std::list<SceneMemento> editHistory;
 		std::list<SceneMemento>::iterator undoState;

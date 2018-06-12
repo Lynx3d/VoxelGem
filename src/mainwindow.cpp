@@ -57,6 +57,7 @@ VGMainWindow::VGMainWindow():
 	sceneProxy = new SceneProxy(scene, this);
 	connect(sceneProxy, &SceneProxy::templateColorChanged, this, &VGMainWindow::on_templateColorChanged);
 	connect(sceneProxy, &SceneProxy::renderDataChanged, viewport, &GlViewportWidget::on_renderDataChanged);
+	connect(sceneProxy, &SceneProxy::layerSettingsChanged, viewport, &GlViewportWidget::on_layerSettingsChanged);
 	LayerEditor *layer_ed = new LayerEditor(mainUi->layers, sceneProxy);
 	layer_ed->setParent(this);
 	// TODO: load tools in a better place...

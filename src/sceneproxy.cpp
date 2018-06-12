@@ -35,6 +35,16 @@ void SceneProxy::dropRedoHistory()
 	}
 }
 
+void SceneProxy::moveActiveLayer(int layerN)
+{
+	if (layerN == activeLayer())
+	{
+		int activeLayerNew = (layerN == layerCount() - 1) ? layerN - 1 : layerN + 1;
+		scene->setActiveLayer(activeLayerNew);
+		emit(activeLayerChanged(activeLayerNew, layerN));
+	}
+}
+
 int SceneProxy::activeLayer() const
 {
 	return scene->activeLayerN;
@@ -114,6 +124,7 @@ bool SceneProxy::deleteLayer(int layerN)
 	if (scene->layers.size() < 2 || layerN < 0 || layerN >= int(scene->layers.size()))
 		return false;
 
+	moveActiveLayer(layerN);
 	VoxelLayer *removed = scene->removeLayer(layerN);
 	dropRedoHistory();
 	editHistory.emplace_back(SceneMemento());
@@ -146,7 +157,7 @@ bool SceneProxy::setLayerBound(int layerN, const IBBox &bound)
 	if (layerN < 0 || layerN >= (int)scene->layers.size())
 		return false;
 	scene->layers[layerN]->bound = bound;
-	emit(layerSettingsChanged(layerN));
+	emit(layerSettingsChanged(layerN, VoxelLayer::BOUND_CHANGED));
 	return true;
 }
 
@@ -155,7 +166,7 @@ bool SceneProxy::setLayerBoundUse(int layerN, bool enabled)
 	if (layerN < 0 || layerN >= (int)scene->layers.size())
 		return false;
 	scene->layers[layerN]->useBound = enabled;
-	emit(layerSettingsChanged(layerN));
+	emit(layerSettingsChanged(layerN, VoxelLayer::USE_BOUND_CHANGED));
 	return true;
 }
 
@@ -164,9 +175,7 @@ bool SceneProxy::setLayerVisibility(int layerN, bool visible)
 	if (layerN < 0 || layerN >= (int)scene->layers.size())
 		return false;
 	scene->layers[layerN]->visible = visible;
-	//TODO: emit(layerSettingsChanged(layerN)); ?
-	scene->dirty = true;
-	emit(renderDataChanged());
+	emit(layerSettingsChanged(layerN, VoxelLayer::VISIBILITY_CHANGED));
 	return true;
 }
 
@@ -175,7 +184,7 @@ bool SceneProxy::renameLayer(int layerN, const std::string &name)
 	if (layerN < 0 || layerN >= (int)scene->layers.size())
 		return false;
 	scene->layers[layerN]->name = name;
-	emit(layerSettingsChanged(layerN));
+	emit(layerSettingsChanged(layerN, VoxelLayer::NAME_CHANGED));
 	return true;
 }
 
@@ -203,6 +212,7 @@ void SceneProxy::undo()
 			break;
 		case SceneMemento::ADD_LAYER:
 			state.sourceLayers.push_back(scene->layers[state.targetLayerIndex]);
+			moveActiveLayer(state.targetLayerIndex);
 			scene->removeLayer(state.targetLayerIndex);
 			emit(layerDeleted(state.targetLayerIndex));
 			break;
@@ -237,6 +247,7 @@ void SceneProxy::redo()
 			break;
 		case SceneMemento::DELETE_LAYER:
 			state.sourceLayers.push_back(scene->layers[state.targetLayerIndex]);
+			moveActiveLayer(state.targetLayerIndex);
 			scene->removeLayer(state.targetLayerIndex);
 			emit(layerDeleted(state.targetLayerIndex));
 			break;
