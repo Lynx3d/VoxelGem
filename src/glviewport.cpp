@@ -73,12 +73,13 @@ void ViewportSettings::panBy(float dX, float dY)
 
 void ViewportSettings::zoomBy(float dZ)
 {
-	float steps = dZ / 180.f;
-	camDistance -= steps;
+	float steps = dZ / 120.f;
+	float stepSize = std::max(0.5, 0.25 * floor(camDistance/4));
+	camDistance -= steps * stepSize;
 	if (camDistance < 1)
 		camDistance = 1;
-	else if (camDistance > 40)
-		camDistance = 40;
+	else if (camDistance > 100)
+		camDistance = 100;
 	updateViewMatrix();
 }
 
