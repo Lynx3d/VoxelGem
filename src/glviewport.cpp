@@ -176,16 +176,6 @@ void GlViewportWidget::initializeGL()
 	GLuint block_index = glGetUniformBlockIndex(flatProgram->programId(), "sRGB_LUT");
 	glUniformBlockBinding(flatProgram->programId(), block_index, 0);
 
-	QOpenGLShaderProgram* voxelProgram = getShaderProgram(SHADER_VOXEL);
-	voxelProgram->bind();
-	// connect sRGB and material UBO
-	block_index = glGetUniformBlockIndex(voxelProgram->programId(), "sRGB_LUT");
-	glUniformBlockBinding(voxelProgram->programId(), block_index, 0);
-	block_index = glGetUniformBlockIndex(voxelProgram->programId(), "materials");
-	glUniformBlockBinding(voxelProgram->programId(), block_index, 1);
-	// test: print UBO layout info
-	//GLInfoLib::getUniformsInfo(voxelProgram->programId());
-
 	// static object buffers
 	WireCube::initializeStaticGL(*this);
 

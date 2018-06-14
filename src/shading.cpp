@@ -259,6 +259,15 @@ static QOpenGLShaderProgram* createProgram(QOpenGLShader *vtx, QOpenGLShader *fr
 	return program;
 }
 
+static void bindVoxelUBOs(QOpenGLFunctions_3_3_Core &glf, QOpenGLShaderProgram* prog)
+{
+	// set UBO binding points: sRGB_LUT => 0; materials => 1
+	GLuint block_index = glf.glGetUniformBlockIndex(prog->programId(), "sRGB_LUT");
+	glf.glUniformBlockBinding(prog->programId(), block_index, 0);
+	block_index = glf.glGetUniformBlockIndex(prog->programId(), "materials");
+	glf.glUniformBlockBinding(prog->programId(), block_index, 1);
+}
+
 void initShaders(QOpenGLFunctions_3_3_Core &glf)
 {
 	VG_SHADERS.resize(SHADER_MAX_ID);
@@ -272,6 +281,7 @@ void initShaders(QOpenGLFunctions_3_3_Core &glf)
 
 	// programs
 	VG_SHADER_PROGS[SHADER_VOXEL] = createProgram(VG_SHADERS[VT_SHADER_VOXEL], VG_SHADERS[FR_SHADER_VOXEL]);
+	bindVoxelUBOs(glf, VG_SHADER_PROGS[SHADER_VOXEL]);
 	VG_SHADER_PROGS[SHADER_FLAT_COLOR] = createProgram(VG_SHADERS[VT_SHADER_FLAT_COLOR], VG_SHADERS[FR_SHADER_FLAT_COLOR]);
 }
 
