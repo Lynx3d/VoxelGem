@@ -14,12 +14,12 @@
 class PaintTool: public EditTool
 {
 	public:
-		void mouseMoved(const ToolEvent &event, VoxelScene &scene) override;
-		void mouseDown(const ToolEvent &event, VoxelScene &scene) override;
-		void mouseUp(const ToolEvent &event, VoxelScene &scene) override;
+		void mouseMoved(const ToolEvent &event) override;
+		void mouseDown(const ToolEvent &event) override;
+		void mouseUp(const ToolEvent &event) override;
 		static ToolInstance* getInstance();
 	protected:
-		void processDragEvent(const ToolEvent &event, VoxelScene &scene);
+		void processDragEvent(const ToolEvent &event);
 		bool painting = false;
 		//bool deleting;
 		bool haveLastPos;

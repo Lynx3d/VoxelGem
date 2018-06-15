@@ -9,26 +9,26 @@
 #include "draw.h"
 #include "voxelscene.h"
 
-void DrawTool::mouseDown(const ToolEvent &event, VoxelScene &scene)
+void DrawTool::mouseDown(const ToolEvent &event)
 {
 	haveLastPos = false;
 	deleting = event.isShiftPressed();
-	processDragEvent(event, scene);
+	processDragEvent(event);
 }
 
-void DrawTool::mouseUp(const ToolEvent &event, VoxelScene &scene)
+void DrawTool::mouseUp(const ToolEvent &event)
 {
 	if (haveLastPos)
 		completeAction();
 	haveLastPos = false;
 }
 
-void DrawTool::mouseMoved(const ToolEvent &event, VoxelScene &scene)
+void DrawTool::mouseMoved(const ToolEvent &event)
 {
-	processDragEvent(event, scene);
+	processDragEvent(event);
 }
 
-void DrawTool::processDragEvent(const ToolEvent &event, VoxelScene &scene)
+void DrawTool::processDragEvent(const ToolEvent &event)
 {
 	IVector3D curPos;
 	if (deleting)
@@ -39,7 +39,7 @@ void DrawTool::processDragEvent(const ToolEvent &event, VoxelScene &scene)
 		if (haveLastPos && lastPos == curPos)
 			return;
 
-		scene.eraseVoxel(curPos);
+		scene->eraseVoxel(curPos);
 	}
 	else
 	{
@@ -47,7 +47,7 @@ void DrawTool::processDragEvent(const ToolEvent &event, VoxelScene &scene)
 			return;
 		if (haveLastPos && lastPos == curPos)
 			return;
-		scene.setVoxel(curPos, *scene.getVoxelTemplate());
+		scene->setVoxel(curPos, *scene->getVoxelTemplate());
 	}
 	lastPos = curPos;
 	haveLastPos = true;

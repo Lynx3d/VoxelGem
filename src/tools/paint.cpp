@@ -10,26 +10,26 @@
 #include "voxelscene.h"
 #include "sceneproxy.h"
 
-void PaintTool::mouseDown(const ToolEvent &event, VoxelScene &scene)
+void PaintTool::mouseDown(const ToolEvent &event)
 {
 	picking = event.isShiftPressed();
 	haveLastPos = false;
-	processDragEvent(event, scene);
+	processDragEvent(event);
 }
 
-void PaintTool::mouseUp(const ToolEvent &event, VoxelScene &scene)
+void PaintTool::mouseUp(const ToolEvent &event)
 {
 	if (haveLastPos)
 		completeAction();
 	haveLastPos = false;
 }
 
-void PaintTool::mouseMoved(const ToolEvent &event, VoxelScene &scene)
+void PaintTool::mouseMoved(const ToolEvent &event)
 {
-	processDragEvent(event, scene);
+	processDragEvent(event);
 }
 
-void PaintTool::processDragEvent(const ToolEvent &event, VoxelScene &scene)
+void PaintTool::processDragEvent(const ToolEvent &event)
 {
 	IVector3D curPos;
 	const VoxelEntry *voxel = getCursorVoxelEdit(event, curPos);
@@ -45,7 +45,7 @@ void PaintTool::processDragEvent(const ToolEvent &event, VoxelScene &scene)
 	}
 	else
 	{
-		scene.setVoxel(curPos, *scene.getVoxelTemplate());
+		scene->setVoxel(curPos, *scene->getVoxelTemplate());
 	}
 	lastPos = curPos;
 	haveLastPos = true;

@@ -45,13 +45,21 @@ QVector3D ToolEvent::cursorPos() const
 
 /*========= EditTool ==========*/
 
-void EditTool::mouseMoved(const ToolEvent &event, VoxelScene &scene)
+EditTool::~EditTool()
 {}
 
-void EditTool::mouseDown(const ToolEvent &event, VoxelScene &scene)
+void EditTool::initialize(VoxelScene *vs)
+{
+	scene = vs;
+}
+
+void EditTool::mouseMoved(const ToolEvent &event)
 {}
 
-void EditTool::mouseUp(const ToolEvent &event, VoxelScene &scene)
+void EditTool::mouseDown(const ToolEvent &event)
+{}
+
+void EditTool::mouseUp(const ToolEvent &event)
 {}
 
 void EditTool::completeAction()
@@ -63,7 +71,6 @@ void EditTool::completeAction()
 
 bool EditTool::getCursorVoxelAdd(const ToolEvent &event, IVector3D &pos, SceneRayHit *hit) const
 {
-	VoxelScene *scene = sceneProxy->getScene();
 	bool sliceMode = event.getRenderOptions().mode == RenderOptions::MODE_SLICE;
 	int rayFlags = SceneRayHit::HIT_LINEGRID;
 	if (!sliceMode)
@@ -92,7 +99,6 @@ bool EditTool::getCursorVoxelAdd(const ToolEvent &event, IVector3D &pos, SceneRa
 
 const VoxelEntry* EditTool::getCursorVoxelEdit(const ToolEvent &event, IVector3D &pos, SceneRayHit *hit) const
 {
-	VoxelScene *scene = sceneProxy->getScene();
 	bool sliceMode = event.getRenderOptions().mode == RenderOptions::MODE_SLICE;
 	int rayFlags = sliceMode ? SceneRayHit::HIT_LINEGRID : SceneRayHit::HIT_VOXEL;
 

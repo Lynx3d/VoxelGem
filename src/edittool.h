@@ -40,10 +40,12 @@ class ToolEvent
 class EditTool
 {
 	public:
+		virtual ~EditTool();
 		void setSceneProxy(SceneProxy *proxy) { sceneProxy = proxy; }
-		virtual void mouseMoved(const ToolEvent &event, VoxelScene &scene);
-		virtual void mouseDown(const ToolEvent &event, VoxelScene &scene);
-		virtual void mouseUp(const ToolEvent &event, VoxelScene &scene);
+		void initialize(VoxelScene *vs);
+		virtual void mouseMoved(const ToolEvent &event);
+		virtual void mouseDown(const ToolEvent &event);
+		virtual void mouseUp(const ToolEvent &event);
 	protected:
 		/*! this applies the recorded voxel changes and creates an undo step */
 		void completeAction();
@@ -52,6 +54,7 @@ class EditTool
 		/*! get the voxel under the cursor, if one exists */
 		const VoxelEntry* getCursorVoxelEdit(const ToolEvent &event, IVector3D &pos, SceneRayHit *hit = 0) const;
 		SceneProxy *sceneProxy = 0;
+		VoxelScene *scene = 0;
 };
 
 class ToolInstance

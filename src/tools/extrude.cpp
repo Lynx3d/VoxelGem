@@ -36,7 +36,7 @@ void ExtrudeTool::extrude(T &op, int start, int end)
 	}
 }
 
-void ExtrudeTool::mouseMoved(const ToolEvent &event, VoxelScene &scene)
+void ExtrudeTool::mouseMoved(const ToolEvent &event)
 {
 	if (!selBound.valid)
 		return;
@@ -46,25 +46,25 @@ void ExtrudeTool::mouseMoved(const ToolEvent &event, VoxelScene &scene)
 	if (newHeight < extrudeHeight)
 	{
 		VoxelEntry ve(0, 0);
-		auto clearOp = [this, &scene, ve](IVector3D pos, int start, int end)
+		auto clearOp = [this, ve](IVector3D pos, int start, int end)
 		{
 			for (int i=start; i < end; ++i)
 			{
 				pos[axis] += (i + 1) * direction;
-				scene.setVoxel(pos, ve);
+				scene->setVoxel(pos, ve);
 			}
 		};
 		extrude(clearOp, newHeight, extrudeHeight);
 	}
 	else if (newHeight > extrudeHeight)
 	{
-		const VoxelEntry &vt = *scene.getVoxelTemplate();
-		auto extrudeOp = [this, &scene, &vt](IVector3D pos, int start, int end)
+		const VoxelEntry &vt = *scene->getVoxelTemplate();
+		auto extrudeOp = [this, &vt](IVector3D pos, int start, int end)
 		{
 			for (int i=start; i < end; ++i)
 			{
 				pos[axis] += (i + 1) * direction;
-				scene.setVoxel(pos, vt);
+				scene->setVoxel(pos, vt);
 			}
 		};
 		extrude(extrudeOp, extrudeHeight, newHeight);
@@ -72,10 +72,10 @@ void ExtrudeTool::mouseMoved(const ToolEvent &event, VoxelScene &scene)
 	extrudeHeight = newHeight;
 }
 
-void ExtrudeTool::mouseDown(const ToolEvent &event, VoxelScene &scene)
+void ExtrudeTool::mouseDown(const ToolEvent &event)
 {
 	SceneRayHit hit;
-	scene.rayIntersect(event.getCursorRay(), hit);
+	scene->rayIntersect(event.getCursorRay(), hit);
 	if (!(hit.flags & SceneRayHit::HIT_VOXEL))
 		return;
 
@@ -85,7 +85,7 @@ void ExtrudeTool::mouseDown(const ToolEvent &event, VoxelScene &scene)
 	selectFace(hit, layer->aggregate);
 }
 
-void ExtrudeTool::mouseUp(const ToolEvent &event, VoxelScene &scene)
+void ExtrudeTool::mouseUp(const ToolEvent &event)
 {
 	if (!selBound.valid || extrudeHeight == 0)
 		return;

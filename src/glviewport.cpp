@@ -295,7 +295,7 @@ void GlViewportWidget::mousePressEvent(QMouseEvent *event)
 		{
 			ray_t ray = vpSettings->unproject(QVector3D(event->x(), height() - event->y(), 0.f));
 			ToolEvent toolEvent(this, event, ray);
-			currentTool->mouseDown(toolEvent, *scene);
+			currentTool->mouseDown(toolEvent);
 
 			if (scene->needsUpdate())
 			{
@@ -324,7 +324,7 @@ void GlViewportWidget::mouseReleaseEvent(QMouseEvent *event)
 		// TODO: cache ray; currently don't need ray hit yet
 		ray_t ray = vpSettings->unproject(QVector3D(event->x(), height() - event->y(), 0.f));
 		ToolEvent toolEvent(this, event, ray);
-		currentTool->mouseUp(toolEvent, *scene);
+		currentTool->mouseUp(toolEvent);
 		if (scene->needsUpdate())
 		{
 			update();
@@ -354,7 +354,7 @@ void GlViewportWidget::mouseMoveEvent(QMouseEvent *event)
 	{
 		ray_t ray = vpSettings->unproject(QVector3D(event->x(), height() - event->y(), 0.f));
 		ToolEvent toolEvent(this, event, ray);
-		currentTool->mouseMoved(toolEvent, *scene);
+		currentTool->mouseMoved(toolEvent);
 
 		if (scene->needsUpdate())
 		{
@@ -394,6 +394,7 @@ void GlViewportWidget::on_activeToolChanged(EditTool *tool)
 	if (tool != currentTool)
 	{
 		std::cout << "current tool changed\n";
+		tool->initialize(scene);
 		currentTool = tool;
 	}
 }

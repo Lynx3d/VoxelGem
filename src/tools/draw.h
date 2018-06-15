@@ -14,12 +14,12 @@
 class DrawTool: public EditTool
 {
 	public:
-		void mouseMoved(const ToolEvent &event, VoxelScene &scene) override;
-		void mouseDown(const ToolEvent &event, VoxelScene &scene) override;
-		void mouseUp(const ToolEvent &event, VoxelScene &scene) override;
+		void mouseMoved(const ToolEvent &event) override;
+		void mouseDown(const ToolEvent &event) override;
+		void mouseUp(const ToolEvent &event) override;
 		static ToolInstance* getInstance();
 	private:
-		void processDragEvent(const ToolEvent &event, VoxelScene &scene);
+		void processDragEvent(const ToolEvent &event);
 		bool deleting;
 		bool haveLastPos;
 		IVector3D lastPos;
