@@ -18,6 +18,7 @@
 #include "tools/draw.h"
 #include "tools/paint.h"
 #include "tools/extrude.h"
+#include "tools/floodfill.h"
 
 #include <QFileDialog>
 #include <QActionGroup>
@@ -64,6 +65,8 @@ VGMainWindow::VGMainWindow():
 	ToolInstance *tool = DrawTool::getInstance();
 	addTool(tool);
 	tool = PaintTool::getInstance();
+	addTool(tool);
+	tool = FloodFillTool::getInstance();
 	addTool(tool);
 	tool = ExtrudeTool::getInstance();
 	addTool(tool);

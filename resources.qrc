@@ -1,6 +1,7 @@
 <RCC>
   <qresource prefix="images">
 	<file>gfx/icons/block.svg</file>
+	<file>gfx/icons/bucket.svg</file>
 	<file>gfx/icons/edit-redo.svg</file>
 	<file>gfx/icons/edit-undo.svg</file>
 	<file>gfx/icons/disk.svg</file>
