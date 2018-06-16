@@ -189,7 +189,7 @@ class AlphaMapOp: public SceneOp
 		}
 };
 
-void parse_file(QDataStream &fstream, SceneOp &dataOp, std::vector<VoxelLayer*> &layers)
+bool parse_file(QDataStream &fstream, SceneOp &dataOp, std::vector<VoxelLayer*> &layers)
 {
 	bool create = (layers.size() == 0);
 	// Qubicle files are little endian...
@@ -201,6 +201,8 @@ void parse_file(QDataStream &fstream, SceneOp &dataOp, std::vector<VoxelLayer*> 
 	fstream >> compressed;
 	fstream >> visibilityMaskEncoded;
 	fstream >> numMatrices;
+	if (fstream.status() != QDataStream::Ok)
+		return false;
 	rgba_t data;
 	for (uint32_t i=0; i < numMatrices; ++i)
 	{
@@ -217,13 +219,16 @@ void parse_file(QDataStream &fstream, SceneOp &dataOp, std::vector<VoxelLayer*> 
 		uint32_t  posX, posY, posZ;
 		fstream >> posX >> posY >> posZ;
 
+		if (fstream.status() != QDataStream::Ok)
+			return false;
+
 		if (create)
 		{
 			VoxelLayer* newLayer = new VoxelLayer;
-			newLayer->name = "New Layer"; // TODO: proper name
 			newLayer->aggregate = new VoxelAggregate();
 			newLayer->bound.pMin = IVector3D(posX, posY, zRight ? -posZ - sizeZ + 1 : posZ);
 			newLayer->bound.pMax = IVector3D(posX + sizeX, posY + sizeY, zRight ? -posZ + 1 : posZ + sizeZ);
+			newLayer->useBound = true;
 			newLayer->name = std::string(nameBuff);
 			layers.push_back(newLayer);
 			dataOp.setAggregate(newLayer->aggregate);
@@ -240,6 +245,8 @@ void parse_file(QDataStream &fstream, SceneOp &dataOp, std::vector<VoxelLayer*> 
 					for (uint32_t x = 0; x < sizeX; x++)
 			{
 				fstream.readRawData(data.bytes, 4);
+				if (fstream.status() != QDataStream::Ok)
+					return false;
 				if (data.a)
 					dataOp(data, posX + x, posY + y, (zRight ? -posZ - z : posZ + z));
 			}
@@ -254,6 +261,8 @@ void parse_file(QDataStream &fstream, SceneOp &dataOp, std::vector<VoxelLayer*> 
 				while (true)
 				{
 					fstream.readRawData(data.bytes, 4);
+					if (fstream.status() != QDataStream::Ok)
+							return false;
 					if (data.raw == NEXTSLICEFLAG.raw)
 						break;
 					runLength = 1;
@@ -261,6 +270,8 @@ void parse_file(QDataStream &fstream, SceneOp &dataOp, std::vector<VoxelLayer*> 
 					{
 						fstream >> runLength;
 						fstream.readRawData(data.bytes, 4);
+						if (fstream.status() != QDataStream::Ok)
+							return false;
 					}
 					for (uint32_t j = 0; j < runLength; ++j)
 					{
@@ -274,6 +285,7 @@ void parse_file(QDataStream &fstream, SceneOp &dataOp, std::vector<VoxelLayer*> 
 			}
 		}
 	}
+	return fstream.status() == QDataStream::Ok;
 }
 
 void qubicle_import(const QString &filename, SceneProxy *sceneP)
