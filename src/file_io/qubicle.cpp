@@ -426,20 +426,57 @@ void write_layer(QDataStream &fstream, const std::string &name, IBBox bound, Sce
 	}
 }
 
-void qubicle_export(const QString &filename, SceneProxy *sceneP)
+void qubicle_export(const QString &filename, SceneProxy *sceneP, bool trove_maps)
 {
 	bool compressed = true;
 	QFileInfo file_info(filename);
 	std::cout << "exporting " << filename.toStdString() << std::endl;
-	QFile file(file_info.filePath());
+	QFile file(file_info.filePath()), type_file, spec_file, alpha_file;
 	if (!file.open(QIODevice::WriteOnly))
 		return;
-	QDataStream fstream(&file);
+	QDataStream fstream(&file), type_stream, spec_stream, alpha_stream;
 	// Qubicle files are little endian...
 	fstream.setByteOrder(QDataStream::LittleEndian);
 	BaseColOp colOp;
+	TypeMapOp typeOp;
+	SpecMapOp specOp;
+	AlphaMapOp alphaOp;
 	int layerCount = sceneP->layerCount();
 	write_file_header(fstream, layerCount, compressed);
+
+	if (trove_maps)
+	{
+		QString base = file_info.completeBaseName();
+		QString suffix = file_info.suffix();
+		//== Type Map ==//
+		QFileInfo typemap_info(file_info.dir(), base + "_t." + suffix);
+		std::cout << "exporting " << typemap_info.filePath().toStdString() << std::endl;
+		type_file.setFileName(typemap_info.filePath());
+		if (!type_file.open(QIODevice::WriteOnly))
+			return;
+		type_stream.setDevice(&type_file);
+		type_stream.setByteOrder(QDataStream::LittleEndian);
+		write_file_header(type_stream, layerCount, compressed);
+		//== Specular Map ==//
+		QFileInfo specmap_info(file_info.dir(), base + "_s." + suffix);
+		std::cout << "exporting " << specmap_info.filePath().toStdString() << std::endl;
+		spec_file.setFileName(specmap_info.filePath());
+		if (!spec_file.open(QIODevice::WriteOnly))
+			return;
+		spec_stream.setDevice(&spec_file);
+		spec_stream.setByteOrder(QDataStream::LittleEndian);
+		write_file_header(spec_stream, layerCount, compressed);
+		//== Alpha Map ==//
+		QFileInfo alphamap_info(file_info.dir(), base + "_a." + suffix);
+		std::cout << "exporting " << alphamap_info.filePath().toStdString() << std::endl;
+		alpha_file.setFileName(alphamap_info.filePath());
+		if (!alpha_file.open(QIODevice::WriteOnly))
+			return;
+		alpha_stream.setDevice(&alpha_file);
+		alpha_stream.setByteOrder(QDataStream::LittleEndian);
+		write_file_header(alpha_stream, layerCount, compressed);
+	}
+
 	for (int i = 0; i < layerCount; ++i)
 	{
 		const VoxelLayer *layer = sceneP->getLayer(i);
@@ -450,6 +487,15 @@ void qubicle_export(const QString &filename, SceneProxy *sceneP)
 		else
 			layer->aggregate->getBound(sceneBound);
 		write_layer(fstream, layer->name, sceneBound, colOp, compressed);
+		if (trove_maps)
+		{
+			typeOp.setAggregate(layer->aggregate);
+			write_layer(type_stream, layer->name, sceneBound, typeOp, compressed);
+			specOp.setAggregate(layer->aggregate);
+			write_layer(spec_stream, layer->name, sceneBound, specOp, compressed);
+			alphaOp.setAggregate(layer->aggregate);
+			write_layer(alpha_stream, layer->name, sceneBound, alphaOp, compressed);
+		}
 	}
 }
 

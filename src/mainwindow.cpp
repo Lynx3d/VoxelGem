@@ -119,7 +119,7 @@ void VGMainWindow::on_action_redo_triggered()
 
 // TODO: create header
 void qubicle_import(const QString &filename, SceneProxy *sceneP);
-void qubicle_export(const QString &filename, SceneProxy *sceneP);
+void qubicle_export(const QString &filename, SceneProxy *sceneP, bool trove_maps);
 void qubicle_export_layer(const QString &filename, SceneProxy *sceneP, bool trove_maps);
 
 void VGMainWindow::on_action_open_triggered()
@@ -135,12 +135,23 @@ void VGMainWindow::on_action_open_triggered()
 void VGMainWindow::on_action_save_triggered()
 {
 	QString browseDir;
-	QString fileName = QFileDialog::getSaveFileName(this, "Open File",
+	QString fileName = QFileDialog::getSaveFileName(this, "Save File",
 			browseDir, "Qubicle (*.qb)");
 	if (fileName.isEmpty())
 		return;
 	// TODO: add proper extension if not entered
-	qubicle_export(fileName, sceneProxy);
+	qubicle_export(fileName, sceneProxy, false);
+}
+
+void VGMainWindow::on_action_export_trove_triggered()
+{
+	QString browseDir;
+	QString fileName = QFileDialog::getSaveFileName(this, "Export File",
+			browseDir, "Qubicle (*.qb)");
+	if (fileName.isEmpty())
+		return;
+	// TODO: add proper extension if not entered
+	qubicle_export(fileName, sceneProxy, true);
 }
 
 void VGMainWindow::on_action_export_layer_triggered()

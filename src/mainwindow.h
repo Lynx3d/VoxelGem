@@ -40,6 +40,7 @@ class VGMainWindow : public QMainWindow
 		void on_action_axis_grids_triggered(bool checked);
 		void on_action_open_triggered();
 		void on_action_save_triggered();
+		void on_action_export_trove_triggered();
 		void on_action_export_layer_triggered();
 		void on_action_undo_triggered();
 		void on_action_redo_triggered();

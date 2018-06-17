@@ -76,7 +76,7 @@
     <addaction name="action_save"/>
     <addaction name="action_saveas"/>
     <addaction name="separator"/>
-    <addaction name="action_export_troxel"/>
+    <addaction name="action_export_trove"/>
     <addaction name="action_export_layer"/>
     <addaction name="separator"/>
     <addaction name="action_exit"/>
@@ -523,9 +523,12 @@
     <string>Ctrl+L</string>
    </property>
   </action>
-  <action name="action_export_troxel">
+  <action name="action_export_trove">
    <property name="text">
-    <string>Export Troxel-link...</string>
+    <string>Export Qubicle (Trove)</string>
+   </property>
+   <property name="toolTip">
+    <string>Export Qubicle files including Trove material maps</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+T</string>
