@@ -48,9 +48,10 @@ void ExtrudeTool::mouseMoved(const ToolEvent &event)
 		VoxelEntry ve(0, 0);
 		auto clearOp = [this, ve](IVector3D pos, int start, int end)
 		{
+			pos[axis] += start * direction;
 			for (int i=start; i < end; ++i)
 			{
-				pos[axis] += (i + 1) * direction;
+				pos[axis] += direction;
 				scene->setVoxel(pos, ve);
 			}
 		};
@@ -61,9 +62,10 @@ void ExtrudeTool::mouseMoved(const ToolEvent &event)
 		const VoxelEntry &vt = *scene->getVoxelTemplate();
 		auto extrudeOp = [this, &vt](IVector3D pos, int start, int end)
 		{
+			pos[axis] += start * direction;
 			for (int i=start; i < end; ++i)
 			{
-				pos[axis] += (i + 1) * direction;
+				pos[axis] += direction;
 				scene->setVoxel(pos, vt);
 			}
 		};
