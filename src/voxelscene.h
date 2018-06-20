@@ -86,6 +86,7 @@ class VoxelScene
 		void insertLayer(VoxelLayer *layer, int layerN);
 		VoxelLayer* removeLayer(int layerN);
 		void restoreAggregate(VoxelLayer *layer, AggregateMemento *memento);
+		VoxelAggregate* replaceAggregate(int layerN, VoxelAggregate *aggregate);
 		void setActiveLayer(int layerN);
 		GlViewportWidget *viewport;
 		VoxelLayer *renderLayer;

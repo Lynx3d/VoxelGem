@@ -18,6 +18,7 @@
 class IBBox;
 class VoxelScene;
 class VoxelLayer;
+class VoxelAggregate;
 class AggregateMemento;
 
 class SceneMemento
@@ -29,6 +30,7 @@ class SceneMemento
 			ADD_LAYER,
 			DELETE_LAYER,
 			EDIT_LAYER,
+			REPLACE_AGGREGATE,
 			INVALID_ACTION
 		};
 		SceneMemento(): action(INVALID_ACTION), memento(0) {}
@@ -66,6 +68,7 @@ class SceneProxy: public QObject
 		bool setLayerBoundUse(int layerN, bool enabled);
 		bool setLayerVisibility(int layerN, bool visible);
 		bool renameLayer(int layerN, const std::string &name);
+		bool replaceAggregate(int layerN, VoxelAggregate *aggregate);
 		void setTemplateColor(rgba_t col);
 		void undo();
 		void redo();

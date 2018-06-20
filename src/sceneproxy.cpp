@@ -188,6 +188,25 @@ bool SceneProxy::renameLayer(int layerN, const std::string &name)
 	return true;
 }
 
+bool SceneProxy::replaceAggregate(int layerN, VoxelAggregate *aggregate)
+{
+	if (layerN < 0 || layerN >= (int)scene->layers.size() || !aggregate)
+		return false;
+
+	VoxelLayer* dummyLayer = new VoxelLayer;
+	dummyLayer->aggregate = scene->layers[layerN]->aggregate;
+	scene->replaceAggregate(layerN, aggregate);
+	dropRedoHistory();
+	editHistory.emplace_back(SceneMemento());
+	SceneMemento &memento = editHistory.back();
+	memento.action = SceneMemento::REPLACE_AGGREGATE;
+	memento.sourceLayers.push_back(dummyLayer);
+	memento.targetLayerIndex = layerN;
+	undoState = editHistory.end();
+	emit(renderDataChanged());
+	return true;
+}
+
 void SceneProxy::setTemplateColor(rgba_t col)
 {
 	if (col != scene->voxelTemplate.col)
@@ -224,6 +243,9 @@ void SceneProxy::undo()
 		case SceneMemento::EDIT_LAYER:
 			// TODO
 			break;
+		case SceneMemento::REPLACE_AGGREGATE:
+			state.sourceLayers.back()->aggregate = scene->replaceAggregate(state.targetLayerIndex, state.sourceLayers.back()->aggregate);
+			break;
 		case SceneMemento::INVALID_ACTION:
 			std::cout << "Invalid undo state!\n";
 	}
@@ -253,6 +275,9 @@ void SceneProxy::redo()
 			break;
 		case SceneMemento::EDIT_LAYER:
 			// TODO
+			break;
+		case SceneMemento::REPLACE_AGGREGATE:
+			state.sourceLayers.back()->aggregate = scene->replaceAggregate(state.targetLayerIndex, state.sourceLayers.back()->aggregate);
 			break;
 		case SceneMemento::INVALID_ACTION:
 			std::cout << "Invalid redo state!\n";

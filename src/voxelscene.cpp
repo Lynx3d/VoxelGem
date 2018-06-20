@@ -228,3 +228,22 @@ void VoxelScene::restoreAggregate(VoxelLayer *layer, AggregateMemento *memento)
 	}
 	dirty = true;
 }
+
+VoxelAggregate* VoxelScene::replaceAggregate(int layerN, VoxelAggregate *aggregate)
+{
+	VoxelLayer *layer = layers[layerN];
+	VoxelAggregate *old = layer->aggregate;
+	layer->aggregate = aggregate;
+	layer->renderInitialized = false;
+	if (layerN == activeLayerN)
+	{
+		// render layer aggregate needs to be set to editing layer (shallow copy)
+		// TODO: assert that toolLayer is empty, else need to either clear or re-apply it
+		renderLayer->aggregate->clone(*aggregate);
+	}
+	else
+	{
+		layer->renderAg->setAggregate(aggregate);
+	}
+	return old;
+}
