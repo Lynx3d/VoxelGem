@@ -119,6 +119,8 @@
     <addaction name="action_mirror_x"/>
     <addaction name="action_mirror_y"/>
     <addaction name="action_mirror_z"/>
+    <addaction name="separator"/>
+    <addaction name="action_translate_dialog"/>
    </widget>
    <addaction name="menu_file"/>
    <addaction name="menuEdit"/>
@@ -551,6 +553,11 @@
    </property>
    <property name="text">
     <string>2D</string>
+   </property>
+  </action>
+  <action name="action_translate_dialog">
+   <property name="text">
+    <string>Translate Model...</string>
    </property>
   </action>
  </widget>

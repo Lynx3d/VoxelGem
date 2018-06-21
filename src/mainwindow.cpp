@@ -12,8 +12,10 @@
 #include "glviewport.h"
 #include "palette.h"
 #include "gui/layereditor.h"
+#include "gui/dialog.h"
 #include "voxelscene.h"
 #include "sceneproxy.h"
+#include "transform.h"
 // tools
 #include "tools/draw.h"
 #include "tools/paint.h"
@@ -115,6 +117,19 @@ void VGMainWindow::on_action_undo_triggered()
 void VGMainWindow::on_action_redo_triggered()
 {
 	sceneProxy->redo();
+}
+
+void VGMainWindow::on_action_translate_dialog_triggered()
+{
+	VGTranslateDialog dialog(this);
+	if (dialog.exec() == QDialog::Accepted)
+	{
+		IVector3D offset = dialog.getOffset();
+		const VoxelLayer *layer = sceneProxy->getLayer(sceneProxy->activeLayer());
+		VTTranslate tl(offset);
+		VoxelAggregate *transformed = transformAggregate(layer->aggregate, tl);
+		sceneProxy->replaceAggregate(sceneProxy->activeLayer(), transformed);
+	}
 }
 
 // TODO: create header
