@@ -65,7 +65,7 @@ GLuint genVertexUBO(QOpenGLFunctions_3_3_Core &glf)
 	std::memcpy(buff, VERTEX_ATTRIBS, sizeof(VERTEX_ATTRIBS));
 	// init sRGB transfer function LUT (not exactly a gamma curve, but close)
 	for (int i=0; i < 11; ++i) buff[i][3] = float(i)/(255.f * 12.92f);
-	for (int i=11; i < 256; ++i) buff[i][3] = std::pow((float(i) + 0.055f)/(255.f * 1.055f), 2.4);
+	for (int i=11; i < 256; ++i) buff[i][3] = std::pow((float(i)/255.f + 0.055f)/1.055f, 2.4);
 
 	GLuint ubo;
 	glf.glGenBuffers(1, &ubo);
