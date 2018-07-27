@@ -1,0 +1,96 @@
+GIMP Palette
+Name: Trove Biome Colors
+Columns: 11
+
+142 133   4 Peaceful Hills Grass
+ 45  38  24 Dirt
+ 71  70  55 Rock (Layer 1)
+ 60  53  42 Rock (Layer 2)
+ 50  86  14 Green Tree 1
+ 57  93  21 Green Tree 2
+ 87   8   8 Red Tree 1
+118  12  11 Red Tree 2
+ 71  61  45 Tree Bark
+# Forbiddes Spires
+ 51 102  19 Forbidden Spires Grass (1)
+ 47  93  19 Forbidden Spires Grass (2)
+ 49  88  23 Forbidden Spires Grass (3)
+ 45  81  21 Forbidden Spires Grass (4)
+212 164 116 Forbidden Spires Stone (1)
+208 150  97 Forbidden Spires Stone (2)
+208 142  81 Forbidden Spires Stone (3)
+210 120  44 Forbidden Spires Stone (4)
+183  82  29 Forbidden Spires Earth (1)
+111  56  18 Forbidden Spires Earth (2)
+ 72  49  17 Forbidden Spires Tree Trunk
+ 47  78  28 Forbidden Spires Tree Foliage (Light)
+ 35  74  24 Forbidden Spires Tree Foliage (Dark)
+100 139  36 Forbidden Spires Bright Bamboo Stalks
+ 75 126  29 Forbidden Spires Bamboo Stalks
+205 186 138 Forbidden Spires Reed Flower
+# Cursed Vale
+ 63  72 116 Cursed Vale Grass
+113 108  80 Cursed Vale Dirt
+132 129 105 Cursed Vale Rock
+ 94  83 123 Cursed Vale Tree Foliage
+ 71  68  79 Cursed Vale Tree Bark
+# Medieval Highlands
+ 73 173  18 Medieval Highlands Grass
+198 102  25 Medieval Highlands Dirt
+ 69  59  52 Medieval Highlands Stone
+175  87  21 Medieval Highlands Tree Bark (exterior)
+247 237 138 Medieval Highlands Tree Bark (interior)
+ 42 155   4 Medieval Highlands Tree Foliage (Light)
+ 17 142  40 Medieval Highlands Tree Foliage (Dark)
+# Desert Frontier
+255  74  36 Desert Frontier Dirt
+167  89  78 Desert Frontier Rock
+130  57  46 Desert Frontier Cave
+ 67  84  72 Desert Frontier Cactus
+247 241 230 Desert Frontier Bone
+192 177 121 Desert Frontier Wood (Light)
+ 87  57  25 Desert Frontier Wood (Dark)
+# Fae Forest
+ 12  51  37 Fae Forest Grass
+ 75  56  43 Fae Forest Dirt
+ 67  66  61 Fae Forest Stone
+ 44  65  57 Fae Forest Tree Foliage
+ 54  49  44 Fae Forest Tree Bark
+# Dragonfire Peaks
+ 87  76  65 Dragonfire Peaks Grass
+ 56  46  47 Dragonfire Peaks Dirt
+ 31  17  17 Dragonfire Peaks Stone
+# Permafrost
+218 232 240 Permafrost Snow
+173 222 246 Permafrost Ice
+133 138 140 Permafrost Rock
+ 93  91 104 Permafrost Metal
+# Neon City
+ 48  51  55 Neon City Grass
+ 33  35  38 Neon City Dirt
+ 24  26  28 Neon City Rock
+245 233  39 Neon City Yellow Glow
+ 77 248  63 Neon City Green Glow
+ 65 199 248 Neon City Blue Glow
+215  58 248 Neon City Pink Glow
+# Candoria
+240 169 197 Candoria Grass
+ 41  32  21 Candoria Dirt
+241 239 220 Candoria Cake Layer 1
+207  50 176 Candoria Cake Layer 2
+# Treasure Isles
+118 127  61 Treasure Isles Grass
+210 193 155 Treasure Isles Sand
+ 91  89  79 Treasure Isles Rock
+138 126  87 Treasure Isles Tree Tunk (Light)
+108  99  64 Treasure Isles Tree Tunk (Dark)
+ 56  52  38 Treasure Isles Coconuts
+# Radiant Ruins
+ 12 129 126 Radiant Ruins Grass
+125  98 106 Radiant Ruins Dirt
+ 55  37  41 Radiant Ruins Stone
+236 255 255 Radiant Ruins Tree Bark
+ 64 113 177 Radiant Ruins Tree Foliage
+239 209  85 Radiant Ruins Radiant Gold
+174  88 254 Radiant Ruins Glowing Purple
+ 77 178 255 Radiant Ruins Glowing Blue

@@ -49,7 +49,7 @@ VGMainWindow::VGMainWindow():
 	connect(viewModeGroup, &QActionGroup::triggered, this, &VGMainWindow::on_viewModeActionTriggered);
 	// color palette
 	ColorPaletteModel *paletteModel = new ColorPaletteModel;
-	colorSet = getTestPalette();
+	colorSet = loadGimpPalette(":assets/trove.gpl");
 	paletteModel->setColorSet(colorSet);
 	paletteView->setPaletteModel(paletteModel);
 	mainUi->gridLayout_3->addWidget(paletteView, 5, 0, 1, 1);

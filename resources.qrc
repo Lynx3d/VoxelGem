@@ -1,4 +1,7 @@
 <RCC>
+  <qresource>
+	<file>assets/trove.gpl</file>
+  </qresource>
   <qresource prefix="images">
 	<file>gfx/icons/block.svg</file>
 	<file>gfx/icons/bucket.svg</file>
