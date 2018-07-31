@@ -94,26 +94,23 @@ void VoxelAggregate::clone(const VoxelAggregate &source)
 		blockMap.emplace(block.first, block.second);
 }
 
-void VoxelAggregate::merge(const VoxelAggregate &topLayer, const std::unordered_set<uint64_t> &blocks)
+void VoxelAggregate::merge(const VoxelAggregate &topLayer)
 {
-	for (auto &block_id: blocks)
+	for (auto &topGrid: topLayer.blockMap)
 	{
-		blockMap_t::iterator grid = blockMap.find(block_id);
-		blockMap_t::const_iterator topGrid = topLayer.blockMap.find(block_id);
-		if (topGrid == topLayer.blockMap.end())
-			continue;
+		blockMap_t::iterator grid = blockMap.find(topGrid.first);
 		if (grid == blockMap.end())
 		{
 			// no need to merge grid
-			blockMap.emplace(topGrid->first, topGrid->second);
+			blockMap.emplace(topGrid.first, topGrid.second);
 		}
-		else if (grid->second != topGrid->second) // only merge if we actually reference different grids
+		else if (grid->second != topGrid.second) // only merge if we actually reference different grids
 		{
 			if (grid->second.use_count() > 1) // need to copy or we modify multiple aggregates
 			{
 				grid->second = voxelGridPtr_t(new VoxelGrid(*grid->second));
 			}
-			grid->second->merge(*topGrid->second);
+			grid->second->merge(*topGrid.second);
 		}
 	}
 }
