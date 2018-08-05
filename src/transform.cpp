@@ -14,6 +14,13 @@ void VTTranslate::operator()(const IVector3D &pos, const VoxelEntry *voxel, Voxe
 	target->setVoxel(pos + offset, *voxel);
 }
 
+void VTMirror::operator()(const IVector3D &pos, const VoxelEntry *voxel, VoxelAggregate *target)
+{
+	IVector3D mPos(pos);
+	mPos[axis] = -pos[axis] + 2 * center;
+	target->setVoxel(mPos, *voxel);
+}
+
 VoxelAggregate* transformAggregate(const VoxelAggregate *ag, VoxelTransform &xform)
 {
 	VoxelAggregate *transformed = new VoxelAggregate();

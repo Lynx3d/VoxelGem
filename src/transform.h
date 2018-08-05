@@ -28,6 +28,16 @@ class VTTranslate: public VoxelTransform
 		IVector3D offset;
 };
 
+class VTMirror: public VoxelTransform
+{
+	public:
+		VTMirror(int _axis, int _center = 0): axis(_axis), center(_center) {}
+		virtual void operator()(const IVector3D &pos, const VoxelEntry *voxel, VoxelAggregate *target) override;
+	protected:
+		int axis;
+		int center;
+};
+
 VoxelAggregate* transformAggregate(const VoxelAggregate *ag, VoxelTransform &xform);
 
 #endif // VG_VOXELTRANSFORM_H

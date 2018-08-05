@@ -44,6 +44,9 @@ class VGMainWindow : public QMainWindow
 		void on_action_export_layer_triggered();
 		void on_action_undo_triggered();
 		void on_action_redo_triggered();
+		void on_action_mirror_x_triggered();
+		void on_action_mirror_y_triggered();
+		void on_action_mirror_z_triggered();
 		void on_action_translate_dialog_triggered();
 		void on_action_merge_down_triggered();
 		void on_material_currentIndexChanged(int index);

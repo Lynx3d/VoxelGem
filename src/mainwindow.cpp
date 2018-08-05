@@ -119,6 +119,30 @@ void VGMainWindow::on_action_redo_triggered()
 	sceneProxy->redo();
 }
 
+void VGMainWindow::on_action_mirror_x_triggered()
+{
+	const VoxelLayer *layer = sceneProxy->getLayer(sceneProxy->activeLayer());
+	VTMirror mirror(0);
+	VoxelAggregate *transformed = transformAggregate(layer->aggregate, mirror);
+	sceneProxy->replaceAggregate(sceneProxy->activeLayer(), transformed);
+}
+
+void VGMainWindow::on_action_mirror_y_triggered()
+{
+	const VoxelLayer *layer = sceneProxy->getLayer(sceneProxy->activeLayer());
+	VTMirror mirror(1);
+	VoxelAggregate *transformed = transformAggregate(layer->aggregate, mirror);
+	sceneProxy->replaceAggregate(sceneProxy->activeLayer(), transformed);
+}
+
+void VGMainWindow::on_action_mirror_z_triggered()
+{
+	const VoxelLayer *layer = sceneProxy->getLayer(sceneProxy->activeLayer());
+	VTMirror mirror(2);
+	VoxelAggregate *transformed = transformAggregate(layer->aggregate, mirror);
+	sceneProxy->replaceAggregate(sceneProxy->activeLayer(), transformed);
+}
+
 void VGMainWindow::on_action_translate_dialog_triggered()
 {
 	VGTranslateDialog dialog(this);
