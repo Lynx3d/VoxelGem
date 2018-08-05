@@ -121,6 +121,7 @@
     <addaction name="action_mirror_z"/>
     <addaction name="separator"/>
     <addaction name="action_translate_dialog"/>
+    <addaction name="action_merge_down"/>
    </widget>
    <addaction name="menu_file"/>
    <addaction name="menuEdit"/>
@@ -558,6 +559,14 @@
   <action name="action_translate_dialog">
    <property name="text">
     <string>Translate Model...</string>
+   </property>
+  </action>
+  <action name="action_merge_down">
+   <property name="text">
+    <string>Merge Layer Down</string>
+   </property>
+   <property name="toolTip">
+    <string>Merge selected layer with layer below</string>
    </property>
   </action>
  </widget>

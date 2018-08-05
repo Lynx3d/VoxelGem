@@ -63,6 +63,7 @@ class SceneProxy: public QObject
 		bool createLayer(int layerN = -1);
 		bool insertLayer(VoxelLayer *layer, int layerN = -1);
 		bool deleteLayer(int layerN);
+		bool mergeLayers(int source, int target);
 		bool setActiveLayer(int layerN);
 		bool setLayerBound(int layerN, const IBBox &bound);
 		bool setLayerBoundUse(int layerN, bool enabled);

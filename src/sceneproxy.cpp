@@ -139,6 +139,19 @@ bool SceneProxy::deleteLayer(int layerN)
 	return true;
 }
 
+bool SceneProxy::mergeLayers(int source, int target)
+{
+	if (source == target || source < 0 || target < 0 || source >= layerCount() || target >= layerCount())
+		return false;
+	VoxelAggregate *merged = new VoxelAggregate;
+	merged->clone(*scene->layers[target]->aggregate);
+	merged->merge(*scene->layers[source]->aggregate);
+	// TODO: specialized memento or multi-part memento
+	replaceAggregate(target, merged);
+	deleteLayer(source);
+	return true;
+}
+
 bool SceneProxy::setActiveLayer(int layerN)
 {
 	if (layerN < 0 || layerN >= (int)scene->layers.size())

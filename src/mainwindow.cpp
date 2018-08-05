@@ -132,6 +132,14 @@ void VGMainWindow::on_action_translate_dialog_triggered()
 	}
 }
 
+void VGMainWindow::on_action_merge_down_triggered()
+{
+	int source = sceneProxy->activeLayer();
+	if (source < 1)
+		return;
+	sceneProxy->mergeLayers(source, source - 1);
+}
+
 // TODO: create header
 void qubicle_import(const QString &filename, SceneProxy *sceneP);
 void qubicle_export(const QString &filename, SceneProxy *sceneP, bool trove_maps);

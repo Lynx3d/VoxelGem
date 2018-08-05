@@ -45,6 +45,7 @@ class VGMainWindow : public QMainWindow
 		void on_action_undo_triggered();
 		void on_action_redo_triggered();
 		void on_action_translate_dialog_triggered();
+		void on_action_merge_down_triggered();
 		void on_material_currentIndexChanged(int index);
 		void on_specular_currentIndexChanged(int index);
 		void on_colorSelectionChanged(QColor col);
