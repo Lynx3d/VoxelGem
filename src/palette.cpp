@@ -238,6 +238,8 @@ ColorPaletteView::ColorPaletteView(QWidget *parent)	: QTableView(parent), active
 	horizontalHeader()->hide();
 	verticalHeader()->setDefaultSectionSize(20);
 	setContextMenuPolicy(Qt::DefaultContextMenu);
+	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff); // Horizontal scrollbar is never needed
+	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn); // Avoid that removing bar increases row size so it's needed again -> infinite redraw
 	//setViewMode(FIXED_COLUMNS);
 	setShowGrid(false);
 	setItemDelegate(new ColorPaletteDelegate());
