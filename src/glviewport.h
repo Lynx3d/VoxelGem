@@ -65,7 +65,7 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 {
 	Q_OBJECT
 	public:
-		GlViewportWidget(VoxelScene *pscene);
+		GlViewportWidget(VoxelScene *pscene, QWidget *parent = nullptr);
 		void setSamples(int numSamples);
 		void setViewMode(RenderOptions::Modes mode);
 		static float sRGB_LUT[1024];

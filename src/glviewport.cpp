@@ -103,7 +103,8 @@ void ViewportSettings::updateViewMatrix()
 
 /* ========== GlViewportWidget ==============*/
 
-GlViewportWidget::GlViewportWidget(VoxelScene *pscene): scene(pscene), dragStatus(DRAG_NONE), currentTool(0)
+GlViewportWidget::GlViewportWidget(VoxelScene *pscene, QWidget *parent):
+	QOpenGLWidget(parent), scene(pscene), dragStatus(DRAG_NONE), currentTool(0)
 {
 	scene->viewport = this;  // TODO: think about a nicer way...
 }
