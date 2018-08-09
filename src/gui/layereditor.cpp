@@ -16,6 +16,7 @@
 #include <QSignalBlocker>
 
 #include <iostream>
+#include <cmath>
 #include <cassert>
 
 LayerEditor::LayerEditor(QWidget *parent, SceneProxy *manager):

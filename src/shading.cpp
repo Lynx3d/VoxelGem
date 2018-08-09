@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <cstring>
+#include <cmath>
 #include <QOpenGLShaderProgram>
 #include <QString>
 #include <QByteArray>

@@ -13,6 +13,7 @@
 #include "edittool.h"
 #include "util/shaderinfo.h"
 #include <iostream>
+#include <cmath>
 #include <QSurfaceFormat>
 #include <QOpenGLShaderProgram>
 #include <QMouseEvent>
