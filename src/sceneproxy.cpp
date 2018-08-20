@@ -139,6 +139,26 @@ bool SceneProxy::deleteLayer(int layerN)
 	return true;
 }
 
+bool SceneProxy::moveLayer(int layerN, int targetN)
+{
+	if (layerN == targetN || layerN < 0 || layerN >= layerCount() ||
+		targetN < 0 || targetN >= layerCount())
+		return false;
+
+	scene->moveLayer(layerN, targetN);
+	dropRedoHistory();
+	editHistory.emplace_back();
+	SceneMemento &memento = editHistory.back();
+	memento.action = SceneMemento::MOVE_LAYER;
+	memento.sourceLayerIndex = layerN;
+	memento.targetLayerIndex = targetN;
+	undoState = editHistory.end();
+
+	emit(layerMoved(layerN, targetN));
+	emit(renderDataChanged());
+	return true;
+}
+
 bool SceneProxy::mergeLayers(int source, int target)
 {
 	if (source == target || source < 0 || target < 0 || source >= layerCount() || target >= layerCount())
@@ -253,6 +273,10 @@ void SceneProxy::undo()
 			state.sourceLayers.pop_back();
 			emit(layerCreated(state.targetLayerIndex));
 			break;
+		case SceneMemento::MOVE_LAYER:
+			scene->moveLayer(state.targetLayerIndex, state.sourceLayerIndex);
+			emit(layerMoved(state.targetLayerIndex, state.sourceLayerIndex));
+			break;
 		case SceneMemento::EDIT_LAYER:
 			// TODO
 			break;
@@ -285,6 +309,10 @@ void SceneProxy::redo()
 			moveActiveLayer(state.targetLayerIndex);
 			scene->removeLayer(state.targetLayerIndex);
 			emit(layerDeleted(state.targetLayerIndex));
+			break;
+		case SceneMemento::MOVE_LAYER:
+			scene->moveLayer(state.sourceLayerIndex, state.targetLayerIndex);
+			emit(layerMoved(state.sourceLayerIndex, state.targetLayerIndex));
 			break;
 		case SceneMemento::EDIT_LAYER:
 			// TODO

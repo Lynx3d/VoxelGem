@@ -29,6 +29,7 @@ class SceneMemento
 			EDIT_VOXELS,
 			ADD_LAYER,
 			DELETE_LAYER,
+			MOVE_LAYER,
 			EDIT_LAYER,
 			REPLACE_AGGREGATE,
 			INVALID_ACTION
@@ -41,6 +42,7 @@ class SceneMemento
 		Action action;
 		//bool redoAction = false; // redundant?
 		std::vector<VoxelLayer*> sourceLayers; // for merge operations
+		unsigned int sourceLayerIndex;
 		unsigned int targetLayerIndex;
 		//VoxelLayer *targetLayer; // redundant?
 		AggregateMemento *memento;
@@ -63,6 +65,7 @@ class SceneProxy: public QObject
 		bool createLayer(int layerN = -1);
 		bool insertLayer(VoxelLayer *layer, int layerN = -1);
 		bool deleteLayer(int layerN);
+		bool moveLayer(int layerN, int targetN);
 		bool mergeLayers(int source, int target);
 		bool setActiveLayer(int layerN);
 		bool setLayerBound(int layerN, const IBBox &bound);
@@ -76,6 +79,7 @@ class SceneProxy: public QObject
 	Q_SIGNALS:
 		void layerDeleted(int layerN);
 		void layerCreated(int layerN);
+		void layerMoved(int layerN, int targetN);
 		void layerSettingsChanged(int layerN, int change_flags);
 		void activeLayerChanged(int layerN, int prev);
 		void templateColorChanged(rgba_t col);

@@ -137,6 +137,21 @@ VoxelLayer* VoxelScene::removeLayer(int layerN)
 	return layer;
 }
 
+void VoxelScene::moveLayer(int layerN, int targetN)
+{
+	// TODO: if layers are only moved by one position, a simple swap would do
+	VoxelLayer *layer = layers[layerN];
+	layers.erase(layers.begin() + layerN);
+	layers.insert(layers.begin() + targetN, layer);
+	// update active layer index if necessary; the actual layer active doesn't change
+	if (layerN == activeLayerN)
+		activeLayerN = targetN;
+	else if(layerN < activeLayerN && targetN >= activeLayerN)
+		--activeLayerN;
+	else if(layerN > activeLayerN && targetN <= activeLayerN)
+		++activeLayerN;
+}
+
 void VoxelScene::update()
 {
 	renderLayer->aggregate->clearBlocks(editingLayer->dirtyVolumes/* changedBlocks */);

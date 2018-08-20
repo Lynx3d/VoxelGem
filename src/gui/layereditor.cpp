@@ -25,6 +25,8 @@ LayerEditor::LayerEditor(QWidget *parent, SceneProxy *manager):
 	ui = new Ui::Layers;
 	ui->setupUi(parent);
 	ui->btn_add_layer->setDefaultAction(ui->action_add_layer);
+	ui->btn_move_up->setDefaultAction(ui->action_layer_up);
+	ui->btn_move_down->setDefaultAction(ui->action_layer_down);
 	ui->btn_delete->setDefaultAction(ui->action_delete_layer);
 	/* connect(ui->layer_list->selectionModel(), SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
 			this, SLOT(selectionChanged(const QModelIndex &, const QModelIndex &))); */
@@ -44,9 +46,12 @@ LayerEditor::LayerEditor(QWidget *parent, SceneProxy *manager):
 			this, [this](int val){ this->adjustUpperBound(val, 2); });
 	connect(ui->group_bound, &QGroupBox::clicked, this, &LayerEditor::on_layer_bound_toggled);
 	connect(ui->action_add_layer, &QAction::triggered, this, &LayerEditor::on_action_add_layer_triggered);
+	connect(ui->action_layer_up, &QAction::triggered, this, &LayerEditor::on_action_layer_up_triggered);
+	connect(ui->action_layer_down, &QAction::triggered, this, &LayerEditor::on_action_layer_down_triggered);
 	connect(ui->action_delete_layer, &QAction::triggered, this, &LayerEditor::on_action_delete_layer_triggered);
 	connect(manager, &SceneProxy::layerCreated, this, &LayerEditor::layerCreated);
 	connect(manager, &SceneProxy::layerDeleted, this, &LayerEditor::layerDeleted);
+	connect(manager, &SceneProxy::layerMoved, this, &LayerEditor::layerMoved);
 	connect(manager, &SceneProxy::activeLayerChanged, this, &LayerEditor::activeLayerChanged);
 	connect(manager, &SceneProxy::layerSettingsChanged, this, &LayerEditor::layerSettingsChanged);
 	// TODO: handle layerSettingsChanged() signal to catch outside changes
@@ -191,6 +196,19 @@ void LayerEditor::layerDeleted(int layerN)
 		layerWidgets[i]->setLayerNum(i);
 }
 
+void LayerEditor::layerMoved(int layerN, int targetN)
+{
+	LayerWidget *widget = layerWidgets[layerN];
+	layerStackLayout->removeWidget(widget);
+	layerStackLayout->insertWidget(targetN, widget);
+	// adjust our widget vector order
+	layerWidgets.erase(layerWidgets.begin() + layerN);
+	layerWidgets.insert(layerWidgets.begin() + targetN, widget);
+	// renumber layers; TODO: eliminate redundant renumbering
+	for (int i = 0; i < (int)layerWidgets.size(); ++i)
+		layerWidgets[i]->setLayerNum(i);
+}
+
 void LayerEditor::layerSettingsChanged(int layerN, int change_flags)
 {
 	const VoxelLayer *layer = hub->getLayer(layerN);
@@ -224,6 +242,20 @@ void LayerEditor::on_action_add_layer_triggered()
 void LayerEditor::on_layer_bound_toggled(bool enabled)
 {
 	hub->setLayerBoundUse(hub->activeLayer(), enabled);
+}
+
+void LayerEditor::on_action_layer_up_triggered()
+{
+	int activeLayer = hub->activeLayer();
+	if (activeLayer < hub->layerCount() - 1)
+		hub->moveLayer(activeLayer, activeLayer + 1);
+}
+
+void LayerEditor::on_action_layer_down_triggered()
+{
+	int activeLayer = hub->activeLayer();
+	if (activeLayer > 0)
+		hub->moveLayer(activeLayer, activeLayer - 1);
 }
 
 void LayerEditor::on_action_delete_layer_triggered()

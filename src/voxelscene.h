@@ -85,6 +85,7 @@ class VoxelScene
 		void applyToolChanges(AggregateMemento *memento);
 		void insertLayer(VoxelLayer *layer, int layerN);
 		VoxelLayer* removeLayer(int layerN);
+		void moveLayer(int layerN, int targetN);
 		void restoreAggregate(VoxelLayer *layer, AggregateMemento *memento);
 		VoxelAggregate* replaceAggregate(int layerN, VoxelAggregate *aggregate);
 		void setActiveLayer(int layerN);

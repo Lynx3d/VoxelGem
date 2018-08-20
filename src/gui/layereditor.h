@@ -39,11 +39,14 @@ class LayerEditor: public QObject
 	public Q_SLOTS:
 		void layerCreated(int layerN);
 		void layerDeleted(int layerN);
+		void layerMoved(int layerN, int targetN);
 		void layerSettingsChanged(int layerN, int change_flags);
 		void activeLayerChanged(int layerN, int prev);
 		void on_nameEdit_editingFinished();
 		void on_layer_bound_toggled(bool enabled);
 		void on_action_add_layer_triggered();
+		void on_action_layer_up_triggered();
+		void on_action_layer_down_triggered();
 		void on_action_delete_layer_triggered();
 	protected:
 		void adjustLowerBound(int val, int index);
