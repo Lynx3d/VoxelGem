@@ -25,7 +25,7 @@
         <x>0</x>
         <y>0</y>
         <width>213</width>
-        <height>96</height>
+        <height>102</height>
        </rect>
       </property>
      </widget>
@@ -200,7 +200,7 @@
         </property>
        </widget>
       </item>
-	  <item row="2" column="1">
+      <item row="2" column="1">
        <widget class="QSpinBox" name="sb_min_z">
         <property name="minimum">
          <number>-999999</number>
@@ -239,11 +239,19 @@
    </property>
   </action>
   <action name="action_layer_up">
+   <property name="icon">
+    <iconset resource="../../resources.qrc">
+     <normaloff>:/images/gfx/icons/arrow_up.svg</normaloff>:/images/gfx/icons/arrow_up.svg</iconset>
+   </property>
    <property name="text">
     <string>Move Layer up</string>
    </property>
   </action>
   <action name="action_layer_down">
+   <property name="icon">
+    <iconset resource="../../resources.qrc">
+     <normaloff>:/images/gfx/icons/arrow_down.svg</normaloff>:/images/gfx/icons/arrow_down.svg</iconset>
+   </property>
    <property name="text">
     <string>Move Layer down</string>
    </property>

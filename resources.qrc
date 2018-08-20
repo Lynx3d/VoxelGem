@@ -3,6 +3,8 @@
 	<file>assets/trove.gpl</file>
   </qresource>
   <qresource prefix="images">
+	<file>gfx/icons/arrow_down.svg</file>
+	<file>gfx/icons/arrow_up.svg</file>
 	<file>gfx/icons/block.svg</file>
 	<file>gfx/icons/bucket.svg</file>
 	<file>gfx/icons/edit-redo.svg</file>
