@@ -104,7 +104,7 @@ void ViewportSettings::updateViewMatrix()
 /* ========== GlViewportWidget ==============*/
 
 GlViewportWidget::GlViewportWidget(VoxelScene *pscene, QWidget *parent):
-	QOpenGLWidget(parent), scene(pscene), dragStatus(DRAG_NONE), currentTool(0)
+	QOpenGLWidget(parent), scene(pscene), tesselationChanged(false), showGrid(true), dragStatus(DRAG_NONE), currentTool(0)
 {
 	scene->viewport = this;  // TODO: think about a nicer way...
 }
@@ -236,7 +236,8 @@ void GlViewportWidget::paintGL()
 	// test object
 	if (scene->layers[scene->activeLayerN]->useBound)
 		boundCube->render(*this);
-	grid->render(*this);
+	if (showGrid)
+		grid->render(*this);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -281,6 +282,15 @@ void GlViewportWidget::setViewMode(RenderOptions::Modes mode)
 		update();
 	}
 };
+
+void GlViewportWidget::setShowGrid(bool enabled)
+{
+	if (enabled != showGrid)
+	{
+		showGrid = enabled;
+		update();
+	}
+}
 
 void GlViewportWidget::activeLayerChanged(int layerN)
 {

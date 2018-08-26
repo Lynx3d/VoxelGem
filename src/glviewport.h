@@ -68,6 +68,7 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 		GlViewportWidget(VoxelScene *pscene, QWidget *parent = nullptr);
 		void setSamples(int numSamples);
 		void setViewMode(RenderOptions::Modes mode);
+		void setShowGrid(bool enabled);
 		static float sRGB_LUT[1024];
 		GLRenderable* getGrid();
 		const RenderOptions& getRenderOptions() { return renderOptions; }
@@ -95,6 +96,7 @@ class GlViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Co
 		LineGrid *grid; // TODO: move to ViewportSettings?
 		RenderOptions renderOptions; // TODO: move to ViewportSettings?
 		bool tesselationChanged; // TODO: move to ViewportSettings?
+		bool showGrid;
 		DragType dragStatus;
 		QPoint dragStart;
 		EditTool *currentTool;

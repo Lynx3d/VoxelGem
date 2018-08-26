@@ -32,7 +32,7 @@ VGMainWindow::VGMainWindow():
 	scene(new VoxelScene)
 {
 	mainUi->setupUi(this);
-	viewport = new GlViewportWidget(scene),
+	viewport = new GlViewportWidget(scene, this);
 	// takes care of "gamma correction" (sRGB transfer curve is not strictly a gamma function)
 	#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
 	viewport->setTextureFormat(GL_SRGB8_ALPHA8); /* Qt 5.10+ */
@@ -117,6 +117,11 @@ void VGMainWindow::on_action_undo_triggered()
 void VGMainWindow::on_action_redo_triggered()
 {
 	sceneProxy->redo();
+}
+
+void VGMainWindow::on_action_axis_grids_toggled(bool checked)
+{
+	viewport->setShowGrid(checked);
 }
 
 void VGMainWindow::on_action_rotate_x_triggered()

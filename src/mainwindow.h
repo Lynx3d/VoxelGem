@@ -44,6 +44,7 @@ class VGMainWindow : public QMainWindow
 		void on_action_export_layer_triggered();
 		void on_action_undo_triggered();
 		void on_action_redo_triggered();
+		void on_action_axis_grids_toggled(bool checked);
 		void on_action_rotate_x_triggered();
 		void on_action_rotate_y_triggered();
 		void on_action_rotate_z_triggered();
