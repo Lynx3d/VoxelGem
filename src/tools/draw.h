@@ -21,6 +21,7 @@ class DrawTool: public EditTool
 	private:
 		void processDragEvent(const ToolEvent &event);
 		bool deleting;
+		bool picking;
 		bool haveLastPos;
 		IVector3D lastPos;
 };

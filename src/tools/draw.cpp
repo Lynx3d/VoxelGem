@@ -8,11 +8,13 @@
 
 #include "draw.h"
 #include "voxelscene.h"
+#include "sceneproxy.h"
 
 void DrawTool::mouseDown(const ToolEvent &event)
 {
 	haveLastPos = false;
 	deleting = event.isShiftPressed();
+	picking = event.isControlPressed();
 	processDragEvent(event);
 }
 
@@ -31,7 +33,17 @@ void DrawTool::mouseMoved(const ToolEvent &event)
 void DrawTool::processDragEvent(const ToolEvent &event)
 {
 	IVector3D curPos;
-	if (deleting)
+	if (picking)
+	{
+		const VoxelEntry *voxel = getCursorVoxelEdit(event, curPos);
+		if (!voxel)
+			return;
+		if (haveLastPos && lastPos == curPos)
+			return;
+
+		sceneProxy->setTemplateColor(voxel->col);
+	}
+	else if (deleting)
 	{
 		const VoxelEntry *voxel = getCursorVoxelEdit(event, curPos);
 		if (!voxel)
@@ -59,6 +71,6 @@ ToolInstance* DrawTool::getInstance()
 	instance->tool = new DrawTool();
 	instance->icon.addFile(QStringLiteral(":/images/gfx/icons/pencil.svg"));
 	instance->toolTip = "Draw Voxels";
-	instance->statusTip = "Press Shift to remove voxels";
+	instance->statusTip = "Press Shift to remove voxels, Control to pick color";
 	return instance;
 }
