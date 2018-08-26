@@ -12,7 +12,7 @@
 
 void PaintTool::mouseDown(const ToolEvent &event)
 {
-	picking = event.isShiftPressed();
+	picking = event.isControlPressed();
 	haveLastPos = false;
 	processDragEvent(event);
 }
@@ -36,7 +36,7 @@ void PaintTool::processDragEvent(const ToolEvent &event)
 	if (!voxel)
 		return;
 
-	if (haveLastPos && lastPos[0] == curPos[0] && lastPos[1] == curPos[1] && lastPos[2] == curPos[2])
+	if (haveLastPos && lastPos == curPos)
 		return;
 
 	if (picking)
@@ -57,6 +57,6 @@ ToolInstance* PaintTool::getInstance()
 	instance->tool = new PaintTool();
 	instance->icon.addFile(QStringLiteral(":/images/gfx/icons/paintbrush.svg"));
 	instance->toolTip = "Paint Voxels";
-	instance->statusTip = "Press Shift to pick color";
+	instance->statusTip = "Press Control to pick color";
 	return instance;
 }
