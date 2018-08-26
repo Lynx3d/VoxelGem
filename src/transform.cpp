@@ -21,6 +21,56 @@ void VTMirror::operator()(const IVector3D &pos, const VoxelEntry *voxel, VoxelAg
 	target->setVoxel(mPos, *voxel);
 }
 
+VTRotate::VTRotate(int axis, Rotation rotation)
+{
+	int planeXMap, planeYMap;
+	int planeXDir, planeYDir;
+
+	switch (rotation)
+	{
+		case Rot90:
+			planeXMap = 1;
+			planeYMap = 0;
+			planeXDir = 1;
+			planeYDir = -1;
+			break;
+		case Rot180:
+			planeXMap = 0;
+			planeYMap = 1;
+			planeXDir = -1;
+			planeYDir = -1;
+			break;
+		case Rot270:
+			planeXMap = 1;
+			planeYMap = 0;
+			planeXDir = -1;
+			planeYDir = 1;
+	}
+	if (axis == 0)
+	{
+		axisMap = IVector3D(0, 1 + planeXMap, 1 + planeYMap);
+		axisScale = IVector3D(1, planeXDir, planeYDir);
+	}
+	else if (axis == 1)
+	{
+		axisMap = IVector3D((2 + planeYMap)%3, 1, (2 + planeXMap)%3);
+		axisScale = IVector3D(planeYDir, 1, planeXDir);
+	}
+	else
+	{
+		axisMap = IVector3D(planeXMap, planeYMap, 2);
+		axisScale = IVector3D(planeXDir, planeYDir, 1);
+	}
+}
+
+void VTRotate::operator()(const IVector3D &pos, const VoxelEntry *voxel, VoxelAggregate *target)
+{
+	IVector3D mPos;
+	for (int i = 0; i < 3; ++i)
+		mPos[axisMap[i]] = pos[i] * axisScale[i];
+	target->setVoxel(mPos, *voxel);
+}
+
 VoxelAggregate* transformAggregate(const VoxelAggregate *ag, VoxelTransform &xform)
 {
 	VoxelAggregate *transformed = new VoxelAggregate();

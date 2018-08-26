@@ -38,6 +38,22 @@ class VTMirror: public VoxelTransform
 		int center;
 };
 
+class VTRotate: public VoxelTransform
+{
+	public:
+		enum Rotation
+		{
+			Rot90,
+			Rot180,
+			Rot270
+		};
+		VTRotate(int axis, Rotation rotation);
+		virtual void operator()(const IVector3D &pos, const VoxelEntry *voxel, VoxelAggregate *target) override;
+	protected:
+		IVector3D axisMap;
+		IVector3D axisScale;
+};
+
 VoxelAggregate* transformAggregate(const VoxelAggregate *ag, VoxelTransform &xform);
 
 #endif // VG_VOXELTRANSFORM_H

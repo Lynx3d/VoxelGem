@@ -119,6 +119,30 @@ void VGMainWindow::on_action_redo_triggered()
 	sceneProxy->redo();
 }
 
+void VGMainWindow::on_action_rotate_x_triggered()
+{
+	const VoxelLayer *layer = sceneProxy->getLayer(sceneProxy->activeLayer());
+	VTRotate rotate(0, VTRotate::Rot90);
+	VoxelAggregate *transformed = transformAggregate(layer->aggregate, rotate);
+	sceneProxy->replaceAggregate(sceneProxy->activeLayer(), transformed);
+}
+
+void VGMainWindow::on_action_rotate_y_triggered()
+{
+	const VoxelLayer *layer = sceneProxy->getLayer(sceneProxy->activeLayer());
+	VTRotate rotate(1, VTRotate::Rot90);
+	VoxelAggregate *transformed = transformAggregate(layer->aggregate, rotate);
+	sceneProxy->replaceAggregate(sceneProxy->activeLayer(), transformed);
+}
+
+void VGMainWindow::on_action_rotate_z_triggered()
+{
+	const VoxelLayer *layer = sceneProxy->getLayer(sceneProxy->activeLayer());
+	VTRotate rotate(2, VTRotate::Rot90);
+	VoxelAggregate *transformed = transformAggregate(layer->aggregate, rotate);
+	sceneProxy->replaceAggregate(sceneProxy->activeLayer(), transformed);
+}
+
 void VGMainWindow::on_action_mirror_x_triggered()
 {
 	const VoxelLayer *layer = sceneProxy->getLayer(sceneProxy->activeLayer());
