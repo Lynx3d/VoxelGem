@@ -60,7 +60,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>25</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_file">
@@ -121,6 +121,7 @@
     <addaction name="action_mirror_z"/>
     <addaction name="separator"/>
     <addaction name="action_translate_dialog"/>
+    <addaction name="action_duplicate"/>
     <addaction name="action_merge_down"/>
    </widget>
    <addaction name="menu_file"/>
@@ -567,6 +568,11 @@
    </property>
    <property name="toolTip">
     <string>Merge selected layer with layer below</string>
+   </property>
+  </action>
+  <action name="action_duplicate">
+   <property name="text">
+    <string>Duplicate Layer</string>
    </property>
   </action>
  </widget>

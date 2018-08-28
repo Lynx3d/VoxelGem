@@ -185,6 +185,17 @@ void VGMainWindow::on_action_translate_dialog_triggered()
 	}
 }
 
+void VGMainWindow::on_action_duplicate_triggered()
+{
+	const VoxelLayer *layer = sceneProxy->getLayer(sceneProxy->activeLayer());
+	VoxelLayer* newLayer = new VoxelLayer;
+	newLayer->aggregate = layer->aggregate->duplicate();
+	newLayer->bound = layer->bound;
+	newLayer->useBound = layer->useBound;
+	newLayer->name = layer->name + " (copy)";
+	sceneProxy->insertLayer(newLayer, sceneProxy->activeLayer() + 1);
+}
+
 void VGMainWindow::on_action_merge_down_triggered()
 {
 	int source = sceneProxy->activeLayer();

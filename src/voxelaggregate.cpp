@@ -94,6 +94,14 @@ void VoxelAggregate::clone(const VoxelAggregate &source)
 		blockMap.emplace(block.first, block.second);
 }
 
+VoxelAggregate* VoxelAggregate::duplicate() const
+{
+	VoxelAggregate* dupe = new VoxelAggregate();
+	for (auto &block: blockMap)
+		dupe->blockMap.emplace(block.first, new VoxelGrid(*block.second));
+	return dupe;
+}
+
 void VoxelAggregate::merge(const VoxelAggregate &topLayer)
 {
 	for (auto &topGrid: topLayer.blockMap)
